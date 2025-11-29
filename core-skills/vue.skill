@@ -1,0 +1,693 @@
+# Vue 3 Skill
+
+> Patterns for Vue 3 + Composition API + TypeScript development.
+
+**When to use:** Small-medium projects (<30 views), rapid prototyping, or when team prefers Vue.
+**See also:** `framework-philosophy.skill` for project size decision matrix.
+**Alternative:** `react.skill` for larger projects or when React ecosystem is preferred.
+
+---
+
+## Project Setup
+
+### Recommended Stack
+```
+Vue 3 + Vite + TypeScript + Pinia + Vue Router + Tailwind CSS
+```
+
+### Create Project
+```bash
+npm create vite@latest my-app -- --template vue-ts
+cd my-app
+npm install
+npm install -D @types/node
+
+# Essential packages
+npm install pinia vue-router @vueuse/core
+npm install -D tailwindcss postcss autoprefixer
+npx tailwindcss init -p
+```
+
+### Project Structure
+```
+src/
+├── components/          # Reusable UI components
+│   ├── ui/              # Base components (Button, Input, Modal)
+│   └── features/        # Feature-specific components
+├── composables/         # Composition functions (useX)
+├── stores/              # Pinia stores
+├── views/               # Route pages
+├── router/              # Vue Router config
+├── types/               # TypeScript types
+├── lib/                 # Utilities, API clients
+└── assets/              # Static assets, global CSS
+```
+
+---
+
+## Component Patterns
+
+### Basic SFC Structure
+```vue
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
+import type { Project } from '@/types'
+
+// Props
+const props = defineProps<{
+  project: Project
+  editable?: boolean
+}>()
+
+// Emits
+const emit = defineEmits<{
+  update: [project: Project]
+  delete: [id: string]
+}>()
+
+// State
+const isLoading = ref(false)
+const localName = ref(props.project.name)
+
+// Computed
+const displayName = computed(() => localName.value.toUpperCase())
+
+// Methods
+function handleSave() {
+  emit('update', { ...props.project, name: localName.value })
+}
+
+// Lifecycle
+onMounted(() => {
+  console.log('Component mounted')
+})
+</script>
+
+<template>
+  <div class="project-card">
+    <h2>{{ displayName }}</h2>
+    <input v-if="editable" v-model="localName" />
+    <button @click="handleSave">Save</button>
+  </div>
+</template>
+
+<style scoped>
+.project-card {
+  /* Component-scoped styles */
+}
+</style>
+```
+
+### Props with Defaults
+```vue
+<script setup lang="ts">
+interface Props {
+  title: string
+  count?: number
+  variant?: 'primary' | 'secondary'
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  count: 0,
+  variant: 'primary'
+})
+</script>
+```
+
+### v-model on Components
+```vue
+<!-- Parent -->
+<SearchInput v-model="searchQuery" />
+<DatePicker v-model:start="startDate" v-model:end="endDate" />
+
+<!-- Child: SearchInput.vue -->
+<script setup lang="ts">
+const model = defineModel<string>()
+</script>
+
+<template>
+  <input :value="model" @input="model = ($event.target as HTMLInputElement).value" />
+</template>
+
+<!-- Child: DatePicker.vue (multiple v-model) -->
+<script setup lang="ts">
+const startModel = defineModel<Date>('start')
+const endModel = defineModel<Date>('end')
+</script>
+```
+
+### Expose (for parent access)
+```vue
+<script setup lang="ts">
+const inputRef = ref<HTMLInputElement>()
+
+function focus() {
+  inputRef.value?.focus()
+}
+
+function clear() {
+  // ...
+}
+
+defineExpose({ focus, clear })
+</script>
+
+<!-- Parent can now call: childRef.value?.focus() -->
+```
+
+---
+
+## Composables (useX)
+
+### Basic Composable
+```typescript
+// composables/useCounter.ts
+import { ref, computed } from 'vue'
+
+export function useCounter(initial = 0) {
+  const count = ref(initial)
+  const doubled = computed(() => count.value * 2)
+
+  function increment() {
+    count.value++
+  }
+
+  function decrement() {
+    count.value--
+  }
+
+  return {
+    count,
+    doubled,
+    increment,
+    decrement
+  }
+}
+```
+
+### Async Composable with Loading State
+```typescript
+// composables/useProjects.ts
+import { ref, readonly } from 'vue'
+import { supabase } from '@/lib/supabase'
+import type { Project } from '@/types'
+
+export function useProjects() {
+  const projects = ref<Project[]>([])
+  const isLoading = ref(false)
+  const error = ref<string | null>(null)
+
+  async function fetchProjects() {
+    isLoading.value = true
+    error.value = null
+    
+    try {
+      const { data, error: err } = await supabase
+        .from('projects')
+        .select('*')
+        .order('created_at', { ascending: false })
+      
+      if (err) throw err
+      projects.value = data ?? []
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : 'Unknown error'
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  async function createProject(project: Partial<Project>) {
+    const { data, error: err } = await supabase
+      .from('projects')
+      .insert(project)
+      .select()
+      .single()
+    
+    if (err) throw err
+    projects.value.unshift(data)
+    return data
+  }
+
+  return {
+    projects: readonly(projects),
+    isLoading: readonly(isLoading),
+    error: readonly(error),
+    fetchProjects,
+    createProject
+  }
+}
+```
+
+### Composable with Cleanup
+```typescript
+// composables/useSubscription.ts
+import { onUnmounted } from 'vue'
+import { supabase } from '@/lib/supabase'
+
+export function useRealtimeProjects(onUpdate: (payload: any) => void) {
+  const channel = supabase
+    .channel('projects-changes')
+    .on('postgres_changes', 
+      { event: '*', schema: 'public', table: 'projects' },
+      onUpdate
+    )
+    .subscribe()
+
+  onUnmounted(() => {
+    supabase.removeChannel(channel)
+  })
+
+  return { channel }
+}
+```
+
+---
+
+## Pinia Stores
+
+### Basic Store
+```typescript
+// stores/projects.ts
+import { defineStore } from 'pinia'
+import { ref, computed } from 'vue'
+import { supabase } from '@/lib/supabase'
+import type { Project } from '@/types'
+
+export const useProjectStore = defineStore('projects', () => {
+  // State
+  const projects = ref<Project[]>([])
+  const isLoading = ref(false)
+  const currentProjectId = ref<string | null>(null)
+
+  // Getters
+  const currentProject = computed(() =>
+    projects.value.find(p => p.id === currentProjectId.value)
+  )
+
+  const activeProjects = computed(() =>
+    projects.value.filter(p => p.status === 'active')
+  )
+
+  // Actions
+  async function fetchProjects() {
+    isLoading.value = true
+    try {
+      const { data } = await supabase.from('projects').select('*')
+      projects.value = data ?? []
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  async function updateProject(id: string, updates: Partial<Project>) {
+    const { data } = await supabase
+      .from('projects')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single()
+    
+    const index = projects.value.findIndex(p => p.id === id)
+    if (index !== -1 && data) {
+      projects.value[index] = data
+    }
+  }
+
+  function setCurrentProject(id: string | null) {
+    currentProjectId.value = id
+  }
+
+  return {
+    // State
+    projects,
+    isLoading,
+    currentProjectId,
+    // Getters
+    currentProject,
+    activeProjects,
+    // Actions
+    fetchProjects,
+    updateProject,
+    setCurrentProject
+  }
+})
+```
+
+### Store with Persist (localStorage)
+```typescript
+// stores/settings.ts
+import { defineStore } from 'pinia'
+import { ref, watch } from 'vue'
+
+export const useSettingsStore = defineStore('settings', () => {
+  const theme = ref<'light' | 'dark'>(
+    (localStorage.getItem('theme') as 'light' | 'dark') ?? 'light'
+  )
+  const sidebarCollapsed = ref(
+    localStorage.getItem('sidebarCollapsed') === 'true'
+  )
+
+  // Persist on change
+  watch(theme, (val) => localStorage.setItem('theme', val))
+  watch(sidebarCollapsed, (val) => localStorage.setItem('sidebarCollapsed', String(val)))
+
+  function toggleTheme() {
+    theme.value = theme.value === 'light' ? 'dark' : 'light'
+  }
+
+  return { theme, sidebarCollapsed, toggleTheme }
+})
+```
+
+### Using Store in Component
+```vue
+<script setup lang="ts">
+import { storeToRefs } from 'pinia'
+import { useProjectStore } from '@/stores/projects'
+
+const store = useProjectStore()
+
+// Reactive refs (keeps reactivity when destructuring)
+const { projects, isLoading, currentProject } = storeToRefs(store)
+
+// Actions can be destructured directly
+const { fetchProjects, updateProject } = store
+
+onMounted(() => {
+  fetchProjects()
+})
+</script>
+```
+
+---
+
+## Vue Router
+
+### Router Setup
+```typescript
+// router/index.ts
+import { createRouter, createWebHistory } from 'vue-router'
+import type { RouteRecordRaw } from 'vue-router'
+
+const routes: RouteRecordRaw[] = [
+  {
+    path: '/',
+    name: 'home',
+    component: () => import('@/views/HomeView.vue')
+  },
+  {
+    path: '/projects',
+    name: 'projects',
+    component: () => import('@/views/ProjectsView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/projects/:id',
+    name: 'project-detail',
+    component: () => import('@/views/ProjectDetailView.vue'),
+    props: true  // Pass route params as props
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'not-found',
+    component: () => import('@/views/NotFoundView.vue')
+  }
+]
+
+const router = createRouter({
+  history: createWebHistory(),
+  routes
+})
+
+// Navigation guard
+router.beforeEach(async (to, from) => {
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  if (to.meta.requiresAuth && !user) {
+    return { name: 'login', query: { redirect: to.fullPath } }
+  }
+})
+
+export default router
+```
+
+### Using Router in Components
+```vue
+<script setup lang="ts">
+import { useRouter, useRoute } from 'vue-router'
+
+const router = useRouter()
+const route = useRoute()
+
+// Get params
+const projectId = route.params.id as string
+
+// Navigate
+function goToProject(id: string) {
+  router.push({ name: 'project-detail', params: { id } })
+}
+
+function goBack() {
+  router.back()
+}
+</script>
+```
+
+---
+
+## Supabase + Vue Integration
+
+### Supabase Client
+```typescript
+// lib/supabase.ts
+import { createClient } from '@supabase/supabase-js'
+import type { Database } from '@/types/database.types'
+
+export const supabase = createClient<Database>(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+)
+```
+
+### Auth Composable
+```typescript
+// composables/useAuth.ts
+import { ref, computed, onMounted } from 'vue'
+import { supabase } from '@/lib/supabase'
+import type { User } from '@supabase/supabase-js'
+
+export function useAuth() {
+  const user = ref<User | null>(null)
+  const isLoading = ref(true)
+
+  const isAuthenticated = computed(() => !!user.value)
+
+  onMounted(async () => {
+    const { data: { user: currentUser } } = await supabase.auth.getUser()
+    user.value = currentUser
+    isLoading.value = false
+
+    supabase.auth.onAuthStateChange((event, session) => {
+      user.value = session?.user ?? null
+    })
+  })
+
+  async function signIn(email: string, password: string) {
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error) throw error
+  }
+
+  async function signOut() {
+    await supabase.auth.signOut()
+    user.value = null
+  }
+
+  return {
+    user,
+    isLoading,
+    isAuthenticated,
+    signIn,
+    signOut
+  }
+}
+```
+
+### Auth Provider Pattern
+```vue
+<!-- App.vue -->
+<script setup lang="ts">
+import { provide } from 'vue'
+import { useAuth } from '@/composables/useAuth'
+
+const auth = useAuth()
+provide('auth', auth)
+</script>
+
+<!-- Any child component -->
+<script setup lang="ts">
+import { inject } from 'vue'
+
+const auth = inject('auth')!
+</script>
+```
+
+---
+
+## TypeScript Patterns
+
+### Type Definitions
+```typescript
+// types/index.ts
+export interface Project {
+  id: string
+  name: string
+  status: 'draft' | 'active' | 'completed'
+  created_at: string
+  updated_at: string
+}
+
+export type ProjectCreate = Omit<Project, 'id' | 'created_at' | 'updated_at'>
+export type ProjectUpdate = Partial<ProjectCreate>
+```
+
+### Generic Composable
+```typescript
+export function useCrud<T extends { id: string }>(table: string) {
+  const items = ref<T[]>([])
+  
+  async function fetch() {
+    const { data } = await supabase.from(table).select('*')
+    items.value = data as T[]
+  }
+
+  async function create(item: Omit<T, 'id'>) {
+    const { data } = await supabase.from(table).insert(item).select().single()
+    items.value.push(data as T)
+    return data
+  }
+
+  async function update(id: string, updates: Partial<T>) {
+    const { data } = await supabase.from(table).update(updates).eq('id', id).select().single()
+    const index = items.value.findIndex(i => i.id === id)
+    if (index !== -1) items.value[index] = data as T
+    return data
+  }
+
+  async function remove(id: string) {
+    await supabase.from(table).delete().eq('id', id)
+    items.value = items.value.filter(i => i.id !== id)
+  }
+
+  return { items, fetch, create, update, remove }
+}
+```
+
+---
+
+## Reactivity Pitfalls
+
+### Destructuring Loses Reactivity
+```typescript
+// ❌ Wrong - loses reactivity
+const { count } = store
+console.log(count) // Not reactive!
+
+// ✅ Correct - use storeToRefs
+const { count } = storeToRefs(store)
+
+// ✅ Or access via store
+store.count // Reactive
+```
+
+### Async + Reactivity
+```typescript
+// ❌ Wrong - ref might be stale in async callback
+const data = ref(null)
+async function fetch() {
+  const result = await api.get()
+  data.value = result // OK if component still mounted
+}
+
+// ✅ Better - check if still mounted
+import { onUnmounted } from 'vue'
+
+let isMounted = true
+onUnmounted(() => { isMounted = false })
+
+async function fetch() {
+  const result = await api.get()
+  if (isMounted) {
+    data.value = result
+  }
+}
+```
+
+### Watch vs WatchEffect
+```typescript
+// watch - explicit source, access old/new values
+watch(searchQuery, (newVal, oldVal) => {
+  console.log(`Changed from ${oldVal} to ${newVal}`)
+}, { immediate: true })
+
+// watchEffect - auto-tracks dependencies
+watchEffect(() => {
+  console.log(`Search: ${searchQuery.value}, Filter: ${filter.value}`)
+})
+
+// watchEffect with cleanup
+watchEffect((onCleanup) => {
+  const controller = new AbortController()
+  fetch(url.value, { signal: controller.signal })
+  
+  onCleanup(() => controller.abort())
+})
+```
+
+---
+
+## Performance Tips
+
+### Lazy Loading Components
+```typescript
+// Router-level
+component: () => import('@/views/HeavyView.vue')
+
+// Component-level
+import { defineAsyncComponent } from 'vue'
+
+const HeavyChart = defineAsyncComponent(() =>
+  import('@/components/HeavyChart.vue')
+)
+```
+
+### v-memo for Heavy Lists
+```vue
+<template>
+  <div v-for="item in items" :key="item.id" v-memo="[item.updated_at]">
+    <HeavyComponent :data="item" />
+  </div>
+</template>
+```
+
+### Computed vs Method
+```typescript
+// ✅ Computed - cached, recalculates only when deps change
+const filtered = computed(() => items.value.filter(x => x.active))
+
+// ❌ Method - recalculates every render
+function getFiltered() {
+  return items.value.filter(x => x.active)
+}
+```
+
+---
+
+## Avoid
+
+- Options API in new code (use Composition API)
+- Mutating props directly
+- Large monolithic components (split into smaller ones)
+- Putting everything in Pinia (local state is fine for component-specific data)
+- `any` type in TypeScript
+- Mixing reactive() and ref() without reason
+- Forgetting to clean up subscriptions in onUnmounted

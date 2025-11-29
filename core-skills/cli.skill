@@ -1,0 +1,563 @@
+# CLI Skill
+
+> Command line tools, shell scripting, and automation.
+
+---
+
+## Shell Basics
+
+### Navigation
+```bash
+pwd                    # Print working directory
+cd /path/to/dir        # Change directory
+cd ~                   # Home directory
+cd -                   # Previous directory
+cd ..                  # Parent directory
+
+ls                     # List files
+ls -la                 # Detailed with hidden
+ls -lh                 # Human-readable sizes
+ls -lt                 # Sort by time
+```
+
+### File Operations
+```bash
+# Create
+touch file.txt         # Create empty file
+mkdir dirname          # Create directory
+mkdir -p a/b/c         # Create nested directories
+
+# Copy
+cp file.txt backup.txt
+cp -r dir/ backup/     # Copy directory recursively
+
+# Move/Rename
+mv old.txt new.txt
+mv file.txt ../        # Move to parent
+
+# Delete
+rm file.txt
+rm -r directory/       # Delete directory
+rm -rf directory/      # Force delete (careful!)
+
+# View
+cat file.txt           # Print file
+head -20 file.txt      # First 20 lines
+tail -20 file.txt      # Last 20 lines
+tail -f file.log       # Follow file (live)
+less file.txt          # Paginated view
+```
+
+### Text Processing
+```bash
+# Search
+grep "pattern" file.txt
+grep -r "pattern" .            # Recursive
+grep -i "pattern" file.txt     # Case insensitive
+grep -n "pattern" file.txt     # With line numbers
+grep -v "pattern" file.txt     # Invert match
+
+# Count
+wc -l file.txt                 # Line count
+wc -w file.txt                 # Word count
+
+# Sort & Unique
+sort file.txt
+sort -n file.txt               # Numeric sort
+uniq file.txt                  # Remove duplicates
+sort file.txt | uniq -c        # Count occurrences
+
+# Transform
+sed 's/old/new/g' file.txt     # Replace all
+sed -i '' 's/old/new/g' file   # In-place (macOS)
+awk '{print $1}' file.txt      # Print first column
+cut -d',' -f1 file.csv         # First CSV column
+```
+
+### Permissions
+```bash
+chmod +x script.sh     # Make executable
+chmod 755 file         # rwxr-xr-x
+chmod 644 file         # rw-r--r--
+chown user:group file  # Change owner
+```
+
+---
+
+## Variables & Substitution
+
+### Variables
+```bash
+# Define
+NAME="value"
+readonly CONST="value"
+
+# Use
+echo $NAME
+echo ${NAME}
+echo "${NAME}_suffix"
+
+# Default value
+echo ${NAME:-default}    # Use default if unset
+echo ${NAME:=default}    # Set default if unset
+
+# Environment
+export API_KEY="xxx"     # Export to child processes
+```
+
+### Command Substitution
+```bash
+# Modern syntax
+current_date=$(date +%Y-%m-%d)
+file_count=$(ls | wc -l)
+
+# Use in string
+echo "Today: $(date)"
+echo "Files: $(ls | wc -l)"
+```
+
+### Arrays
+```bash
+# Define
+arr=("one" "two" "three")
+
+# Access
+echo ${arr[0]}           # First element
+echo ${arr[@]}           # All elements
+echo ${#arr[@]}          # Length
+
+# Iterate
+for item in "${arr[@]}"; do
+  echo "$item"
+done
+```
+
+---
+
+## Conditionals & Loops
+
+### If Statement
+```bash
+if [[ -f "file.txt" ]]; then
+  echo "File exists"
+elif [[ -d "dir" ]]; then
+  echo "Directory exists"
+else
+  echo "Neither"
+fi
+```
+
+### Test Conditions
+```bash
+# Files
+[[ -f file ]]     # File exists
+[[ -d dir ]]      # Directory exists
+[[ -r file ]]     # Readable
+[[ -w file ]]     # Writable
+[[ -x file ]]     # Executable
+[[ -s file ]]     # Not empty
+
+# Strings
+[[ -z "$str" ]]   # Empty
+[[ -n "$str" ]]   # Not empty
+[[ "$a" == "$b" ]]
+[[ "$a" != "$b" ]]
+[[ "$a" =~ regex ]]
+
+# Numbers
+[[ $a -eq $b ]]   # Equal
+[[ $a -ne $b ]]   # Not equal
+[[ $a -lt $b ]]   # Less than
+[[ $a -gt $b ]]   # Greater than
+[[ $a -le $b ]]   # Less or equal
+[[ $a -ge $b ]]   # Greater or equal
+
+# Logical
+[[ cond1 && cond2 ]]
+[[ cond1 || cond2 ]]
+[[ ! cond ]]
+```
+
+### For Loop
+```bash
+# Range
+for i in {1..5}; do
+  echo "$i"
+done
+
+# Array
+for item in "${arr[@]}"; do
+  echo "$item"
+done
+
+# Files
+for file in *.txt; do
+  echo "$file"
+done
+
+# Command output
+for user in $(cat users.txt); do
+  echo "$user"
+done
+
+# C-style
+for ((i=0; i<5; i++)); do
+  echo "$i"
+done
+```
+
+### While Loop
+```bash
+while [[ $count -lt 10 ]]; do
+  echo "$count"
+  ((count++))
+done
+
+# Read lines
+while IFS= read -r line; do
+  echo "$line"
+done < file.txt
+```
+
+---
+
+## Functions
+
+### Basic Function
+```bash
+greet() {
+  local name="$1"
+  echo "Hello, $name!"
+}
+
+greet "World"
+```
+
+### With Return
+```bash
+is_valid() {
+  local input="$1"
+  if [[ "$input" =~ ^[a-z]+$ ]]; then
+    return 0  # Success
+  else
+    return 1  # Failure
+  fi
+}
+
+if is_valid "hello"; then
+  echo "Valid"
+fi
+```
+
+### With Output
+```bash
+get_timestamp() {
+  date +%Y%m%d_%H%M%S
+}
+
+filename="backup_$(get_timestamp).tar.gz"
+```
+
+---
+
+## Pipes & Redirection
+
+### Pipes
+```bash
+# Chain commands
+cat file.txt | grep "error" | wc -l
+ps aux | grep node | awk '{print $2}'
+```
+
+### Redirection
+```bash
+# Output
+command > file.txt      # Overwrite
+command >> file.txt     # Append
+command 2> error.log    # Stderr only
+command > out.log 2>&1  # Both stdout and stderr
+command &> all.log      # Both (shorthand)
+
+# Input
+command < input.txt
+```
+
+### Here Documents
+```bash
+cat << EOF
+Multi-line
+text here
+EOF
+
+# To file
+cat << EOF > config.json
+{
+  "key": "value"
+}
+EOF
+```
+
+---
+
+## npm Scripts
+
+### package.json Scripts
+```json
+{
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "db:generate": "supabase gen types typescript --project-id $PROJECT_ID > src/types/database.types.ts",
+    "db:push": "supabase db push",
+    "db:reset": "supabase db reset",
+    "prepare": "husky install"
+  }
+}
+```
+
+### Chained Scripts
+```json
+{
+  "scripts": {
+    "prebuild": "npm run lint && npm run typecheck",
+    "build": "vite build",
+    "postbuild": "echo 'Build complete!'",
+    "ci": "npm run lint && npm run typecheck && npm run test && npm run build"
+  }
+}
+```
+
+### Cross-Platform
+```bash
+npm install -D cross-env
+```
+```json
+{
+  "scripts": {
+    "build:prod": "cross-env NODE_ENV=production vite build"
+  }
+}
+```
+
+---
+
+## Useful One-Liners
+
+### Find Files
+```bash
+# By name
+find . -name "*.ts"
+find . -name "*.ts" -o -name "*.vue"
+
+# By content
+grep -r "TODO" --include="*.ts"
+
+# Large files
+find . -size +10M
+
+# Modified recently
+find . -mtime -1  # Last 24 hours
+```
+
+### Process Management
+```bash
+# Find process
+ps aux | grep node
+pgrep -f "node"
+
+# Kill process
+kill <pid>
+kill -9 <pid>              # Force kill
+pkill -f "node server"     # By pattern
+
+# Port in use
+lsof -i :3000
+kill $(lsof -t -i :3000)   # Kill process on port
+```
+
+### Disk Usage
+```bash
+df -h                      # Disk space
+du -sh *                   # Directory sizes
+du -sh * | sort -h         # Sorted by size
+```
+
+### Network
+```bash
+curl -I https://example.com       # Headers only
+curl -X POST -d '{"key":"val"}' URL
+wget https://example.com/file.zip
+ping google.com
+```
+
+### JSON Processing (with jq)
+```bash
+# Pretty print
+cat data.json | jq '.'
+
+# Extract field
+cat data.json | jq '.users[0].name'
+
+# Filter
+cat data.json | jq '.users[] | select(.active == true)'
+```
+
+---
+
+## Shell Scripts
+
+### Script Template
+```bash
+#!/bin/bash
+set -euo pipefail  # Exit on error, undefined var, pipe fail
+
+# Constants
+readonly SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+readonly LOG_FILE="/tmp/script.log"
+
+# Functions
+log() {
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" | tee -a "$LOG_FILE"
+}
+
+error() {
+  log "ERROR: $*" >&2
+  exit 1
+}
+
+usage() {
+  cat << EOF
+Usage: $(basename "$0") [options] <command>
+
+Commands:
+  start     Start the service
+  stop      Stop the service
+
+Options:
+  -h        Show this help
+  -v        Verbose mode
+EOF
+}
+
+# Main
+main() {
+  local verbose=false
+
+  while getopts "hv" opt; do
+    case $opt in
+      h) usage; exit 0 ;;
+      v) verbose=true ;;
+      *) usage; exit 1 ;;
+    esac
+  done
+  shift $((OPTIND - 1))
+
+  local command="${1:-}"
+  [[ -z "$command" ]] && error "Command required"
+
+  case "$command" in
+    start) log "Starting..." ;;
+    stop)  log "Stopping..." ;;
+    *)     error "Unknown command: $command" ;;
+  esac
+}
+
+main "$@"
+```
+
+### Project Scripts
+
+**deploy.sh**
+```bash
+#!/bin/bash
+set -e
+
+echo "Building..."
+npm run build
+
+echo "Running tests..."
+npm test
+
+echo "Deploying..."
+vercel --prod
+
+echo "Done!"
+```
+
+**backup.sh**
+```bash
+#!/bin/bash
+set -e
+
+BACKUP_DIR="$HOME/backups"
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+PROJECT_DIR="$(pwd)"
+PROJECT_NAME=$(basename "$PROJECT_DIR")
+
+mkdir -p "$BACKUP_DIR"
+
+tar -czf "$BACKUP_DIR/${PROJECT_NAME}_${TIMESTAMP}.tar.gz" \
+  --exclude="node_modules" \
+  --exclude=".git" \
+  --exclude="dist" \
+  "$PROJECT_DIR"
+
+echo "Backup created: $BACKUP_DIR/${PROJECT_NAME}_${TIMESTAMP}.tar.gz"
+```
+
+---
+
+## Aliases & Profile
+
+### ~/.zshrc or ~/.bashrc
+```bash
+# Navigation
+alias ..="cd .."
+alias ...="cd ../.."
+alias ll="ls -la"
+alias la="ls -A"
+
+# Git
+alias g="git"
+alias gs="git status"
+alias gc="git commit"
+alias gp="git push"
+alias gl="git log --oneline -20"
+
+# npm
+alias ni="npm install"
+alias nr="npm run"
+alias nrd="npm run dev"
+alias nrb="npm run build"
+
+# Project shortcuts
+alias proj="cd ~/Projects"
+alias mp="cd ~/Projects/melior-plus-mvp"
+
+# Functions
+mkcd() {
+  mkdir -p "$1" && cd "$1"
+}
+
+# Environment
+export EDITOR="code"
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+---
+
+## Avoid
+
+- Running `rm -rf` without double-checking
+- Using `sudo` unnecessarily
+- Hardcoding paths (use variables)
+- Forgetting quotes around variables
+- Ignoring exit codes
+- Writing unreadable one-liners (break into scripts)
+- Not backing up before destructive operations

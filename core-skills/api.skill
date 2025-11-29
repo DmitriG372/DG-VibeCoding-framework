@@ -1,0 +1,299 @@
+# API Skill
+
+> Patterns for building APIs and backend services.
+
+**See also:** `framework-philosophy.skill` for modularity and service layer principles.
+
+---
+
+## Service Layer Pattern
+
+> One service per domain. Keep controllers thin.
+
+### Structure
+```
+src/
+├── services/           # Business logic
+│   ├── userService.ts
+│   ├── projectService.ts
+│   └── taskService.ts
+├── controllers/        # HTTP handling only
+│   ├── userController.ts
+│   └── projectController.ts
+├── routes/             # Route definitions
+│   ├── users.ts
+│   └── projects.ts
+└── middleware/         # Cross-cutting concerns
+    ├── auth.ts
+    └── validate.ts
+```
+
+### Service Pattern
+```typescript
+// services/projectService.ts
+import { supabase } from '@/lib/supabase'
+import type { Project, ProjectCreate, ProjectUpdate } from '@/types'
+
+export const projectService = {
+  async getAll(userId: string): Promise<Project[]> {
+    const { data, error } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('owner_id', userId)
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+    return data
+  },
+
+  async getById(id: string): Promise<Project | null> {
+    const { data, error } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('id', id)
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  async create(data: ProjectCreate): Promise<Project> {
+    const { data: created, error } = await supabase
+      .from('projects')
+      .insert(data)
+      .select()
+      .single()
+
+    if (error) throw error
+    return created
+  },
+
+  async update(id: string, data: ProjectUpdate): Promise<Project> {
+    const { data: updated, error } = await supabase
+      .from('projects')
+      .update(data)
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw error
+    return updated
+  },
+
+  async delete(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('projects')
+      .delete()
+      .eq('id', id)
+
+    if (error) throw error
+  }
+}
+```
+
+### Controller Pattern (Thin)
+```typescript
+// controllers/projectController.ts
+import { projectService } from '@/services/projectService'
+import { successResponse, errorResponse } from '@/lib/response'
+
+export const projectController = {
+  async getAll(req: Request, res: Response) {
+    try {
+      const projects = await projectService.getAll(req.user.id)
+      res.json(successResponse(projects))
+    } catch (err) {
+      res.status(500).json(errorResponse('SERVER_ERROR', err.message))
+    }
+  },
+
+  async create(req: Request, res: Response) {
+    try {
+      const project = await projectService.create({
+        ...req.body,
+        owner_id: req.user.id
+      })
+      res.status(201).json(successResponse(project))
+    } catch (err) {
+      res.status(500).json(errorResponse('SERVER_ERROR', err.message))
+    }
+  }
+}
+```
+
+---
+
+## REST Conventions
+
+### HTTP Methods
+| Method | Usage | Response |
+|--------|-------|----------|
+| GET | Read resource | 200 + data |
+| POST | Create resource | 201 + created |
+| PUT | Replace resource | 200 + updated |
+| PATCH | Partial update | 200 + updated |
+| DELETE | Remove resource | 204 (no content) |
+
+### URL Structure
+```
+GET    /api/users           # List users
+GET    /api/users/:id       # Get user
+POST   /api/users           # Create user
+PUT    /api/users/:id       # Update user
+DELETE /api/users/:id       # Delete user
+
+GET    /api/users/:id/posts # User's posts (nested)
+```
+
+### Query Parameters
+```
+GET /api/users?page=2&limit=20           # Pagination
+GET /api/users?sort=name&order=asc       # Sorting
+GET /api/users?filter[status]=active     # Filtering
+GET /api/users?search=john               # Search
+```
+
+---
+
+## Response Format
+
+### Success
+```json
+{
+  "data": { ... },
+  "meta": {
+    "total": 100,
+    "page": 1,
+    "limit": 20
+  }
+}
+```
+
+### Error
+```json
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Invalid input",
+    "details": [
+      { "field": "email", "message": "Invalid email format" }
+    ]
+  }
+}
+```
+
+### Status Codes
+| Code | When |
+|------|------|
+| 200 | Success |
+| 201 | Created |
+| 204 | No content (delete) |
+| 400 | Bad request |
+| 401 | Unauthorized |
+| 403 | Forbidden |
+| 404 | Not found |
+| 422 | Validation error |
+| 500 | Server error |
+
+---
+
+## Validation
+
+### Zod Schema
+```typescript
+import { z } from 'zod';
+
+const CreateUserSchema = z.object({
+  name: z.string().min(1).max(100),
+  email: z.string().email(),
+  role: z.enum(['user', 'admin']).default('user'),
+});
+
+// In handler
+const parsed = CreateUserSchema.safeParse(req.body);
+if (!parsed.success) {
+  return res.status(422).json({ error: parsed.error });
+}
+```
+
+---
+
+## Authentication
+
+### JWT Pattern
+```typescript
+// Middleware
+const authMiddleware = async (req, res, next) => {
+  const token = req.headers.authorization?.replace('Bearer ', '');
+  if (!token) return res.status(401).json({ error: 'No token' });
+
+  try {
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = payload;
+    next();
+  } catch {
+    return res.status(401).json({ error: 'Invalid token' });
+  }
+};
+```
+
+### Route Protection
+```typescript
+// Public
+app.get('/api/health', healthHandler);
+
+// Protected
+app.get('/api/users', authMiddleware, listUsersHandler);
+app.post('/api/users', authMiddleware, adminOnly, createUserHandler);
+```
+
+---
+
+## Error Handling
+
+### Centralized Handler
+```typescript
+const errorHandler = (err, req, res, next) => {
+  console.error(err);
+
+  if (err instanceof ValidationError) {
+    return res.status(422).json({ error: err.details });
+  }
+
+  if (err instanceof NotFoundError) {
+    return res.status(404).json({ error: 'Not found' });
+  }
+
+  // Default
+  res.status(500).json({ error: 'Internal server error' });
+};
+
+app.use(errorHandler);
+```
+
+---
+
+## Rate Limiting
+
+```typescript
+import rateLimit from 'express-rate-limit';
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // requests per window
+  message: { error: 'Too many requests' }
+});
+
+app.use('/api/', limiter);
+```
+
+---
+
+## Avoid
+
+- Exposing internal errors to clients
+- Missing input validation
+- N+1 queries in list endpoints
+- Missing pagination on list endpoints
+- Inconsistent response formats
+- Leaking sensitive data in responses

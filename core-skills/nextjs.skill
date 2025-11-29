@@ -1,0 +1,778 @@
+# Next.js 14+ Skill
+
+> Patterns for Next.js 14+ with App Router, Server Components, and TypeScript.
+
+**When to use:** Large projects (30+ views), SSR/SEO requirements, AI-powered apps with streaming.
+**See also:** `framework-philosophy.skill` for project size decision matrix.
+**Alternative:** `react.skill` for client-only React apps without SSR.
+
+---
+
+## Project Setup
+
+### Recommended Stack
+```
+Next.js 14 + App Router + TypeScript + Tailwind CSS + Zustand + Supabase
+```
+
+### Create Project
+```bash
+npx create-next-app@latest my-app \
+  --typescript \
+  --tailwind \
+  --app \
+  --src-dir \
+  --import-alias "@/*"
+
+cd my-app
+
+# Essential packages
+npm install zustand @supabase/supabase-js @supabase/ssr
+npm install -D @types/node
+```
+
+### Project Structure
+```
+src/
+├── app/                      # App Router
+│   ├── (auth)/               # Auth route group
+│   │   ├── login/
+│   │   └── register/
+│   ├── (dashboard)/          # Protected routes
+│   │   ├── layout.tsx
+│   │   ├── page.tsx
+│   │   └── projects/
+│   ├── api/                  # API routes
+│   │   └── projects/
+│   │       └── route.ts
+│   ├── layout.tsx            # Root layout
+│   ├── page.tsx              # Home page
+│   └── globals.css
+├── components/
+│   ├── ui/                   # Base components
+│   └── features/             # Feature components
+├── lib/
+│   ├── supabase/
+│   │   ├── client.ts         # Browser client
+│   │   ├── server.ts         # Server client
+│   │   └── middleware.ts     # Auth middleware
+│   └── utils.ts
+├── stores/                   # Zustand stores
+├── types/                    # TypeScript types
+└── middleware.ts             # Next.js middleware
+```
+
+---
+
+## App Router Fundamentals
+
+### File Conventions
+```
+app/
+├── page.tsx          # Route UI (/)
+├── layout.tsx        # Shared layout
+├── loading.tsx       # Loading UI (Suspense)
+├── error.tsx         # Error boundary
+├── not-found.tsx     # 404 page
+├── route.ts          # API endpoint
+└── [id]/             # Dynamic segment
+    └── page.tsx      # /[id]
+```
+
+### Route Groups
+```
+app/
+├── (marketing)/      # Group without URL segment
+│   ├── about/
+│   └── contact/
+├── (dashboard)/      # Another group
+│   ├── layout.tsx    # Dashboard-specific layout
+│   └── settings/
+└── layout.tsx        # Root layout
+```
+
+### Dynamic Routes
+```typescript
+// app/projects/[id]/page.tsx
+interface Props {
+  params: { id: string }
+  searchParams: { [key: string]: string | undefined }
+}
+
+export default async function ProjectPage({ params, searchParams }: Props) {
+  const project = await getProject(params.id)
+  return <ProjectDetail project={project} />
+}
+
+// Generate static params (SSG)
+export async function generateStaticParams() {
+  const projects = await getProjects()
+  return projects.map((p) => ({ id: p.id }))
+}
+```
+
+---
+
+## Server vs Client Components
+
+### Server Components (Default)
+```tsx
+// app/projects/page.tsx
+// No "use client" = Server Component
+
+import { createServerClient } from '@/lib/supabase/server'
+
+export default async function ProjectsPage() {
+  const supabase = createServerClient()
+  const { data: projects } = await supabase
+    .from('projects')
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  return (
+    <div>
+      <h1>Projects</h1>
+      {projects?.map(project => (
+        <ProjectCard key={project.id} project={project} />
+      ))}
+    </div>
+  )
+}
+```
+
+### Client Components
+```tsx
+// components/features/ProjectForm.tsx
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+
+export function ProjectForm() {
+  const [name, setName] = useState('')
+  const router = useRouter()
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    await createProject({ name })
+    router.refresh() // Refresh server data
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input value={name} onChange={e => setName(e.target.value)} />
+      <button type="submit">Create</button>
+    </form>
+  )
+}
+```
+
+### When to Use Each
+| Server Component | Client Component |
+|------------------|------------------|
+| Fetch data | Interactivity (onClick, onChange) |
+| Access backend resources | Browser APIs (localStorage) |
+| Keep sensitive data server-side | State management (useState) |
+| Large dependencies | Effects (useEffect) |
+| SEO content | Real-time updates |
+
+---
+
+## Data Fetching
+
+### Server Component Fetching
+```tsx
+// Automatic caching and deduplication
+async function getProject(id: string) {
+  const res = await fetch(`${API_URL}/projects/${id}`, {
+    cache: 'force-cache',      // Default: cache indefinitely
+    // cache: 'no-store',      // Always fresh
+    // next: { revalidate: 60 } // ISR: revalidate every 60s
+  })
+  return res.json()
+}
+
+export default async function Page({ params }: Props) {
+  const project = await getProject(params.id)
+  return <ProjectDetail project={project} />
+}
+```
+
+### Parallel Data Fetching
+```tsx
+export default async function Page() {
+  // Fetch in parallel
+  const [projects, users, stats] = await Promise.all([
+    getProjects(),
+    getUsers(),
+    getStats()
+  ])
+
+  return (
+    <Dashboard projects={projects} users={users} stats={stats} />
+  )
+}
+```
+
+### Streaming with Suspense
+```tsx
+import { Suspense } from 'react'
+
+export default function Page() {
+  return (
+    <div>
+      <h1>Dashboard</h1>
+
+      {/* Shows immediately */}
+      <StaticContent />
+
+      {/* Streams when ready */}
+      <Suspense fallback={<ProjectsSkeleton />}>
+        <ProjectsList />
+      </Suspense>
+
+      <Suspense fallback={<StatsSkeleton />}>
+        <StatsPanel />
+      </Suspense>
+    </div>
+  )
+}
+
+// This component can be async
+async function ProjectsList() {
+  const projects = await getProjects() // Takes time
+  return <ProjectsGrid projects={projects} />
+}
+```
+
+---
+
+## Server Actions
+
+### Form Actions
+```tsx
+// app/projects/new/page.tsx
+import { createProject } from './actions'
+
+export default function NewProjectPage() {
+  return (
+    <form action={createProject}>
+      <input name="name" required />
+      <input name="description" />
+      <button type="submit">Create Project</button>
+    </form>
+  )
+}
+
+// app/projects/new/actions.ts
+'use server'
+
+import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
+import { createServerClient } from '@/lib/supabase/server'
+
+export async function createProject(formData: FormData) {
+  const supabase = createServerClient()
+
+  const { data, error } = await supabase
+    .from('projects')
+    .insert({
+      name: formData.get('name') as string,
+      description: formData.get('description') as string,
+    })
+    .select()
+    .single()
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  revalidatePath('/projects')
+  redirect(`/projects/${data.id}`)
+}
+```
+
+### With useFormState
+```tsx
+'use client'
+
+import { useFormState, useFormStatus } from 'react-dom'
+import { createProject } from './actions'
+
+const initialState = { message: '', errors: {} }
+
+export function ProjectForm() {
+  const [state, formAction] = useFormState(createProject, initialState)
+
+  return (
+    <form action={formAction}>
+      <input name="name" />
+      {state.errors?.name && <span>{state.errors.name}</span>}
+
+      <SubmitButton />
+
+      {state.message && <p>{state.message}</p>}
+    </form>
+  )
+}
+
+function SubmitButton() {
+  const { pending } = useFormStatus()
+  return (
+    <button type="submit" disabled={pending}>
+      {pending ? 'Creating...' : 'Create'}
+    </button>
+  )
+}
+```
+
+---
+
+## API Routes
+
+### Route Handlers
+```typescript
+// app/api/projects/route.ts
+import { NextRequest, NextResponse } from 'next/server'
+import { createServerClient } from '@/lib/supabase/server'
+
+export async function GET(request: NextRequest) {
+  const supabase = createServerClient()
+  const { searchParams } = new URL(request.url)
+  const status = searchParams.get('status')
+
+  let query = supabase.from('projects').select('*')
+
+  if (status) {
+    query = query.eq('status', status)
+  }
+
+  const { data, error } = await query
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  return NextResponse.json({ data })
+}
+
+export async function POST(request: NextRequest) {
+  const supabase = createServerClient()
+  const body = await request.json()
+
+  const { data, error } = await supabase
+    .from('projects')
+    .insert(body)
+    .select()
+    .single()
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 400 })
+  }
+
+  return NextResponse.json({ data }, { status: 201 })
+}
+```
+
+### Dynamic Route Handlers
+```typescript
+// app/api/projects/[id]/route.ts
+import { NextRequest, NextResponse } from 'next/server'
+
+interface Context {
+  params: { id: string }
+}
+
+export async function GET(request: NextRequest, { params }: Context) {
+  const project = await getProject(params.id)
+
+  if (!project) {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
+
+  return NextResponse.json({ data: project })
+}
+
+export async function PUT(request: NextRequest, { params }: Context) {
+  const body = await request.json()
+  const project = await updateProject(params.id, body)
+  return NextResponse.json({ data: project })
+}
+
+export async function DELETE(request: NextRequest, { params }: Context) {
+  await deleteProject(params.id)
+  return new NextResponse(null, { status: 204 })
+}
+```
+
+---
+
+## Supabase Integration
+
+### Server Client
+```typescript
+// lib/supabase/server.ts
+import { createServerClient as createClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
+
+export function createServerClient() {
+  const cookieStore = cookies()
+
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value
+        },
+        set(name: string, value: string, options) {
+          cookieStore.set({ name, value, ...options })
+        },
+        remove(name: string, options) {
+          cookieStore.set({ name, value: '', ...options })
+        },
+      },
+    }
+  )
+}
+```
+
+### Browser Client
+```typescript
+// lib/supabase/client.ts
+import { createBrowserClient } from '@supabase/ssr'
+
+export function createClient() {
+  return createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+}
+```
+
+### Middleware (Auth)
+```typescript
+// middleware.ts
+import { createServerClient } from '@supabase/ssr'
+import { NextResponse, type NextRequest } from 'next/server'
+
+export async function middleware(request: NextRequest) {
+  let response = NextResponse.next({
+    request: { headers: request.headers },
+  })
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value
+        },
+        set(name: string, value: string, options) {
+          response.cookies.set({ name, value, ...options })
+        },
+        remove(name: string, options) {
+          response.cookies.set({ name, value: '', ...options })
+        },
+      },
+    }
+  )
+
+  const { data: { user } } = await supabase.auth.getUser()
+
+  // Protect dashboard routes
+  if (request.nextUrl.pathname.startsWith('/dashboard') && !user) {
+    return NextResponse.redirect(new URL('/login', request.url))
+  }
+
+  return response
+}
+
+export const config = {
+  matcher: ['/dashboard/:path*'],
+}
+```
+
+---
+
+## AI Streaming (Vercel AI SDK)
+
+### Setup
+```bash
+npm install ai openai
+```
+
+### Streaming Route
+```typescript
+// app/api/chat/route.ts
+import { OpenAIStream, StreamingTextResponse } from 'ai'
+import OpenAI from 'openai'
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+})
+
+export async function POST(req: Request) {
+  const { messages } = await req.json()
+
+  const response = await openai.chat.completions.create({
+    model: 'gpt-4',
+    stream: true,
+    messages,
+  })
+
+  const stream = OpenAIStream(response)
+  return new StreamingTextResponse(stream)
+}
+```
+
+### Chat Component
+```tsx
+'use client'
+
+import { useChat } from 'ai/react'
+
+export function Chat() {
+  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat()
+
+  return (
+    <div>
+      {messages.map(m => (
+        <div key={m.id}>
+          <strong>{m.role}:</strong> {m.content}
+        </div>
+      ))}
+
+      <form onSubmit={handleSubmit}>
+        <input
+          value={input}
+          onChange={handleInputChange}
+          placeholder="Say something..."
+          disabled={isLoading}
+        />
+        <button type="submit" disabled={isLoading}>
+          Send
+        </button>
+      </form>
+    </div>
+  )
+}
+```
+
+---
+
+## Layouts & Templates
+
+### Root Layout
+```tsx
+// app/layout.tsx
+import { Inter } from 'next/font/google'
+import './globals.css'
+
+const inter = Inter({ subsets: ['latin'] })
+
+export const metadata = {
+  title: 'My App',
+  description: 'App description',
+}
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <html lang="en">
+      <body className={inter.className}>
+        <Providers>
+          {children}
+        </Providers>
+      </body>
+    </html>
+  )
+}
+```
+
+### Nested Layout
+```tsx
+// app/(dashboard)/layout.tsx
+import { Sidebar } from '@/components/Sidebar'
+import { Header } from '@/components/Header'
+
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <div className="flex">
+      <Sidebar />
+      <div className="flex-1">
+        <Header />
+        <main className="p-6">{children}</main>
+      </div>
+    </div>
+  )
+}
+```
+
+---
+
+## Error Handling
+
+### Error Boundary
+```tsx
+// app/error.tsx
+'use client'
+
+export default function Error({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string }
+  reset: () => void
+}) {
+  return (
+    <div>
+      <h2>Something went wrong!</h2>
+      <p>{error.message}</p>
+      <button onClick={() => reset()}>Try again</button>
+    </div>
+  )
+}
+```
+
+### Not Found
+```tsx
+// app/not-found.tsx
+import Link from 'next/link'
+
+export default function NotFound() {
+  return (
+    <div>
+      <h2>Page Not Found</h2>
+      <p>Could not find requested resource</p>
+      <Link href="/">Return Home</Link>
+    </div>
+  )
+}
+
+// Trigger programmatically
+import { notFound } from 'next/navigation'
+
+async function getProject(id: string) {
+  const project = await db.project.findUnique({ where: { id } })
+  if (!project) notFound()
+  return project
+}
+```
+
+---
+
+## Caching & Revalidation
+
+### Fetch Caching
+```typescript
+// Cache indefinitely (default)
+fetch(url, { cache: 'force-cache' })
+
+// No caching
+fetch(url, { cache: 'no-store' })
+
+// Time-based revalidation (ISR)
+fetch(url, { next: { revalidate: 3600 } }) // 1 hour
+
+// Tag-based revalidation
+fetch(url, { next: { tags: ['projects'] } })
+```
+
+### Revalidation
+```typescript
+import { revalidatePath, revalidateTag } from 'next/cache'
+
+// Revalidate specific path
+revalidatePath('/projects')
+
+// Revalidate by tag
+revalidateTag('projects')
+
+// In route handler
+export async function POST(request: Request) {
+  // ... create project
+  revalidatePath('/projects')
+  return NextResponse.json({ success: true })
+}
+```
+
+---
+
+## Metadata & SEO
+
+### Static Metadata
+```tsx
+// app/page.tsx
+export const metadata = {
+  title: 'Home | My App',
+  description: 'Welcome to my app',
+  openGraph: {
+    title: 'My App',
+    description: 'Welcome to my app',
+    images: ['/og-image.png'],
+  },
+}
+```
+
+### Dynamic Metadata
+```tsx
+// app/projects/[id]/page.tsx
+import { Metadata } from 'next'
+
+export async function generateMetadata({ params }): Promise<Metadata> {
+  const project = await getProject(params.id)
+
+  return {
+    title: `${project.name} | Projects`,
+    description: project.description,
+    openGraph: {
+      title: project.name,
+      description: project.description,
+    },
+  }
+}
+```
+
+---
+
+## Environment Variables
+
+```bash
+# .env.local
+# Public (exposed to browser)
+NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=xxx
+
+# Private (server only)
+SUPABASE_SERVICE_ROLE_KEY=xxx
+OPENAI_API_KEY=xxx
+```
+
+```typescript
+// Access in code
+const publicUrl = process.env.NEXT_PUBLIC_SUPABASE_URL  // Client & Server
+const secretKey = process.env.SUPABASE_SERVICE_ROLE_KEY // Server only
+```
+
+---
+
+## Avoid
+
+- Using `"use client"` unnecessarily (default to Server Components)
+- Fetching data in Client Components when Server Components work
+- Not using Suspense for streaming
+- Forgetting to revalidate after mutations
+- Exposing secrets in NEXT_PUBLIC_ variables
+- Large bundle in Client Components (keep dependencies server-side)
+- Not using route groups for organization
+- Missing error boundaries

@@ -1,0 +1,421 @@
+# Regex Skill
+
+> Regular expression patterns for validation, search, and text processing.
+
+---
+
+## Syntax Reference
+
+### Basic Patterns
+| Pattern | Matches |
+|---------|---------|
+| `.` | Any character (except newline) |
+| `\d` | Digit [0-9] |
+| `\D` | Non-digit |
+| `\w` | Word character [a-zA-Z0-9_] |
+| `\W` | Non-word character |
+| `\s` | Whitespace (space, tab, newline) |
+| `\S` | Non-whitespace |
+| `\b` | Word boundary |
+| `\B` | Non-word boundary |
+
+### Quantifiers
+| Pattern | Matches |
+|---------|---------|
+| `*` | 0 or more |
+| `+` | 1 or more |
+| `?` | 0 or 1 |
+| `{n}` | Exactly n |
+| `{n,}` | n or more |
+| `{n,m}` | Between n and m |
+| `*?` | 0 or more (lazy) |
+| `+?` | 1 or more (lazy) |
+
+### Anchors
+| Pattern | Matches |
+|---------|---------|
+| `^` | Start of string/line |
+| `$` | End of string/line |
+| `\A` | Start of string only |
+| `\Z` | End of string only |
+
+### Groups & Lookaround
+| Pattern | Description |
+|---------|-------------|
+| `(...)` | Capturing group |
+| `(?:...)` | Non-capturing group |
+| `(?<name>...)` | Named group |
+| `(?=...)` | Positive lookahead |
+| `(?!...)` | Negative lookahead |
+| `(?<=...)` | Positive lookbehind |
+| `(?<!...)` | Negative lookbehind |
+
+### Character Classes
+| Pattern | Matches |
+|---------|---------|
+| `[abc]` | a, b, or c |
+| `[^abc]` | Not a, b, or c |
+| `[a-z]` | a through z |
+| `[A-Za-z]` | Any letter |
+| `[0-9]` | Any digit |
+
+### Flags
+| Flag | Description |
+|------|-------------|
+| `g` | Global (find all) |
+| `i` | Case-insensitive |
+| `m` | Multiline (^ $ match line) |
+| `s` | Dotall (. matches newline) |
+| `u` | Unicode |
+
+---
+
+## JavaScript Methods
+
+### Test (Boolean)
+```typescript
+const pattern = /^[a-z]+$/i
+pattern.test("Hello")  // true
+pattern.test("Hello1") // false
+```
+
+### Match (Array)
+```typescript
+const text = "The year 2024 and 2025"
+
+// Without global flag - returns first match with groups
+text.match(/\d+/)
+// ['2024', index: 9, input: '...', groups: undefined]
+
+// With global flag - returns all matches
+text.match(/\d+/g)
+// ['2024', '2025']
+```
+
+### MatchAll (Iterator)
+```typescript
+const text = "a1b2c3"
+const matches = [...text.matchAll(/([a-z])(\d)/g)]
+// [
+//   ['a1', 'a', '1', index: 0, ...],
+//   ['b2', 'b', '2', index: 2, ...],
+//   ['c3', 'c', '3', index: 4, ...]
+// ]
+```
+
+### Replace
+```typescript
+// Simple replace
+"hello world".replace(/world/, "there")
+// "hello there"
+
+// Replace all
+"a-b-c".replace(/-/g, "_")
+// "a_b_c"
+
+// With callback
+"hello".replace(/./g, (char, index) => char.toUpperCase())
+// "HELLO"
+
+// With groups
+"John Smith".replace(/(\w+) (\w+)/, "$2, $1")
+// "Smith, John"
+
+// Named groups
+"2024-12-01".replace(
+  /(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2})/,
+  "$<day>.$<month>.$<year>"
+)
+// "01.12.2024"
+```
+
+### Split
+```typescript
+"a, b,  c".split(/,\s*/)
+// ['a', 'b', 'c']
+
+"one1two2three".split(/\d/)
+// ['one', 'two', 'three']
+```
+
+### Search (Index)
+```typescript
+"hello world".search(/world/)  // 6
+"hello world".search(/xyz/)    // -1
+```
+
+---
+
+## Common Patterns
+
+### Email
+```typescript
+// Simple (covers most cases)
+const emailSimple = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+// More strict
+const emailStrict = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+```
+
+### URL
+```typescript
+const url = /^https?:\/\/[\w.-]+(?:\/[\w./-]*)?(?:\?[\w=&]*)?(?:#\w*)?$/
+
+// Extract parts
+const urlParts = /^(?<protocol>https?):\/\/(?<domain>[\w.-]+)(?<path>\/[\w./-]*)?/
+```
+
+### Phone Number
+```typescript
+// International format
+const phoneIntl = /^\+?[1-9]\d{1,14}$/
+
+// Estonian format
+const phoneEE = /^\+372\s?\d{3,4}\s?\d{4}$/
+
+// US format
+const phoneUS = /^\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}$/
+```
+
+### Password Validation
+```typescript
+// At least 8 chars, 1 upper, 1 lower, 1 digit
+const password = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/
+
+// With special character
+const passwordStrong = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/
+```
+
+### Date Formats
+```typescript
+// ISO 8601 (2024-12-01)
+const isoDate = /^\d{4}-\d{2}-\d{2}$/
+
+// European (01.12.2024)
+const euDate = /^\d{2}\.\d{2}\.\d{4}$/
+
+// US (12/01/2024)
+const usDate = /^\d{2}\/\d{2}\/\d{4}$/
+
+// With time
+const isoDateTime = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?(?:Z|[+-]\d{2}:\d{2})?$/
+```
+
+### UUID
+```typescript
+const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+```
+
+### IP Address
+```typescript
+// IPv4
+const ipv4 = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/
+
+// Simple IPv4 (less strict)
+const ipv4Simple = /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/
+```
+
+### Credit Card
+```typescript
+// Basic (13-19 digits)
+const creditCard = /^\d{13,19}$/
+
+// With spaces/dashes
+const creditCardFormatted = /^[\d\s-]{13,23}$/
+```
+
+### Slug
+```typescript
+// URL-friendly slug
+const slug = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+```
+
+### HTML Tag
+```typescript
+// Match opening tag
+const htmlTag = /<([a-z][a-z0-9]*)\b[^>]*>/i
+
+// Match tag with content
+const htmlTagWithContent = /<(\w+)[^>]*>.*?<\/\1>/s
+```
+
+---
+
+## Text Processing
+
+### Extract Numbers
+```typescript
+const text = "Price: $19.99 (was $29.99)"
+const prices = text.match(/\d+\.?\d*/g)
+// ['19.99', '29.99']
+```
+
+### Extract Words
+```typescript
+const text = "Hello, World! How are you?"
+const words = text.match(/\b\w+\b/g)
+// ['Hello', 'World', 'How', 'are', 'you']
+```
+
+### Clean Whitespace
+```typescript
+// Multiple spaces to single
+text.replace(/\s+/g, ' ')
+
+// Trim and clean
+text.trim().replace(/\s+/g, ' ')
+
+// Remove all whitespace
+text.replace(/\s/g, '')
+```
+
+### Remove HTML Tags
+```typescript
+const html = "<p>Hello <strong>World</strong></p>"
+const plainText = html.replace(/<[^>]*>/g, '')
+// "Hello World"
+```
+
+### Capitalize First Letter
+```typescript
+text.replace(/^\w/, c => c.toUpperCase())
+
+// Each word
+text.replace(/\b\w/g, c => c.toUpperCase())
+```
+
+### CamelCase to kebab-case
+```typescript
+"camelCaseString".replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase()
+// "camel-case-string"
+```
+
+### kebab-case to camelCase
+```typescript
+"kebab-case-string".replace(/-([a-z])/g, (_, c) => c.toUpperCase())
+// "kebabCaseString"
+```
+
+### Parse Key-Value Pairs
+```typescript
+const text = "name=John; age=30; city=Tallinn"
+const pairs = [...text.matchAll(/(\w+)=(\w+)/g)]
+const obj = Object.fromEntries(pairs.map(m => [m[1], m[2]]))
+// { name: 'John', age: '30', city: 'Tallinn' }
+```
+
+---
+
+## Validation Utilities
+
+### Reusable Validators
+```typescript
+const patterns = {
+  email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+  phone: /^\+?[\d\s-]{10,}$/,
+  url: /^https?:\/\/.+/,
+  slug: /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+  uuid: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+  hex: /^#?[0-9a-f]{3,8}$/i,
+  ipv4: /^(?:\d{1,3}\.){3}\d{1,3}$/,
+}
+
+function validate(type: keyof typeof patterns, value: string): boolean {
+  return patterns[type].test(value)
+}
+
+// Usage
+validate('email', 'test@example.com')  // true
+validate('slug', 'valid-slug')          // true
+```
+
+### Form Validation
+```typescript
+interface ValidationRule {
+  pattern: RegExp
+  message: string
+}
+
+const rules: Record<string, ValidationRule> = {
+  required: {
+    pattern: /\S/,
+    message: 'This field is required',
+  },
+  email: {
+    pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+    message: 'Invalid email format',
+  },
+  minLength8: {
+    pattern: /^.{8,}$/,
+    message: 'Minimum 8 characters',
+  },
+}
+
+function validateField(value: string, ruleNames: string[]): string[] {
+  return ruleNames
+    .filter(name => !rules[name].pattern.test(value))
+    .map(name => rules[name].message)
+}
+```
+
+---
+
+## Performance Tips
+
+### Compile Once
+```typescript
+// ❌ Creates new RegExp each call
+function validate(input: string) {
+  return /^[a-z]+$/.test(input)
+}
+
+// ✅ Compiled once
+const pattern = /^[a-z]+$/
+function validate(input: string) {
+  return pattern.test(input)
+}
+```
+
+### Avoid Catastrophic Backtracking
+```typescript
+// ❌ Dangerous - exponential time on certain inputs
+const bad = /^(a+)+$/
+
+// ✅ Better
+const good = /^a+$/
+```
+
+### Use Non-Capturing Groups
+```typescript
+// When you don't need the captured value
+// ❌ Capturing (slower)
+/(?:https?):/
+
+// ✅ Non-capturing (faster when not needed)
+/(?:https?):/
+```
+
+---
+
+## Regex in Zod
+```typescript
+import { z } from 'zod'
+
+const schema = z.object({
+  email: z.string().regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Invalid email'),
+  slug: z.string().regex(/^[a-z0-9-]+$/, 'Only lowercase, numbers, dashes'),
+  phone: z.string().regex(/^\+372\d{7,8}$/, 'Invalid Estonian phone'),
+})
+```
+
+---
+
+## Avoid
+
+- Over-complicated patterns (hard to maintain)
+- Validating email with overly strict regex
+- Not escaping special characters in user input
+- Forgetting `g` flag when replacing all
+- Nested quantifiers `(a+)+` (backtracking)
+- Using regex for HTML parsing (use parser)
+- Not testing edge cases

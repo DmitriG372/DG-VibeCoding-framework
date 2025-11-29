@@ -1,0 +1,46 @@
+# Pre-commit configuration
+# Copy to: .pre-commit-config.yaml
+# Install: pip install pre-commit && pre-commit install
+
+repos:
+  # General hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-added-large-files
+        args: ['--maxkb=500']
+      - id: detect-private-key
+      - id: check-merge-conflict
+
+  # Secrets detection
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+        exclude: package-lock.json
+
+# For JavaScript/TypeScript projects, add lint-staged instead:
+# See: https://github.com/lint-staged/lint-staged
+
+# Alternative: Husky + lint-staged setup
+# --------------------------------------
+# package.json:
+# {
+#   "scripts": {
+#     "prepare": "husky install"
+#   },
+#   "lint-staged": {
+#     "*.{js,ts,tsx}": ["eslint --fix", "prettier --write"],
+#     "*.{json,md,yml}": ["prettier --write"]
+#   }
+# }
+#
+# .husky/pre-commit:
+# #!/bin/sh
+# . "$(dirname "$0")/_/husky.sh"
+# npx lint-staged

@@ -1,0 +1,263 @@
+# DG Framework Philosophy
+
+> Core principles for all projects. This skill is ALWAYS loaded via CLAUDE.md.
+
+---
+
+## Project Size Decision Matrix
+
+| Size | Criteria | Frontend | Backend | State Management |
+|------|----------|----------|---------|------------------|
+| **Small** | <10 views, simple CRUD, 1 developer | Vue 3 | Express + Supabase | Pinia |
+| **Medium** | 10-30 views, team of 2-4, moderate complexity | React or Vue 3 | Express + Supabase | Zustand or Pinia |
+| **Large** | 30+ views, 5+ developers, complex state | React + Next.js | Express + Supabase | Zustand or Redux Toolkit |
+
+### Framework Selection Factors
+- **Team expertise** — Use what team knows best
+- **Ecosystem needs** — React has larger component library ecosystem
+- **SSR/SEO requirements** — Next.js for SSR, Nuxt for Vue SSR
+- **AI tooling** — React has better AI code generation support (VS Code, Claude Code)
+- **Project longevity** — React for long-term maintenance, Vue for rapid prototyping
+
+---
+
+## Modularity Principle
+
+> Every feature is an independent, reusable module.
+
+### Module Structure
+```
+src/
+├── features/
+│   ├── auth/
+│   │   ├── components/     # Feature-specific components
+│   │   ├── hooks/          # Feature-specific hooks (React) / composables (Vue)
+│   │   ├── services/       # API calls, business logic
+│   │   ├── types/          # TypeScript interfaces
+│   │   ├── utils/          # Feature-specific utilities
+│   │   └── index.ts        # Public API exports
+│   ├── projects/
+│   │   └── ...
+│   └── tasks/
+│       └── ...
+├── shared/                  # Cross-feature shared code
+│   ├── components/          # Reusable UI components
+│   ├── hooks/               # Shared hooks
+│   ├── services/            # Shared services (supabase client, etc.)
+│   └── types/               # Shared types
+└── app/                     # App shell, routing, providers
+```
+
+### Module Rules
+1. **No cross-imports** — Features cannot import from other features directly
+2. **Shared via /shared** — Common code goes in shared/ folder
+3. **Single responsibility** — Each module handles one domain
+4. **Explicit exports** — Use index.ts to define public API
+5. **Self-contained tests** — Tests live within the feature folder
+
+---
+
+## TDD Approach
+
+> Write tests BEFORE implementation when possible.
+
+### TDD Workflow
+```
+1. Write failing test → Define expected behavior
+2. Write minimal code → Make test pass
+3. Refactor → Clean up while tests stay green
+4. Repeat → Next test case
+```
+
+### When to Write Tests First
+- **Always:** Business logic, utilities, services
+- **Usually:** API endpoints, data transformations
+- **Sometimes:** Complex UI components with logic
+- **Rarely:** Simple presentational components, prototypes
+
+### Test Coverage Targets
+| Type | Minimum | Target |
+|------|---------|--------|
+| Unit tests | 70% | 85% |
+| Integration tests | 50% | 70% |
+| E2E tests | Critical paths | Key user flows |
+
+### Test Priority
+```
+Unit Tests (fast, isolated)
+    ↓
+Integration Tests (modules working together)
+    ↓
+E2E Tests (full user flows, expensive)
+```
+
+---
+
+## Decomposition Rules
+
+### CSS Strategy
+```
+styles/
+├── globals.css          # Reset, typography, CSS variables
+├── utilities.css        # Utility classes (.flex, .grid, .mt-4)
+└── components/          # Component-specific styles (if not using CSS-in-JS)
+
+Per component:
+- Scoped styles (CSS Modules, styled-components, or scoped attribute)
+- No global class pollution
+- Design tokens via CSS variables
+```
+
+### CSS Guidelines
+1. **Global:** Reset, typography, colors, spacing scale, breakpoints
+2. **Scoped:** Everything else — component-specific styles
+3. **Utility classes:** For quick layout (flexbox, grid, spacing)
+4. **No inline styles** — Except for truly dynamic values
+
+### Service Layer Pattern
+```typescript
+// One service per domain
+// services/projectService.ts
+export const projectService = {
+  getAll: async () => { ... },
+  getById: async (id: string) => { ... },
+  create: async (data: ProjectCreate) => { ... },
+  update: async (id: string, data: ProjectUpdate) => { ... },
+  delete: async (id: string) => { ... },
+}
+
+// Usage in component/hook
+const projects = await projectService.getAll()
+```
+
+### State Management Rules
+1. **Local state first** — useState/ref for component-specific state
+2. **Lifted state** — Props/context for parent-child sharing
+3. **Global store** — Only for truly app-wide state (user, theme, notifications)
+4. **Server state** — Consider React Query/TanStack Query for API data
+
+---
+
+## Database Migrations
+
+> ALWAYS use migration system. Never manual SQL in production.
+
+### Migration Workflow
+```
+1. Create migration file → supabase migration new feature_x
+2. Write SQL (up) → CREATE TABLE, ALTER TABLE
+3. Write rollback (down) → DROP TABLE, ALTER TABLE (commented)
+4. Test locally → supabase db reset
+5. Deploy to staging → supabase db push
+6. Deploy to production → supabase db push (linked to prod)
+```
+
+### Database File Structure
+```
+database/
+├── migrations/          # Version-controlled schema changes (append-only!)
+│   ├── 0001_initial.sql
+│   └── 0002_add_projects.sql
+├── seeds/               # Test and reference data
+│   ├── core.sql         # Always needed (roles, settings)
+│   └── test.sql         # Development only
+├── policies/            # RLS policies (organized by table)
+│   └── projects_policies.sql
+└── functions/           # Database functions and triggers
+    └── common_triggers.sql
+```
+
+### Migration Rules
+1. **Append-only** — Never edit existing migrations
+2. **Idempotent** — Use IF NOT EXISTS, IF EXISTS
+3. **Rollback ready** — Always have down migration (commented)
+4. **Test first** — Always test on staging before production
+5. **Small migrations** — One logical change per migration
+
+---
+
+## Code Quality Standards
+
+### TypeScript
+- **Strict mode** — Always enabled
+- **No `any`** — Use `unknown` if type is truly unknown
+- **Explicit types** — For function parameters and returns
+- **Interfaces over types** — For object shapes (better error messages)
+
+### Naming Conventions
+| Item | Convention | Example |
+|------|------------|---------|
+| Files (components) | PascalCase | `ProjectCard.tsx` |
+| Files (utilities) | camelCase | `formatDate.ts` |
+| Variables/functions | camelCase | `getUserById` |
+| Types/interfaces | PascalCase | `ProjectCreate` |
+| Constants | UPPER_SNAKE | `API_BASE_URL` |
+| Database columns | snake_case | `created_at` |
+
+### Git Conventions
+- **Conventional commits** — `feat:`, `fix:`, `refactor:`, `docs:`, `test:`
+- **Atomic commits** — One logical change per commit
+- **Branch naming** — `feature/add-auth`, `fix/login-error`, `refactor/api-service`
+- **English only** — Code, comments, commits in English
+
+### Code Comments
+- **Avoid obvious comments** — Code should be self-documenting
+- **Explain "why" not "what"** — Why this approach was chosen
+- **TODO format** — `// TODO: description (ticket/issue number)`
+- **JSDoc for public APIs** — Functions exported from modules
+
+---
+
+## Anti-Patterns to Avoid
+
+### Architecture
+- Monolithic components (>300 lines) → Split into smaller components
+- God services (doing everything) → One service per domain
+- Prop drilling (>3 levels) → Use context or state management
+- Circular dependencies → Restructure module boundaries
+
+### State
+- Storing derived data → Use computed/useMemo instead
+- Global state for local data → Keep state close to where it's used
+- Mutating state directly → Always use immutable updates
+
+### Testing
+- Testing implementation details → Test behavior, not internals
+- Mocking everything → Mock only external dependencies
+- Flaky tests → Fix or remove, never ignore
+
+### Database
+- Manual SQL in production → Always use migrations
+- Missing indexes on foreign keys → Add indexes
+- N+1 queries → Use JOINs or batch fetching
+- Storing JSON when relations work better → Normalize data
+
+---
+
+## Quick Reference
+
+### Starting New Project
+1. Determine size (small/medium/large)
+2. Select framework based on matrix
+3. Set up project structure (modularity)
+4. Configure TypeScript strict mode
+5. Set up testing framework
+6. Initialize database migrations
+7. Create initial migration
+
+### Adding New Feature
+1. Create feature folder in features/
+2. Write tests first (TDD)
+3. Implement minimal code
+4. Add to routing/navigation
+5. Create migration if DB changes needed
+6. Update documentation
+
+### Code Review Checklist
+- [ ] TypeScript strict, no `any`
+- [ ] Tests written and passing
+- [ ] Follows module structure
+- [ ] CSS properly scoped
+- [ ] Database changes via migration
+- [ ] English in code/comments
+- [ ] Conventional commit message

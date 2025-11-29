@@ -1,0 +1,404 @@
+# Git Skill
+
+> Version control patterns, branching strategies, and commit conventions.
+
+---
+
+## Setup
+
+### Initial Config
+```bash
+git config --global user.name "Your Name"
+git config --global user.email "your@email.com"
+git config --global init.defaultBranch main
+git config --global pull.rebase true
+git config --global core.autocrlf input  # macOS/Linux
+```
+
+### Useful Aliases
+```bash
+git config --global alias.co checkout
+git config --global alias.br branch
+git config --global alias.ci commit
+git config --global alias.st status
+git config --global alias.lg "log --oneline --graph --decorate -20"
+git config --global alias.last "log -1 HEAD --stat"
+git config --global alias.unstage "reset HEAD --"
+```
+
+---
+
+## Commit Conventions
+
+### Conventional Commits
+```
+<type>(<scope>): <description>
+
+[optional body]
+
+[optional footer]
+```
+
+### Types
+| Type | When |
+|------|------|
+| `feat` | New feature |
+| `fix` | Bug fix |
+| `refactor` | Code change (no feature/fix) |
+| `docs` | Documentation only |
+| `style` | Formatting (no code change) |
+| `test` | Adding/fixing tests |
+| `chore` | Maintenance, deps, config |
+| `perf` | Performance improvement |
+
+### Examples
+```bash
+git commit -m "feat(auth): add OAuth2 login"
+git commit -m "fix(api): handle null response"
+git commit -m "refactor(utils): simplify date formatting"
+git commit -m "docs: update README with setup instructions"
+git commit -m "chore(deps): upgrade vue to 3.4"
+```
+
+### Good Commit Messages
+```bash
+# ✅ Good - specific, actionable
+git commit -m "fix(timer): prevent negative duration on pause"
+git commit -m "feat(projects): add bulk delete with confirmation"
+
+# ❌ Bad - vague, uninformative
+git commit -m "fix bug"
+git commit -m "update code"
+git commit -m "WIP"
+```
+
+---
+
+## Branching Strategy
+
+### Git Flow (Recommended for Teams)
+```
+main        ─────●─────────────●─────────────●───
+                 │             │             │
+release    ─────●───●─────────●─────────────●───
+                │   │         │
+develop    ●───●───●───●───●───●───●───●───●───
+           │       │   │       │
+feature    ●───●───●   │       │
+                       │       │
+hotfix                 ●───────●
+```
+
+### Branch Naming
+```bash
+# Features
+git checkout -b feat/user-authentication
+git checkout -b feat/project-dashboard
+
+# Fixes
+git checkout -b fix/login-redirect
+git checkout -b fix/timer-overflow
+
+# Releases
+git checkout -b release/1.2.0
+
+# Hotfixes
+git checkout -b hotfix/security-patch
+```
+
+### Simple Flow (Solo/Small Team)
+```bash
+main        # Production-ready
+└── dev     # Integration branch
+    ├── feat/xxx
+    └── fix/xxx
+```
+
+---
+
+## Common Workflows
+
+### Start New Feature
+```bash
+git checkout main
+git pull origin main
+git checkout -b feat/new-feature
+# ... work ...
+git add .
+git commit -m "feat: implement new feature"
+git push -u origin feat/new-feature
+# Create PR/MR
+```
+
+### Update Feature Branch
+```bash
+git checkout feat/my-feature
+git fetch origin
+git rebase origin/main
+# Resolve conflicts if any
+git push --force-with-lease
+```
+
+### Squash Commits Before Merge
+```bash
+# Interactive rebase last N commits
+git rebase -i HEAD~3
+
+# In editor: change 'pick' to 'squash' or 's'
+pick abc123 First commit
+squash def456 WIP
+squash ghi789 Fix typo
+
+# Save, then edit combined commit message
+```
+
+### Undo Last Commit (Keep Changes)
+```bash
+git reset --soft HEAD~1
+```
+
+### Undo Last Commit (Discard Changes)
+```bash
+git reset --hard HEAD~1
+```
+
+### Discard Local Changes
+```bash
+# Single file
+git checkout -- path/to/file
+
+# All files
+git checkout -- .
+
+# Untracked files too
+git clean -fd
+```
+
+---
+
+## Stashing
+
+### Basic Stash
+```bash
+git stash                    # Stash changes
+git stash pop                # Apply and remove
+git stash apply              # Apply and keep
+git stash list               # List all stashes
+git stash drop stash@{0}     # Remove specific
+git stash clear              # Remove all
+```
+
+### Named Stash
+```bash
+git stash push -m "WIP: timer feature"
+git stash list
+# stash@{0}: On main: WIP: timer feature
+```
+
+### Stash Specific Files
+```bash
+git stash push -m "partial" -- src/utils.ts src/api.ts
+```
+
+---
+
+## History & Inspection
+
+### View History
+```bash
+git log --oneline -20                    # Compact
+git log --graph --oneline --all          # Graph view
+git log --author="name" --since="1 week" # Filtered
+git log -p path/to/file                  # File history with diffs
+```
+
+### Find Commit
+```bash
+git log --grep="timer"                   # By message
+git log -S "functionName"                # By code change
+git blame path/to/file                   # Line-by-line author
+```
+
+### Compare
+```bash
+git diff                                 # Working vs staged
+git diff --staged                        # Staged vs last commit
+git diff main..feat/branch               # Between branches
+git diff HEAD~3..HEAD                    # Last 3 commits
+```
+
+---
+
+## Remote Operations
+
+### Manage Remotes
+```bash
+git remote -v                            # List remotes
+git remote add upstream URL              # Add remote
+git remote remove upstream               # Remove remote
+git remote set-url origin NEW_URL        # Change URL
+```
+
+### Fetch vs Pull
+```bash
+git fetch origin              # Download without merge
+git pull origin main          # Fetch + merge
+git pull --rebase origin main # Fetch + rebase (cleaner)
+```
+
+### Push
+```bash
+git push origin main                     # Push to remote
+git push -u origin feat/branch           # Push + set upstream
+git push --force-with-lease              # Force (safe)
+git push --force                         # Force (dangerous!)
+```
+
+---
+
+## Tags
+
+### Create Tags
+```bash
+git tag v1.0.0                           # Lightweight
+git tag -a v1.0.0 -m "Release 1.0.0"     # Annotated
+git tag -a v1.0.0 abc123                 # Tag specific commit
+```
+
+### Push Tags
+```bash
+git push origin v1.0.0                   # Single tag
+git push origin --tags                   # All tags
+```
+
+### List & Delete
+```bash
+git tag -l "v1.*"                        # List matching
+git tag -d v1.0.0                        # Delete local
+git push origin --delete v1.0.0          # Delete remote
+```
+
+---
+
+## Troubleshooting
+
+### Recover Deleted Branch
+```bash
+git reflog                               # Find commit hash
+git checkout -b recovered-branch abc123  # Recreate
+```
+
+### Undo Pushed Commit
+```bash
+git revert HEAD                          # Create inverse commit
+git push origin main                     # Push revert
+```
+
+### Fix Last Commit Message
+```bash
+git commit --amend -m "New message"
+# If already pushed:
+git push --force-with-lease
+```
+
+### Add Forgotten File to Last Commit
+```bash
+git add forgotten-file.ts
+git commit --amend --no-edit
+```
+
+### Cherry-Pick Commit
+```bash
+git cherry-pick abc123                   # Apply single commit
+git cherry-pick abc123 def456            # Multiple commits
+```
+
+---
+
+## .gitignore Patterns
+
+### Common Ignores
+```gitignore
+# Dependencies
+node_modules/
+vendor/
+
+# Build
+dist/
+build/
+.next/
+.nuxt/
+
+# Environment
+.env
+.env.local
+.env*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Testing
+coverage/
+
+# Temp
+*.tmp
+*.temp
+```
+
+### Negate Pattern
+```gitignore
+# Ignore all .env
+.env*
+
+# But keep example
+!.env.example
+```
+
+---
+
+## Pre-commit Hooks
+
+### Simple Hook (.git/hooks/pre-commit)
+```bash
+#!/bin/sh
+npm run lint
+npm run typecheck
+```
+
+### With Husky + lint-staged
+```bash
+npm install -D husky lint-staged
+npx husky init
+```
+
+```json
+// package.json
+{
+  "lint-staged": {
+    "*.{ts,tsx,vue}": ["eslint --fix", "prettier --write"],
+    "*.{css,scss}": ["prettier --write"]
+  }
+}
+```
+
+---
+
+## Avoid
+
+- Committing directly to main/master
+- Force pushing to shared branches
+- Large binary files in repo (use Git LFS)
+- Secrets/credentials in commits
+- Vague commit messages
+- Long-lived feature branches (merge often)
+- Ignoring merge conflicts

@@ -1,0 +1,360 @@
+# Frontend UI Distinctive Skill
+
+> Create unique UI that doesn't look like typical AI-generated design.
+
+**See also:** `framework-philosophy.skill` for decomposition rules.
+
+---
+
+## CSS Decomposition Strategy
+
+> Global styles in /styles, component styles scoped.
+
+### File Structure
+```
+styles/
+├── globals.css         # Reset, typography, CSS variables
+├── utilities.css       # Utility classes (.flex, .grid, .mt-4)
+└── variables.css       # Design tokens
+
+components/
+├── Button/
+│   ├── Button.tsx
+│   └── Button.module.css   # Scoped styles (CSS Modules)
+└── Card/
+    ├── Card.tsx
+    └── Card.module.css
+```
+
+### What Goes Where
+
+| Global (styles/) | Scoped (component) |
+|------------------|---------------------|
+| CSS reset | Component-specific layout |
+| Typography scale | Component variations |
+| Color tokens | Hover/focus states |
+| Spacing scale | Animations |
+| Breakpoints | Internal structure |
+| Utility classes | - |
+
+### CSS Variables (Design Tokens)
+```css
+/* styles/variables.css */
+:root {
+  /* Colors */
+  --color-primary: #2563eb;
+  --color-secondary: #64748b;
+  --color-background: #ffffff;
+  --color-surface: #f8fafc;
+  --color-text: #0f172a;
+  --color-text-muted: #64748b;
+
+  /* Typography */
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Spacing */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+
+  /* Borders */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 1rem;
+}
+```
+
+---
+
+## AI Default Patterns (AVOID THESE!)
+
+```
+DON'T:
+- Tailwind default colors (blue-500, gray-100)
+- rounded-lg everywhere
+- shadow-md on everything
+- Centered hero + 3 feature cards layout
+- Generic gradient: from-blue-500 to-purple-500
+- System font stack without character
+```
+
+---
+
+## 1. Layout Strategies
+
+### Bento Grid (2025 trend)
+```css
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(3, 200px);
+  gap: 16px;
+}
+
+.bento-item-featured {
+  grid-column: span 2;
+  grid-row: span 2;
+}
+```
+
+### Asymmetric Layout
+```css
+.asymmetric-section {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 4rem;
+  align-items: start; /* Not center! */
+}
+
+.offset-element {
+  transform: translateY(60px);
+}
+```
+
+### Brutalist Approach
+```css
+.brutalist-card {
+  border: 3px solid black;
+  box-shadow: 8px 8px 0 black;
+  background: #fff;
+}
+
+.brutalist-card:hover {
+  transform: translate(-4px, -4px);
+  box-shadow: 12px 12px 0 black;
+}
+```
+
+---
+
+## 2. Typography
+
+### Expressive Typography
+```css
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&family=Outfit:wght@400;600&display=swap');
+
+.heading-distinctive {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 0.95;
+}
+
+.body-modern {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+```
+
+### Variable Fonts + Animation
+```css
+.animated-weight {
+  transition: font-weight 0.3s ease;
+}
+
+.animated-weight:hover {
+  font-weight: 800;
+}
+```
+
+---
+
+## 3. Visual Effects
+
+### Glassmorphism
+```css
+.glass-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+}
+
+.glass-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%);
+  border-radius: inherit;
+  pointer-events: none;
+}
+```
+
+### Neumorphism (subtle)
+```css
+.neu-button {
+  background: #e0e5ec;
+  border-radius: 12px;
+  box-shadow: 6px 6px 12px #b8bec7, -6px -6px 12px #ffffff;
+}
+
+.neu-button:active {
+  box-shadow: inset 4px 4px 8px #b8bec7, inset -4px -4px 8px #ffffff;
+}
+```
+
+### Lightning Dark Mode
+```css
+.lightning-dark {
+  --bg: #0a0a0f;
+  --glow: rgba(99, 102, 241, 0.4);
+  background: var(--bg);
+}
+
+.glow-element {
+  box-shadow: 0 0 20px var(--glow), 0 0 40px var(--glow), 0 0 60px rgba(99, 102, 241, 0.2);
+}
+
+.glow-text {
+  text-shadow: 0 0 30px var(--glow);
+}
+```
+
+### 3D Transform
+```css
+.card-3d {
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+
+.card-3d:hover {
+  transform: rotateY(5deg) rotateX(-5deg);
+}
+```
+
+---
+
+## 4. Micro-interactions
+
+### Magnetic Button
+```javascript
+const btn = document.querySelector('.magnetic-btn');
+btn.addEventListener('mousemove', (e) => {
+  const rect = btn.getBoundingClientRect();
+  const x = e.clientX - rect.left - rect.width / 2;
+  const y = e.clientY - rect.top - rect.height / 2;
+  btn.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px)`;
+});
+btn.addEventListener('mouseleave', () => {
+  btn.style.transform = 'translate(0, 0)';
+});
+```
+
+### Reveal Animation
+```css
+.reveal-up {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal-up.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+```
+
+### Staggered Animation
+```css
+.stagger-item {
+  animation: fadeSlideUp 0.6s ease forwards;
+  opacity: 0;
+}
+
+.stagger-item:nth-child(1) { animation-delay: 0.1s; }
+.stagger-item:nth-child(2) { animation-delay: 0.2s; }
+.stagger-item:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+```
+
+---
+
+## 5. Custom Cursor
+
+```css
+.custom-cursor { cursor: none; }
+
+.cursor-dot {
+  position: fixed;
+  width: 8px;
+  height: 8px;
+  background: white;
+  border-radius: 50%;
+  pointer-events: none;
+  mix-blend-mode: difference;
+  z-index: 9999;
+}
+
+.cursor-outline {
+  position: fixed;
+  width: 40px;
+  height: 40px;
+  border: 1px solid white;
+  border-radius: 50%;
+  pointer-events: none;
+  mix-blend-mode: difference;
+  z-index: 9998;
+  transition: transform 0.15s ease-out;
+}
+
+.cursor-outline.hovering {
+  transform: scale(1.5);
+  background: rgba(255,255,255,0.1);
+}
+```
+
+---
+
+## 6. Colors (Not Tailwind Default!)
+
+### Custom Palette
+```css
+:root {
+  /* Use unique, not blue-500/gray-100 */
+  --accent: #6366f1;
+  --accent-glow: #818cf8;
+  --surface: #18181b;
+  --surface-elevated: #27272a;
+  --text-primary: #fafafa;
+  --text-muted: #a1a1aa;
+
+  --gradient-hero: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+}
+```
+
+### Noise Texture Overlay
+```css
+.noise-overlay::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.03;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+}
+```
+
+---
+
+## Quick Reference: Do vs Don't
+
+| Avoid | Use |
+|-------|-----|
+| `rounded-lg` everywhere | Vary: `rounded-2xl`, `rounded-none`, custom |
+| `shadow-md` | Custom shadows with color |
+| `bg-blue-500` | Custom palette |
+| System fonts | Character fonts (Space Grotesk, Outfit) |
+| Centered everything | Asymmetric, offset layouts |
+| 3-column feature grid | Bento grid, masonry |
+| Generic hover states | Magnetic, 3D transforms |
+| Static elements | Micro-interactions |

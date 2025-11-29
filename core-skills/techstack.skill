@@ -1,0 +1,486 @@
+# Tech Stack Skill
+
+> Optimized stack for AI-driven development with Supabase + OpenRouter.
+
+**See also:** `framework-philosophy.skill` for project size decision matrix and core principles.
+
+---
+
+## Framework Selection Criteria
+
+### Quick Decision Guide
+
+| Project Type | Size | Recommended Stack |
+|--------------|------|-------------------|
+| Simple CRUD app | Small (<10 views) | Vue 3 + Express + Supabase |
+| Team web app | Medium (10-30 views) | React + Vite + Express + Supabase |
+| Complex SaaS | Large (30+ views) | Next.js 14 + Supabase |
+| AI-powered app | Any | Next.js 14 + OpenRouter + Supabase |
+| Static + islands | Small | Astro + React/Vue islands |
+
+### Selection Factors
+
+**Choose Vue 3 when:**
+- Small-medium project (<30 views)
+- Team prefers Vue / has Vue experience
+- Rapid prototyping needed
+- Single-page application without SSR
+
+**Choose React + Vite when:**
+- Medium-large project
+- Need large component ecosystem
+- Team knows React
+- Better AI tooling support (VS Code, Claude Code)
+
+**Choose Next.js 14 when:**
+- Need SSR/SEO
+- AI features with streaming
+- Full-stack TypeScript
+- Production-ready from day 1
+
+---
+
+## Recommended Stack
+
+```yaml
+Frontend:
+  Framework: Next.js 14 (App Router)
+  Language: TypeScript
+  UI: Shadcn/ui + Tailwind CSS
+  State: Zustand or TanStack Query
+
+Backend:
+  Primary: Supabase (PostgreSQL + Auth + Realtime + Storage)
+  API: Next.js API Routes + Edge Functions
+  Language: TypeScript
+
+AI Layer:
+  LLM: OpenRouter API
+  Embeddings: OpenAI via Supabase Vector (pgvector)
+  Framework: Vercel AI SDK / LangChain.js
+
+Development:
+  Monorepo: Turborepo + pnpm (optional)
+  Testing: Vitest + Playwright
+  Deploy: Vercel
+```
+
+---
+
+## Why This Stack?
+
+### Next.js 14 > Other Frameworks
+**Advantages:**
+- Full-stack TypeScript (frontend + backend in one repo)
+- Server Components (AI responses server-side, no exposed API keys)
+- Streaming (LLM responses in real-time)
+- Built-in optimizations (images, fonts, scripts)
+- Vercel AI SDK first-class support
+- Excellent DX (hot reload, error handling)
+
+**AI-Driven Development Edge:**
+```typescript
+// Server Component - API key stays server-side
+async function AIResponse() {
+  const response = await openrouter.complete({
+    model: "anthropic/claude-3.5-sonnet",
+    messages: [...]
+  })
+  return <StreamedResponse data={response} />
+}
+```
+
+### Shadcn/ui > Component Libraries
+**Why Shadcn?**
+- Copy-paste components (not a dependency)
+- Fully customizable (your code)
+- AI understands it (simple, clean patterns)
+- TypeScript first (perfect types)
+- Radix UI based (accessible by default)
+
+### Supabase + Next.js = Perfect Match
+```typescript
+// app/api/chat/route.ts
+import { createClient } from '@supabase/supabase-js'
+import { OpenRouter } from 'openrouter'
+
+export async function POST(req: Request) {
+  const supabase = createClient(...)
+  const { data: { user } } = await supabase.auth.getUser()
+
+  // Store conversation
+  await supabase.from('conversations').insert({
+    user_id: user.id,
+    message: req.body.message
+  })
+
+  // Get AI response
+  const ai = new OpenRouter(...)
+  return ai.stream(...)
+}
+```
+
+---
+
+## Project Structure
+
+### Monorepo (Recommended)
+```
+my-ai-project/
+├── apps/
+│   └── web/                 # Next.js app
+│       ├── app/
+│       │   ├── (auth)/      # Auth routes
+│       │   ├── (chat)/      # AI chat
+│       │   ├── api/         # API routes
+│       │   └── layout.tsx
+│       └── components/
+│           ├── ui/          # Shadcn components
+│           └── features/    # Business logic
+│
+├── packages/
+│   ├── supabase/           # Supabase client + types
+│   ├── ai/                 # OpenRouter + LangChain
+│   ├── ui/                 # Shared components
+│   └── utils/              # Shared utilities
+│
+├── PROJECT.md              # Single source of truth
+├── turbo.json             # Turborepo config
+└── pnpm-workspace.yaml    # Monorepo setup
+```
+
+### Single App (Simpler)
+```
+my-ai-project/
+├── app/
+│   ├── (auth)/
+│   ├── (chat)/
+│   ├── api/
+│   └── layout.tsx
+├── components/
+├── lib/
+│   ├── supabase.ts
+│   ├── openrouter.ts
+│   └── utils.ts
+├── PROJECT.md
+└── package.json
+```
+
+---
+
+## Code Patterns
+
+### AI Chat (Server Component)
+```typescript
+// app/(chat)/chat/page.tsx
+import { createServerClient } from '@/lib/supabase'
+import { AIChat } from '@/components/ai-chat'
+
+export default async function ChatPage() {
+  const supabase = createServerClient()
+  const { data: history } = await supabase
+    .from('messages')
+    .select('*')
+    .order('created_at', { ascending: true })
+
+  return <AIChat initialHistory={history} />
+}
+```
+
+### Streaming AI Response
+```typescript
+// app/api/chat/route.ts
+import { OpenAI } from 'openai'
+import { OpenAIStream, StreamingTextResponse } from 'ai'
+
+export async function POST(req: Request) {
+  const { messages } = await req.json()
+
+  const response = await openai.chat.completions.create({
+    model: 'gpt-4',
+    stream: true,
+    messages,
+  })
+
+  const stream = OpenAIStream(response)
+  return new StreamingTextResponse(stream)
+}
+```
+
+### Vector Search (RAG)
+```typescript
+// AI-powered semantic search
+export async function searchSimilar(query: string) {
+  // Generate embedding
+  const embedding = await openai.embeddings.create({
+    model: 'text-embedding-ada-002',
+    input: query
+  })
+
+  // Vector search in Supabase
+  const { data } = await supabase.rpc('match_documents', {
+    query_embedding: embedding.data[0].embedding,
+    match_threshold: 0.78,
+    match_count: 5
+  })
+
+  return data
+}
+```
+
+### Supabase RLS for Multi-tenancy
+```sql
+-- Enable RLS
+ALTER TABLE conversations ENABLE ROW LEVEL SECURITY;
+
+-- Users see only own conversations
+CREATE POLICY "Users see own conversations" ON conversations
+  FOR SELECT USING (auth.uid() = user_id);
+
+-- Users can insert own conversations
+CREATE POLICY "Users create own conversations" ON conversations
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+```
+
+---
+
+## Quick Start
+
+```bash
+# Create Next.js app
+pnpm create next-app@latest my-ai-app \
+  --typescript \
+  --tailwind \
+  --app \
+  --use-pnpm
+
+cd my-ai-app
+
+# Add Supabase
+pnpm add @supabase/supabase-js @supabase/auth-helpers-nextjs
+
+# Add AI SDKs
+pnpm add openai ai
+
+# Add Shadcn/ui
+pnpx shadcn-ui@latest init
+pnpx shadcn-ui@latest add button card input textarea
+```
+
+---
+
+## Alternative Stacks
+
+### Vue/Nuxt Alternative
+```yaml
+Frontend: Nuxt 3
+UI: Nuxt UI + Tailwind
+Backend: Supabase + Nitro
+Deploy: Vercel/Netlify
+```
+
+**When to use:**
+- Team knows Vue well
+- Prefer Vue's simplicity
+- Want Nuxt's file-based routing
+
+### Python Backend Alternative
+```yaml
+Frontend: Next.js
+Backend: FastAPI + LangChain
+Database: Supabase (via postgrest)
+Deploy: Frontend (Vercel) + Backend (Railway)
+```
+
+**When to use:**
+- Need heavy data processing
+- Want Python AI libraries
+- Have existing Python codebase
+
+### Minimal Alternative
+```yaml
+Frontend: Astro + React islands
+Backend: Supabase Functions
+AI: OpenRouter direct
+Deploy: Vercel/Netlify
+```
+
+**When to use:**
+- Simple static site with AI features
+- Minimal JavaScript
+- Fast page loads
+
+---
+
+## Why This Stack Wins for AI
+
+### 1. AI Understands It
+- Next.js has massive training data
+- Standard patterns = better AI-generated code
+
+### 2. Minimal Context Needed
+```typescript
+// Claude/GPT knows this pattern instantly
+export default function Page() {
+  return <div>...</div>
+}
+```
+
+### 3. Production-Ready Day 1
+- Auth: Supabase (done)
+- Hosting: Vercel (automatic)
+- Database: Supabase (done)
+- AI: OpenRouter (done)
+
+### 4. One Language Everywhere
+- TypeScript frontend
+- TypeScript backend
+- TypeScript AI orchestration
+- TypeScript database types (Supabase generates)
+
+---
+
+## Decision Framework
+
+### Choose Next.js if:
+- Want one framework for everything
+- Need SEO (server-side rendering)
+- Want best AI/streaming support
+- Like React ecosystem
+
+### Choose Nuxt/Vue if:
+- Team knows Vue well
+- Prefer Vue's simplicity
+- Want Nuxt 3 full-stack
+
+### Choose Python + Next.js if:
+- Need data science/ML
+- Want Python AI libraries
+- Have existing Python code
+
+---
+
+## PROJECT.md Template for This Stack
+
+```markdown
+# Project: AI Assistant
+
+## 🎯 Context
+**Stack:** Next.js 14, TypeScript, Supabase, OpenRouter
+**Architecture:** Server Components + API Routes
+**AI Model:** Claude 3.5 Sonnet via OpenRouter
+**Database:** PostgreSQL + pgvector (Supabase)
+
+## 🏗️ Structure
+```
+app/
+├── (auth)/          # Authentication
+├── (chat)/          # AI chat interface
+├── api/chat/        # Streaming AI endpoint
+└── layout.tsx
+```
+
+## 🔧 Key Patterns
+
+### AI Response
+- Server Components for secure API calls
+- Streaming with Vercel AI SDK
+- Error boundaries for failures
+
+### Data
+- Supabase RLS for multi-tenancy
+- Vector embeddings for RAG
+- Realtime subscriptions for chat
+
+## 📌 Active Work
+- [ ] Setup OpenRouter streaming
+- [ ] Implement chat UI with Shadcn
+- [ ] Add conversation history
+```
+
+---
+
+## Common Integrations
+
+### Authentication
+```typescript
+// app/auth/callback/route.ts
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { cookies } from 'next/headers'
+
+export async function GET(req: Request) {
+  const supabase = createRouteHandlerClient({ cookies })
+  const { searchParams } = new URL(req.url)
+  const code = searchParams.get('code')
+
+  if (code) {
+    await supabase.auth.exchangeCodeForSession(code)
+  }
+
+  return NextResponse.redirect(new URL('/chat', req.url))
+}
+```
+
+### File Upload (Supabase Storage)
+```typescript
+export async function uploadFile(file: File) {
+  const { data, error } = await supabase.storage
+    .from('uploads')
+    .upload(`${user.id}/${file.name}`, file)
+
+  return data?.path
+}
+```
+
+### Realtime Subscriptions
+```typescript
+useEffect(() => {
+  const channel = supabase
+    .channel('messages')
+    .on('postgres_changes', {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'messages',
+      filter: `conversation_id=eq.${conversationId}`
+    }, (payload) => {
+      setMessages(prev => [...prev, payload.new])
+    })
+    .subscribe()
+
+  return () => { supabase.removeChannel(channel) }
+}, [conversationId])
+```
+
+---
+
+## Deployment
+
+### Vercel (Recommended)
+```bash
+# Auto-deploys from git
+vercel
+
+# Environment variables
+OPENROUTER_API_KEY=sk-or-...
+NEXT_PUBLIC_SUPABASE_URL=https://...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+SUPABASE_SERVICE_ROLE_KEY=...
+```
+
+### Edge Functions (Supabase)
+```typescript
+// supabase/functions/ai-chat/index.ts
+Deno.serve(async (req) => {
+  const { message } = await req.json()
+
+  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${Deno.env.get('OPENROUTER_API_KEY')}`
+    },
+    body: JSON.stringify({ model: 'claude-3', messages: [{ role: 'user', content: message }] })
+  })
+
+  return response
+})
+```

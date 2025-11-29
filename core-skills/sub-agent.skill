@@ -1,0 +1,291 @@
+# Sub-Agent Orchestration Skill
+
+> Universal patterns for orchestrating Haiku sub-agents with Opus/Sonnet. Works with any project.
+
+---
+
+## When to Use Sub-Agents
+
+### Good Use Cases
+- **Parallel tasks** — Independent tasks that can run simultaneously
+- **Token-intensive** — Code generation, large file analysis, migrations
+- **Repetitive** — Same operation on multiple files (e.g., migrate 5 components)
+- **Batch processing** — Generate tests for 10 functions
+
+### When NOT to Use
+- **Full context needed** — Tasks requiring understanding of entire codebase
+- **Sequential dependencies** — Step 2 depends on step 1 output
+- **Quick operations** — Overhead exceeds benefit
+- **Complex decisions** — Architectural choices need orchestrator
+
+---
+
+## Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────┐
+│              OPUS/SONNET (Orchestrator)                 │
+│  • Reads PROJECT.md for context                         │
+│  • Loads relevant skills                                │
+│  • Decomposes task into sub-tasks                       │
+│  • Spawns sub-agents                                    │
+│  • Aggregates and validates results                     │
+└─────────────────────┬───────────────────────────────────┘
+                      │
+        ┌─────────────┼─────────────┐
+        ▼             ▼             ▼
+┌───────────────┐ ┌───────────────┐ ┌───────────────┐
+│    HAIKU      │ │    HAIKU      │ │    HAIKU      │
+│  Sub-Agent    │ │  Sub-Agent    │ │  Sub-Agent    │
+│               │ │               │ │               │
+│ 1 skill       │ │ 1 skill       │ │ 1 skill       │
+│ 1 task        │ │ 1 task        │ │ 1 task        │
+│ 1 output      │ │ 1 output      │ │ 1 output      │
+└───────────────┘ └───────────────┘ └───────────────┘
+```
+
+---
+
+## Sub-Agent Prompt Template
+
+Each sub-agent receives a structured prompt:
+
+```markdown
+# Role
+[Clear definition of what this sub-agent does]
+
+# Context
+[Minimal context - typically 1 skill file content]
+
+# Input
+[Specific input for this task - file content, requirements]
+
+# Output Format
+[Expected JSON/code structure]
+
+# Constraints
+- Do not add features beyond requirements
+- Follow patterns from context
+- Return structured output only
+```
+
+---
+
+## Orchestration Pattern
+
+### Step 1: Task Decomposition
+```
+Orchestrator analyzes task:
+1. Can this be parallelized? → Yes/No
+2. What skills does each subtask need?
+3. How many sub-agents optimal? (3-5 max)
+4. What output format for aggregation?
+```
+
+### Step 2: Sub-Agent Spawning
+```
+For each subtask:
+1. Extract relevant skill content
+2. Prepare specific input (file, requirements)
+3. Define output format
+4. Spawn Haiku sub-agent with model: "haiku"
+```
+
+### Step 3: Result Aggregation
+```
+Collect all outputs:
+1. Validate each output against expected format
+2. Check for conflicts/inconsistencies
+3. Merge into unified result
+4. Apply project-specific patterns
+```
+
+### Step 4: Quality Review
+```
+Orchestrator reviews:
+1. Does output meet original requirements?
+2. Are there inconsistencies between sub-agent outputs?
+3. Need manual review items?
+4. Ready for commit/delivery?
+```
+
+---
+
+## Model Selection Guide
+
+| Model | Use For | Token Cost |
+|-------|---------|------------|
+| **Opus** | Architectural decisions, ambiguous requirements, final review | Highest |
+| **Sonnet** | Orchestration, planning, code review, complex logic | Medium |
+| **Haiku** | Code generation, file analysis, migrations, tests | Lowest |
+
+### Cost Optimization
+- Use Haiku for 80%+ of token-intensive work
+- Sonnet for orchestration (smaller context)
+- Opus only for critical decisions
+
+---
+
+## Output Formats
+
+### Code Generation
+```json
+{
+  "file_path": "src/components/Button.tsx",
+  "content": "// Generated code here",
+  "dependencies": ["react", "@/lib/utils"],
+  "tests_needed": true
+}
+```
+
+### Analysis
+```json
+{
+  "summary": "Brief summary of findings",
+  "findings": [
+    "Finding 1 description",
+    "Finding 2 description"
+  ],
+  "recommendations": [
+    "Recommendation 1",
+    "Recommendation 2"
+  ],
+  "confidence": 0.85
+}
+```
+
+### Migration
+```json
+{
+  "source_file": "src/components/Button.vue",
+  "target_file": "src/components/Button.tsx",
+  "transformed_content": "// Migrated code",
+  "manual_review_needed": [
+    "Line 45: Complex v-model binding",
+    "Line 78: Custom directive usage"
+  ]
+}
+```
+
+### Test Generation
+```json
+{
+  "test_file": "src/components/__tests__/Button.test.tsx",
+  "content": "// Test code",
+  "coverage_targets": ["render", "click handler", "disabled state"],
+  "mocks_required": ["@/lib/api"]
+}
+```
+
+---
+
+## Practical Examples
+
+### Example 1: Migrate Multiple Components
+```
+Task: Migrate 5 Vue components to React
+
+Orchestrator (Sonnet):
+1. Load sub-agent.skill + vue-to-react.skill
+2. List 5 Vue components to migrate
+3. Spawn 5 Haiku sub-agents in parallel:
+   - Each receives: vue-to-react.skill + 1 component source
+   - Each outputs: Migration JSON format
+4. Collect results, validate, write files
+5. Run tests, fix issues
+```
+
+### Example 2: Generate Tests for Module
+```
+Task: Generate tests for 10 functions in utils.ts
+
+Orchestrator (Sonnet):
+1. Load sub-agent.skill + testing.skill
+2. Parse utils.ts, extract 10 functions
+3. Spawn 3 Haiku sub-agents (batch 4+3+3):
+   - Each receives: testing.skill + function signatures + existing patterns
+   - Each outputs: Test Generation JSON
+4. Merge test files, remove duplicates
+5. Run tests, iterate if needed
+```
+
+### Example 3: Analyze Codebase for Refactoring
+```
+Task: Find code smells in /src directory
+
+Orchestrator (Sonnet):
+1. Load sub-agent.skill + debugging.skill
+2. Group files by module (auth, api, ui)
+3. Spawn 3 Haiku sub-agents:
+   - Each analyzes 1 module
+   - Each outputs: Analysis JSON
+4. Aggregate findings, prioritize
+5. Generate refactoring plan
+```
+
+---
+
+## Error Handling
+
+### Sub-Agent Failure
+```
+1. Retry once with clarified prompt
+2. If still fails → log error, continue with others
+3. Report partial results to orchestrator
+4. Orchestrator decides: retry, skip, or escalate
+```
+
+### Timeout Handling
+```
+1. Set reasonable timeout per sub-agent (30-60s typical)
+2. On timeout → return partial results if available
+3. Mark task as incomplete
+4. Orchestrator handles incomplete tasks
+```
+
+### Conflict Resolution
+```
+When sub-agents produce conflicting outputs:
+1. Identify conflict type (naming, logic, style)
+2. Apply project patterns as tiebreaker
+3. If unresolvable → flag for human review
+```
+
+---
+
+## Integration with DG-VibeCoding-Framework
+
+### Workflow
+```
+1. Claude reads PROJECT.md → understands project context
+2. Claude loads sub-agent.skill → knows orchestration patterns
+3. Claude loads task-specific skill (e.g., vue-to-react.skill)
+4. Claude decomposes task → spawns Haiku sub-agents
+5. Sub-agents execute with minimal context
+6. Claude aggregates, validates, commits
+```
+
+### Skill Combination
+```
+Orchestrator context:
+- PROJECT.md (~500 tokens)
+- sub-agent.skill (~800 tokens)
+- task-specific.skill (~500 tokens)
+- Current task description (~200 tokens)
+= ~2000 tokens base
+
+Sub-agent context:
+- Single skill file (~500 tokens)
+- Task input (~500-1000 tokens)
+= ~1000-1500 tokens each
+```
+
+---
+
+## Avoid
+
+- Spawning too many sub-agents (>5 creates overhead)
+- Giving sub-agents full project context
+- Sequential tasks as parallel (dependencies!)
+- Skipping validation of sub-agent outputs
+- Using Opus/Sonnet for simple code generation

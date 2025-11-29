@@ -1,0 +1,212 @@
+# Testing Skill
+
+> Patterns for writing effective tests.
+
+**See also:** `framework-philosophy.skill` for TDD principles and coverage targets.
+
+---
+
+## TDD Workflow
+
+> Write tests BEFORE implementation when possible.
+
+### The TDD Cycle
+```
+1. RED    → Write failing test (define expected behavior)
+2. GREEN  → Write minimal code to pass
+3. REFACTOR → Clean up while tests stay green
+4. REPEAT → Next test case
+```
+
+### When to Write Tests First
+| Priority | When | Examples |
+|----------|------|----------|
+| **Always** | Business logic, utilities | calculateTotal(), formatDate() |
+| **Usually** | API endpoints, services | userService.create(), /api/projects |
+| **Sometimes** | Complex components | Forms with validation, data tables |
+| **Rarely** | Simple UI, prototypes | Static pages, throwaway code |
+
+### TDD Example
+```typescript
+// 1. RED: Write the test first
+test('should calculate discount for premium users', () => {
+  const user = { isPremium: true }
+  const cart = { total: 100 }
+
+  const result = calculateDiscount(user, cart)
+
+  expect(result).toBe(10) // 10% discount
+})
+
+// 2. GREEN: Implement minimal solution
+function calculateDiscount(user, cart) {
+  if (user.isPremium) {
+    return cart.total * 0.1
+  }
+  return 0
+}
+
+// 3. REFACTOR: Clean up if needed
+// 4. REPEAT: Write next test (non-premium user)
+```
+
+---
+
+## Test Structure
+
+### AAA Pattern
+```typescript
+test('should calculate total correctly', () => {
+  // Arrange
+  const items = [{ price: 10 }, { price: 20 }];
+
+  // Act
+  const result = calculateTotal(items);
+
+  // Assert
+  expect(result).toBe(30);
+});
+```
+
+### Naming Convention
+```typescript
+// Pattern: should [expected behavior] when [condition]
+test('should return empty array when no items match filter', () => {});
+test('should throw error when user is not authenticated', () => {});
+test('should update timestamp when record is modified', () => {});
+```
+
+---
+
+## Test Types
+
+### Unit Tests
+- Test single function/module
+- Mock external dependencies
+- Fast execution
+- High coverage target (80%+)
+
+### Integration Tests
+- Test multiple modules together
+- Use real database (test instance)
+- Test API endpoints
+- Medium coverage target (60%+)
+
+### E2E Tests
+- Test full user flows
+- Use real browser (Playwright/Cypress)
+- Critical paths only
+- Low coverage target (key flows)
+
+---
+
+## Mocking
+
+### Functions
+```typescript
+const mockFetch = vi.fn().mockResolvedValue({ data: [] });
+vi.mock('./api', () => ({ fetchData: mockFetch }));
+```
+
+### Modules
+```typescript
+vi.mock('@/lib/database', () => ({
+  query: vi.fn().mockResolvedValue([]),
+  insert: vi.fn().mockResolvedValue({ id: '123' }),
+}));
+```
+
+### Time
+```typescript
+beforeEach(() => {
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date('2024-01-01'));
+});
+
+afterEach(() => {
+  vi.useRealTimers();
+});
+```
+
+---
+
+## React/Component Testing
+
+### Render + Query
+```typescript
+import { render, screen } from '@testing-library/react';
+
+test('renders user name', () => {
+  render(<UserCard user={{ name: 'John' }} />);
+  expect(screen.getByText('John')).toBeInTheDocument();
+});
+```
+
+### User Events
+```typescript
+import userEvent from '@testing-library/user-event';
+
+test('submits form on button click', async () => {
+  const onSubmit = vi.fn();
+  render(<Form onSubmit={onSubmit} />);
+
+  await userEvent.type(screen.getByLabelText('Name'), 'John');
+  await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
+
+  expect(onSubmit).toHaveBeenCalledWith({ name: 'John' });
+});
+```
+
+---
+
+## API Testing
+
+```typescript
+import { describe, test, expect } from 'vitest';
+
+describe('GET /api/users', () => {
+  test('returns 200 with user list', async () => {
+    const response = await fetch('/api/users');
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(Array.isArray(data)).toBe(true);
+  });
+
+  test('returns 401 when not authenticated', async () => {
+    const response = await fetch('/api/users', {
+      headers: { Authorization: '' }
+    });
+
+    expect(response.status).toBe(401);
+  });
+});
+```
+
+---
+
+## Test Data
+
+### Factories
+```typescript
+const createUser = (overrides = {}) => ({
+  id: crypto.randomUUID(),
+  name: 'Test User',
+  email: 'test@example.com',
+  createdAt: new Date(),
+  ...overrides,
+});
+
+// Usage
+const user = createUser({ name: 'Custom Name' });
+```
+
+---
+
+## Avoid
+
+- Testing implementation details
+- Brittle selectors (use roles, labels)
+- Excessive mocking
+- Slow tests (parallelize, mock I/O)
+- Flaky tests (fix or remove)

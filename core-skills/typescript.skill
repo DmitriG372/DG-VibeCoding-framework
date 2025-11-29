@@ -1,0 +1,602 @@
+# TypeScript Skill
+
+> Advanced TypeScript patterns, utility types, and best practices.
+
+---
+
+## Type Fundamentals
+
+### Basic Types
+```typescript
+// Primitives
+const name: string = "John"
+const age: number = 30
+const active: boolean = true
+const id: bigint = 100n
+const unique: symbol = Symbol("id")
+
+// Arrays
+const numbers: number[] = [1, 2, 3]
+const names: Array<string> = ["a", "b"]
+
+// Tuples
+const pair: [string, number] = ["age", 30]
+const triple: [id: number, name: string, active: boolean] = [1, "John", true]
+
+// Objects
+const user: { name: string; age: number } = { name: "John", age: 30 }
+```
+
+### Union & Intersection
+```typescript
+// Union - one of
+type Status = "draft" | "active" | "archived"
+type ID = string | number
+
+// Intersection - all of
+type Employee = Person & { employeeId: string }
+
+// Discriminated Union
+type Result<T> = 
+  | { success: true; data: T }
+  | { success: false; error: string }
+```
+
+### Literal Types
+```typescript
+type Direction = "north" | "south" | "east" | "west"
+type Dice = 1 | 2 | 3 | 4 | 5 | 6
+type HttpMethod = "GET" | "POST" | "PUT" | "DELETE"
+
+// as const for inference
+const config = {
+  api: "https://api.example.com",
+  timeout: 5000,
+} as const
+// type: { readonly api: "https://api.example.com"; readonly timeout: 5000 }
+```
+
+---
+
+## Interfaces vs Types
+
+### When to Use Interface
+```typescript
+// Object shapes (extendable)
+interface User {
+  id: string
+  name: string
+  email: string
+}
+
+// Extending
+interface Admin extends User {
+  permissions: string[]
+}
+
+// Declaration merging
+interface Window {
+  myCustomProperty: string
+}
+```
+
+### When to Use Type
+```typescript
+// Unions, intersections, primitives
+type ID = string | number
+type Status = "active" | "inactive"
+
+// Computed/mapped types
+type Readonly<T> = { readonly [K in keyof T]: T[K] }
+
+// Function types
+type Handler = (event: Event) => void
+
+// Tuples
+type Coordinates = [number, number]
+```
+
+### Rule of Thumb
+```typescript
+// Interface for objects that might be extended
+interface ApiResponse { data: unknown }
+
+// Type for everything else
+type RequestMethod = "GET" | "POST"
+type AsyncFunction<T> = () => Promise<T>
+```
+
+---
+
+## Generics
+
+### Basic Generics
+```typescript
+// Generic function
+function identity<T>(value: T): T {
+  return value
+}
+
+// Generic interface
+interface Box<T> {
+  value: T
+  getValue(): T
+}
+
+// Generic type
+type Result<T, E = Error> = { ok: true; value: T } | { ok: false; error: E }
+```
+
+### Constraints
+```typescript
+// Extends constraint
+function getLength<T extends { length: number }>(item: T): number {
+  return item.length
+}
+
+// keyof constraint
+function getProperty<T, K extends keyof T>(obj: T, key: K): T[K] {
+  return obj[key]
+}
+
+// Multiple constraints
+function merge<T extends object, U extends object>(a: T, b: U): T & U {
+  return { ...a, ...b }
+}
+```
+
+### Default Type Parameters
+```typescript
+interface PaginatedResponse<T, M = { total: number }> {
+  data: T[]
+  meta: M
+}
+
+// Uses default meta type
+const response: PaginatedResponse<User> = {
+  data: [],
+  meta: { total: 0 }
+}
+```
+
+### Generic Utilities
+```typescript
+// Generic async wrapper
+async function tryCatch<T>(
+  fn: () => Promise<T>
+): Promise<[T, null] | [null, Error]> {
+  try {
+    const result = await fn()
+    return [result, null]
+  } catch (error) {
+    return [null, error as Error]
+  }
+}
+
+// Usage
+const [data, error] = await tryCatch(() => fetchUser(id))
+if (error) {
+  console.error(error)
+  return
+}
+// data is typed correctly here
+```
+
+---
+
+## Utility Types
+
+### Built-in Utilities
+```typescript
+interface User {
+  id: string
+  name: string
+  email: string
+  age: number
+}
+
+// Partial - all optional
+type PartialUser = Partial<User>
+// { id?: string; name?: string; email?: string; age?: number }
+
+// Required - all required
+type RequiredUser = Required<PartialUser>
+
+// Readonly - all readonly
+type ReadonlyUser = Readonly<User>
+
+// Pick - select keys
+type UserPreview = Pick<User, "id" | "name">
+// { id: string; name: string }
+
+// Omit - exclude keys
+type UserWithoutEmail = Omit<User, "email">
+// { id: string; name: string; age: number }
+
+// Record - key-value map
+type UserRoles = Record<string, "admin" | "user" | "guest">
+
+// Exclude - remove from union
+type NonNullID = Exclude<string | number | null, null>
+// string | number
+
+// Extract - keep from union
+type StringID = Extract<string | number, string>
+// string
+
+// NonNullable
+type SafeID = NonNullable<string | null | undefined>
+// string
+
+// ReturnType
+function getUser() { return { id: "1", name: "John" } }
+type UserReturn = ReturnType<typeof getUser>
+// { id: string; name: string }
+
+// Parameters
+type GetUserParams = Parameters<typeof getUser>
+// []
+
+// Awaited
+type ResolvedUser = Awaited<Promise<User>>
+// User
+```
+
+### Custom Utility Types
+```typescript
+// Deep Partial
+type DeepPartial<T> = {
+  [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K]
+}
+
+// Deep Readonly
+type DeepReadonly<T> = {
+  readonly [K in keyof T]: T[K] extends object ? DeepReadonly<T[K]> : T[K]
+}
+
+// Nullable
+type Nullable<T> = T | null
+
+// Optional keys
+type OptionalKeys<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
+type UserOptionalAge = OptionalKeys<User, "age">
+
+// Required keys
+type RequiredKeys<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>
+```
+
+---
+
+## Type Guards
+
+### typeof Guard
+```typescript
+function process(value: string | number) {
+  if (typeof value === "string") {
+    return value.toUpperCase() // value is string
+  }
+  return value.toFixed(2) // value is number
+}
+```
+
+### instanceof Guard
+```typescript
+function handleError(error: unknown) {
+  if (error instanceof Error) {
+    console.log(error.message) // error is Error
+  }
+}
+```
+
+### in Guard
+```typescript
+interface Dog { bark(): void }
+interface Cat { meow(): void }
+
+function speak(animal: Dog | Cat) {
+  if ("bark" in animal) {
+    animal.bark() // animal is Dog
+  } else {
+    animal.meow() // animal is Cat
+  }
+}
+```
+
+### Custom Type Guard
+```typescript
+// Type predicate
+function isString(value: unknown): value is string {
+  return typeof value === "string"
+}
+
+function isUser(obj: unknown): obj is User {
+  return (
+    typeof obj === "object" &&
+    obj !== null &&
+    "id" in obj &&
+    "name" in obj
+  )
+}
+
+// Usage
+function process(value: unknown) {
+  if (isUser(value)) {
+    console.log(value.name) // value is User
+  }
+}
+```
+
+### Assertion Function
+```typescript
+function assertIsString(value: unknown): asserts value is string {
+  if (typeof value !== "string") {
+    throw new Error("Not a string")
+  }
+}
+
+function process(value: unknown) {
+  assertIsString(value)
+  console.log(value.toUpperCase()) // value is string
+}
+```
+
+---
+
+## Mapped Types
+
+### Basic Mapping
+```typescript
+type Readonly<T> = {
+  readonly [K in keyof T]: T[K]
+}
+
+type Optional<T> = {
+  [K in keyof T]?: T[K]
+}
+
+type Nullable<T> = {
+  [K in keyof T]: T[K] | null
+}
+```
+
+### Key Remapping
+```typescript
+// Add prefix
+type Getters<T> = {
+  [K in keyof T as `get${Capitalize<string & K>}`]: () => T[K]
+}
+
+type UserGetters = Getters<User>
+// { getId: () => string; getName: () => string; ... }
+
+// Filter keys
+type OnlyStrings<T> = {
+  [K in keyof T as T[K] extends string ? K : never]: T[K]
+}
+```
+
+### Template Literal Types
+```typescript
+type EventName<T extends string> = `on${Capitalize<T>}`
+type ClickEvent = EventName<"click"> // "onClick"
+
+type CSSProperty = `${string}-${string}`
+type HttpEndpoint = `/${string}`
+
+// Combine with unions
+type Alignment = "left" | "right" | "center"
+type VerticalAlignment = "top" | "bottom" | "middle"
+type Position = `${Alignment}-${VerticalAlignment}`
+// "left-top" | "left-bottom" | ... (9 combinations)
+```
+
+---
+
+## Conditional Types
+
+### Basic Conditional
+```typescript
+type IsString<T> = T extends string ? true : false
+
+type A = IsString<string>  // true
+type B = IsString<number>  // false
+```
+
+### Infer Keyword
+```typescript
+// Extract return type
+type ReturnType<T> = T extends (...args: any[]) => infer R ? R : never
+
+// Extract array element
+type ArrayElement<T> = T extends (infer E)[] ? E : never
+type Num = ArrayElement<number[]> // number
+
+// Extract promise value
+type Unwrap<T> = T extends Promise<infer V> ? V : T
+type Resolved = Unwrap<Promise<string>> // string
+
+// Extract function parameters
+type FirstParam<T> = T extends (first: infer F, ...rest: any[]) => any ? F : never
+```
+
+### Distributive Conditional
+```typescript
+type ToArray<T> = T extends any ? T[] : never
+
+type Result = ToArray<string | number>
+// string[] | number[] (not (string | number)[])
+
+// Prevent distribution with tuple
+type ToArrayNonDist<T> = [T] extends [any] ? T[] : never
+type Result2 = ToArrayNonDist<string | number>
+// (string | number)[]
+```
+
+---
+
+## Module Patterns
+
+### Type-Only Imports
+```typescript
+// Import only types (removed at compile)
+import type { User, Project } from "./types"
+import { type User, fetchUser } from "./api"
+```
+
+### Declaration Files
+```typescript
+// types.d.ts
+declare module "untyped-lib" {
+  export function doSomething(input: string): number
+}
+
+// Extend existing types
+declare global {
+  interface Window {
+    analytics: Analytics
+  }
+}
+
+// Ambient declarations
+declare const API_URL: string
+```
+
+### Module Augmentation
+```typescript
+// Extend Vue component options
+declare module "vue" {
+  interface ComponentCustomProperties {
+    $api: ApiClient
+  }
+}
+
+// Extend Express Request
+declare module "express" {
+  interface Request {
+    user?: User
+  }
+}
+```
+
+---
+
+## Strict Mode Patterns
+
+### Strict Null Checks
+```typescript
+// Optional chaining
+const name = user?.profile?.name
+
+// Nullish coalescing
+const displayName = name ?? "Anonymous"
+
+// Non-null assertion (use sparingly!)
+const definitelyExists = maybeNull!
+```
+
+### Exhaustive Checks
+```typescript
+type Status = "draft" | "active" | "archived"
+
+function handleStatus(status: Status): string {
+  switch (status) {
+    case "draft":
+      return "Draft"
+    case "active":
+      return "Active"
+    case "archived":
+      return "Archived"
+    default:
+      // Compile error if case missing
+      const _exhaustive: never = status
+      return _exhaustive
+  }
+}
+```
+
+### Unknown vs Any
+```typescript
+// ❌ any - disables type checking
+function bad(input: any) {
+  input.foo.bar.baz() // No error, crashes at runtime
+}
+
+// ✅ unknown - requires type narrowing
+function good(input: unknown) {
+  if (typeof input === "object" && input !== null && "foo" in input) {
+    // Now safe to access
+  }
+}
+```
+
+---
+
+## Patterns for Vue/React
+
+### Props Type
+```typescript
+// Vue 3
+interface Props {
+  title: string
+  count?: number
+  items: Item[]
+}
+
+defineProps<Props>()
+
+// React
+interface ButtonProps {
+  variant: "primary" | "secondary"
+  size?: "sm" | "md" | "lg"
+  onClick?: () => void
+  children: React.ReactNode
+}
+```
+
+### Event Handlers
+```typescript
+// Vue
+const emit = defineEmits<{
+  change: [value: string]
+  submit: [data: FormData]
+}>()
+
+// React
+type InputHandler = React.ChangeEventHandler<HTMLInputElement>
+type ButtonHandler = React.MouseEventHandler<HTMLButtonElement>
+```
+
+### Generic Components
+```typescript
+// Vue
+interface Props<T> {
+  items: T[]
+  selected: T | null
+}
+
+// React
+interface ListProps<T> {
+  items: T[]
+  renderItem: (item: T) => React.ReactNode
+  keyExtractor: (item: T) => string
+}
+
+function List<T>({ items, renderItem, keyExtractor }: ListProps<T>) {
+  return items.map(item => (
+    <div key={keyExtractor(item)}>{renderItem(item)}</div>
+  ))
+}
+```
+
+---
+
+## Avoid
+
+- Using `any` (use `unknown` instead)
+- Type assertions without validation (`as Type`)
+- Ignoring strict mode errors with `// @ts-ignore`
+- Overly complex conditional types
+- Deeply nested generics
+- Missing return types on public APIs
+- Using `Function` type (use specific signature)
+- Enum for string unions (use literal types)
