@@ -2,12 +2,22 @@
   "recommendations": [
     "esbenp.prettier-vscode",
     "dbaeumer.vscode-eslint",
-    "bradlc.vscode-tailwindcss",
-    "ms-vscode.vscode-typescript-next",
-    "streetsidesoftware.code-spell-checker",
     "usernamehw.errorlens",
+    "streetsidesoftware.code-spell-checker",
+    "sonarsource.sonarlint-vscode",
+    "ms-vscode.vscode-typescript-next",
+    "bradlc.vscode-tailwindcss",
+    "vue.volar",
+    "pranaygp.vscode-css-peek",
+    "naumovs.color-highlight",
+    "prisma.prisma",
+    "supabase.vscode-supabase-extension",
     "eamodio.gitlens",
-    "yzhang.markdown-all-in-one"
+    "github.vscode-pull-request-github",
+    "yzhang.markdown-all-in-one",
+    "davidanson.vscode-markdownlint",
+    "anthropic.claude-code",
+    "ms-playwright.playwright"
   ],
   "unwantedRecommendations": []
 }
