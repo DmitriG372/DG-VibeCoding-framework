@@ -1,17 +1,24 @@
-# DG-SuperVibe-Framework v2.0
+# DG-SuperVibe-Framework v2.1
 
 > **Philosophy:** Start Simple, Scale Smart, Learn Continuously
 
 Intelligent, self-learning AI development platform optimized for Claude Code + VS Code dual workflow.
 
-## What's New in v2.0
+## What's New in v2.1
 
-- **🤖 Multi-Agent System** — 16 specialized agents (7 core + 9 specialists)
-- **🧠 Meta-Programming** — Framework learns and adapts automatically
-- **🎯 Smart Orchestration** — Intelligent agent coordination
-- **🔗 MCP Integration** — Automatic Context7, GitHub, Memory integration
-- **📊 Context Hierarchy** — 5-level token-optimized context loading
-- **🔄 Self-Improvement** — Automatic performance optimization
+- **Sprint Workflow** — Anthropic's agentic workflow for long tasks
+- **`/sprint-init`** — Initialize sprint from PROJECT.md tasks
+- **`/feature`** — Start working on next feature
+- **`/done`** — Complete feature with mandatory testing + commit
+- **`/sprint-status`** — Show sprint progress and recovery
+- **Jätkamisvõime** — Resume work after context compaction
+
+### v2.0 Features (retained)
+- Multi-Agent System — 16 specialized agents
+- Meta-Programming — Framework learns automatically
+- Smart Orchestration — Intelligent agent coordination
+- MCP Integration — Context7, GitHub, Memory
+- Context Hierarchy — 5-level token optimization
 
 ### v1.1 Features (retained)
 - Session Persistence with `SESSION_LOG.md`
@@ -252,6 +259,55 @@ Activates multi-agent workflow for complex tasks.
 | `/generate-skill` | Create new skill |
 | `/analyze-patterns` | Detect patterns |
 
+### v2.1 Sprint Commands
+| Command | Description |
+|---------|-------------|
+| `/sprint-init` | Initialize sprint from tasks |
+| `/feature` | Start next feature |
+| `/done` | Complete feature (test + commit) |
+| `/sprint-status` | Show sprint progress |
+
+---
+
+## Sprint Workflow (v2.1)
+
+Based on Anthropic's recommended agentic workflow for long tasks.
+
+### Why Sprint Workflow?
+
+Problems with long tasks:
+1. **Context loss** — After compaction, Claude forgets progress
+2. **Untested code** — Features marked done without validation
+3. **Messy git history** — No clear feature-to-commit mapping
+
+Sprint workflow solves these:
+- **`sprint.json`** — Machine-readable progress (survives compaction)
+- **Mandatory testing** — Cannot `/done` without passing tests
+- **One commit per feature** — Clean, traceable history
+
+### Sprint Cycle
+
+```
+/sprint-init → /feature → [work] → /done → /feature → ... → complete
+```
+
+### Quick Start
+
+1. Add tasks to `PROJECT.md#Current Sprint`
+2. Run `/sprint-init` to create `sprint/sprint.json`
+3. Run `/feature` to start first feature
+4. Implement the feature
+5. Run `/done` to test, commit, and complete
+6. Repeat until sprint complete
+
+### Recovery After Context Loss
+
+If Claude loses context (compaction), run:
+```
+/sprint-status
+```
+Shows current state and what to resume.
+
 ---
 
 ## Links
@@ -278,4 +334,4 @@ Quick summary:
 
 ---
 
-*v2.0 — Built on SuperCloud concepts + DG-VibeCoding-Framework v1.1*
+*v2.1 — Sprint Workflow + SuperCloud concepts + DG-VibeCoding-Framework v1.1*

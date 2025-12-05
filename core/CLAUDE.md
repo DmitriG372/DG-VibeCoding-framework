@@ -260,6 +260,50 @@ See `integrations/mcp/` for details.
 
 ---
 
+## Sprint Workflow (v2.1)
+
+When `sprint/` directory exists, use the iterative feature cycle for better progress tracking and recoverability.
+
+### Sprint Commands
+
+| Command | Purpose |
+|---------|---------|
+| `/sprint-init` | Initialize sprint from PROJECT.md tasks |
+| `/feature` | Start working on next feature |
+| `/done` | Complete feature (test + commit) |
+| `/sprint-status` | Show sprint progress |
+
+### Sprint Cycle
+
+```
+/sprint-init → /feature → [work] → /done → /feature → ... → complete
+```
+
+### Key Files
+
+- `sprint/sprint.json` — Machine-readable feature tracking
+- `sprint/progress.md` — Human-readable progress log
+
+### Rules
+
+1. **One feature at a time** — Focus prevents context overload
+2. **Testing required** — Cannot `/done` without passing tests
+3. **Commit per feature** — Clean git history
+4. **Recovery enabled** — Resume after context compaction
+
+### When to Use
+
+- Long tasks (>1 hour)
+- Multiple features to implement
+- Need to pause and resume work
+- Want structured progress tracking
+
+### Backwards Compatibility
+
+Sprint workflow is **optional**. Without `sprint/` directory, framework works as before.
+
+---
+
 ## References
 
 - Tech stack → `PROJECT.md#tech-stack`
@@ -279,3 +323,4 @@ See `integrations/mcp/` for details.
 - Agent protocol → `AGENT_PROTOCOL.md`
 - Context hierarchy → `CONTEXT_HIERARCHY.md`
 - MCP integrations → `integrations/mcp/`
+- Sprint tracking → `sprint/` (v2.1)

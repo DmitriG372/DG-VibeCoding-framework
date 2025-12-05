@@ -256,5 +256,110 @@ Login button not working on mobile
 
 ---
 
+## Sprint Cycle Enforcement (v2.1)
+
+When `sprint/` directory exists in the project, enforce the iterative feature cycle from Anthropic's agentic workflow.
+
+### Detection
+
+Check for sprint mode:
+```
+if exists(sprint/sprint.json):
+    SPRINT_MODE = true
+    load sprint.json
+    enforce cycle rules
+```
+
+### Cycle Rules
+
+1. **One Feature at a Time**
+   - Only one feature can have `status: "in_progress"`
+   - Cannot start new feature until current is `/done`
+   - Prevents context overload and ensures focus
+
+2. **Testing Required**
+   - Cannot mark feature as `done` without passing tests
+   - `tested: true` required before completion
+   - Tester agent is MANDATORY in `/done` flow
+
+3. **Commit Required**
+   - Each completed feature = one descriptive git commit
+   - Commit hash stored in `sprint.json`
+   - Clean git history with meaningful messages
+
+4. **Progress Tracking**
+   - Update `sprint.json` after each state change
+   - Update `progress.md` for human-readable history
+   - Enables recovery after context compaction
+
+### Agent Flow in Sprint Mode
+
+```
+/sprint-init
+    ↓
+/feature (select next pending)
+    ↓
+┌─────────────────────────────────────────┐
+│ Feature Cycle                           │
+├─────────────────────────────────────────┤
+│ 1. planner (if complex)                 │
+│ 2. architect (if needed)                │
+│ 3. implementer                          │
+│ 4. [work on feature]                    │
+│ 5. /done triggers:                      │
+│    → tester (MANDATORY)                 │
+│    → reviewer (optional)                │
+│    → git commit                         │
+│    → update sprint.json                 │
+│    → update progress.md                 │
+└─────────────────────────────────────────┘
+    ↓
+/feature (next pending)
+    ↓
+[repeat until all done]
+```
+
+### Recovery After Compaction
+
+If context is lost (Claude Code context compaction):
+
+1. Read `sprint/sprint.json`
+2. Check `current_feature`:
+   - If set → resume that feature
+   - If null → prompt for `/feature`
+3. Check `stats` for overall progress
+4. Read `progress.md` for session history
+
+This ensures work can continue even after context loss.
+
+### Modified Agent Selection
+
+In sprint mode, agent selection considers feature context:
+
+| Feature Status | Primary Agent | Required Agents |
+|---------------|---------------|-----------------|
+| Starting (pending → in_progress) | planner | - |
+| Implementation | implementer | - |
+| Completing (/done) | tester | tester (mandatory) |
+
+### Orchestration Output in Sprint Mode
+
+```json
+{
+  "mode": "sprint",
+  "current_feature": "F001",
+  "complexity": "medium",
+  "sub_tasks": [
+    {"task": "Plan authentication flow", "agent": "planner", "order": 1},
+    {"task": "Implement auth API", "agent": "implementer", "order": 2}
+  ],
+  "next_action": "Complete implementation, then /done",
+  "sprint_progress": "0/5 (0%)"
+}
+```
+
+---
+
 *Agent created: 2025-11-29*
-*Part of DG-SuperVibe-Framework v2.0*
+*Updated: 2025-12-05 (v2.1 Sprint Cycle)*
+*Part of DG-SuperVibe-Framework v2.1*

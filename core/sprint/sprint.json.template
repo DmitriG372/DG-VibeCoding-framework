@@ -1,0 +1,30 @@
+{
+  "version": "2.1",
+  "project": "[PROJECT_NAME]",
+  "sprint": {
+    "name": "Sprint 1",
+    "started": "[DATE]",
+    "goal": "[SPRINT_GOAL]"
+  },
+  "features": [
+    {
+      "id": "F001",
+      "name": "[Feature name]",
+      "description": "[Brief description]",
+      "status": "pending",
+      "tested": false,
+      "commits": [],
+      "acceptance": [
+        "[Acceptance criterion 1]",
+        "[Acceptance criterion 2]"
+      ]
+    }
+  ],
+  "current_feature": null,
+  "stats": {
+    "total": 1,
+    "completed": 0,
+    "in_progress": 0,
+    "pending": 1
+  }
+}

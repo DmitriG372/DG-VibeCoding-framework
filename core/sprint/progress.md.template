@@ -1,0 +1,57 @@
+# Sprint Progress
+
+> Auto-updated by `/done` command. Human-readable progress tracking.
+
+---
+
+## Sprint Info
+
+**Name:** [Sprint name]
+**Goal:** [Sprint goal]
+**Started:** [Date]
+
+---
+
+## Progress
+
+```
+[░░░░░░░░░░] 0% complete
+```
+
+**Completed:** 0 / [total]
+
+---
+
+## Completed Features
+
+_No features completed yet._
+
+---
+
+## In Progress
+
+_None currently._
+
+---
+
+## Pending
+
+- [ ] F001: [Feature name]
+
+---
+
+## Commit Log
+
+| Feature | Commit | Date | Message |
+|---------|--------|------|---------|
+| - | - | - | - |
+
+---
+
+## Notes
+
+_Session notes and observations go here._
+
+---
+
+*Last updated: [timestamp]*

@@ -107,9 +107,20 @@ echo -e "  ${GREEN}✓${NC} $SKILL_COUNT skills copied"
 echo -e "  ${GREEN}✓${NC} project-skills/ directory created"
 
 # ─────────────────────────────────────────────────────────────
-# 6. Apply scale level
+# 6. Copy sprint templates (v2.1)
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[6/6] Applying scale level: $SCALE${NC}"
+echo -e "${YELLOW}[6/7] Copying sprint templates...${NC}"
+
+mkdir -p "$PROJECT_DIR/core/sprint"
+cp "$FRAMEWORK_DIR/core/sprint/sprint.json.template" "$PROJECT_DIR/core/sprint/"
+cp "$FRAMEWORK_DIR/core/sprint/progress.md.template" "$PROJECT_DIR/core/sprint/"
+
+echo -e "  ${GREEN}✓${NC} Sprint templates copied"
+
+# ─────────────────────────────────────────────────────────────
+# 7. Apply scale level
+# ─────────────────────────────────────────────────────────────
+echo -e "${YELLOW}[7/7] Applying scale level: $SCALE${NC}"
 
 # Append scale content to PROJECT.md
 echo "" >> "$PROJECT_DIR/PROJECT.md"
@@ -143,6 +154,12 @@ echo "  /orchestrate   - Multi-agent workflow"
 echo "  /start-session - Start with context"
 echo "  /end-session   - Log and close"
 echo ""
+echo -e "${YELLOW}Sprint commands (v2.1):${NC}"
+echo "  /sprint-init   - Initialize sprint from tasks"
+echo "  /feature       - Start next feature"
+echo "  /done          - Complete feature (test + commit)"
+echo "  /sprint-status - Show sprint progress"
+echo ""
 echo -e "${YELLOW}Structure created:${NC}"
 echo "  $PROJECT_DIR/"
 echo "  ├── PROJECT.md           # Single source of truth"
@@ -154,5 +171,6 @@ echo "  ├── .vscode/             # VS Code settings"
 echo "  ├── .claude/commands/    # Slash commands"
 echo "  ├── agents/              # Agent definitions"
 echo "  ├── core-skills/         # Universal skills"
+echo "  ├── core/sprint/         # Sprint templates (v2.1)"
 echo "  └── project-skills/      # Project-specific skills"
 echo ""

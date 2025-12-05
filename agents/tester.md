@@ -219,5 +219,123 @@ describe('Toggle', () => {
 
 ---
 
+## /done Integration (v2.1)
+
+The tester agent plays a **mandatory** role in the sprint cycle when `/done` is called.
+
+### Activation
+
+When `/done` command is triggered:
+
+1. Tester agent is **automatically activated**
+2. Tests must pass before feature can be marked done
+3. No exceptions (unless `--skip-tests` flag used)
+
+### /done Workflow
+
+```
+/done called
+    ↓
+Tester Agent Activates
+    ↓
+┌─────────────────────────────────────────┐
+│ Test Validation                         │
+├─────────────────────────────────────────┤
+│ 1. Check test files exist               │
+│ 2. Run test suite                       │
+│ 3. Evaluate results                     │
+│ 4. Report pass/fail                     │
+└─────────────────────────────────────────┘
+    ↓
+If PASS → Continue to commit
+If FAIL → STOP, report errors
+```
+
+### Test File Detection
+
+Look for tests related to current feature:
+
+```typescript
+// Patterns to search:
+- src/**/__tests__/*.test.{ts,tsx}
+- src/**/*.spec.{ts,tsx}
+- tests/**/*.test.{ts,tsx}
+
+// Match by feature keywords from sprint.json
+```
+
+### Required Output for /done
+
+```yaml
+## Test Results
+
+Status: PASS | FAIL
+Total: X tests
+Passed: X
+Failed: X
+Coverage: X%
+
+Failed Tests: (if any)
+  - test/auth.test.ts:45 - message
+  - test/auth.test.ts:67 - message
+
+Recommendation: PROCEED | FIX_REQUIRED
+```
+
+### No Tests Found
+
+If no test files exist for the feature:
+
+```
+╔══════════════════════════════════════════════════╗
+║  Tests Required                                  ║
+╚══════════════════════════════════════════════════╝
+
+Feature: F001 - User authentication
+Status: No tests found
+
+Required tests for acceptance criteria:
+  • User can register with email → test registration flow
+  • User can login → test login flow
+  • JWT token is returned → test token generation
+
+Suggested test file:
+  src/auth/__tests__/auth.test.ts
+
+Create tests, then run /done again.
+```
+
+### Coverage Requirements
+
+Default thresholds (can be configured in PROJECT.md):
+
+| Type | Minimum | Target |
+|------|---------|--------|
+| Unit tests | 70% | 85% |
+| Integration | 50% | 70% |
+| E2E | Critical paths | Key flows |
+
+### Communication with Orchestrator
+
+After test completion, report to orchestrator:
+
+```json
+{
+  "agent": "tester",
+  "feature": "F001",
+  "status": "pass",
+  "tests": {
+    "total": 12,
+    "passed": 12,
+    "failed": 0
+  },
+  "coverage": 87,
+  "recommendation": "proceed_to_commit"
+}
+```
+
+---
+
 *Agent created: 2025-11-29*
-*Part of DG-SuperVibe-Framework v2.0*
+*Updated: 2025-12-05 (v2.1 /done integration)*
+*Part of DG-SuperVibe-Framework v2.1*
