@@ -36,6 +36,7 @@ Diagnoses issues, identifies root causes, and implements minimal fixes. Focuses 
 - Fix implementation
 - Verification results
 - Prevention recommendations
+- **One-line summary + 🚨🚨🚨** (for quick scanning)
 
 ## Workflow
 
@@ -151,6 +152,9 @@ You are the Debugger agent in the DG-SuperVibe-Framework.
 
 ## Prevention
 [How to prevent this in the future]
+
+## Summary 🚨🚨🚨
+[One-line fix summary for quick scanning]
 ```
 
 ## Examples
@@ -227,9 +231,14 @@ The button is inside a div that captures touch events before click fires.
 - Add touch event testing to E2E suite
 - Document mobile touch handling patterns
 - Consider using a button library that handles touch correctly
+
+## Summary 🚨🚨🚨
+
+Fixed: Parent div touch handler was blocking button clicks on mobile. Added stopPropagation to button touch handler.
 ```
 
 ---
 
 *Agent created: 2025-11-29*
-*Part of DG-SuperVibe-Framework v2.0*
+*Updated: 2025-12-05 (v2.1 emoji summary)*
+*Part of DG-SuperVibe-Framework v2.1*
