@@ -1,4 +1,4 @@
-# Claude Code Rules (v2.0)
+# Claude Code Rules (v2.2)
 
 > All project details → `PROJECT.md`
 > Agent definitions → `agents/`
@@ -275,7 +275,7 @@ When `sprint/` directory exists, use the iterative feature cycle for better prog
 
 ### Sprint Cycle
 
-```
+```text
 /sprint-init → /feature → [work] → /done → /feature → ... → complete
 ```
 
@@ -304,6 +304,51 @@ Sprint workflow is **optional**. Without `sprint/` directory, framework works as
 
 ---
 
+## Git-First Tracking (v2.2)
+
+Git history is the **ultimate source of truth**. All documentation is derived from git commits.
+
+### Hierarchy
+
+```text
+GIT HISTORY (immutable, ultimate truth)
+    ↓
+sprint.json (derived, reconstructable)
+    ↓
+progress.md, PROJECT.md, SESSION_LOG.md (views)
+```
+
+### v2.2 Commands
+
+| Command | Purpose |
+|---------|---------|
+| `/sprint-reconstruct` | Rebuild sprint.json from git history |
+| `/sync` | Synchronize all framework files |
+| `/sync --verify` | Verify git matches sprint.json |
+| `/sprint-validate` | Validate sprint.json consistency |
+
+### Commit Message Standard
+
+For git-based tracking to work, commits MUST include feature ID:
+
+```text
+feat(<scope>): F<ID> <description>
+```
+
+Examples:
+
+- `feat(telemetry): F001 add withPerformanceLog utility`
+- `feat(auth): F002 implement OAuth flow`
+
+### Benefits
+
+1. **Disaster recovery** — sprint.json can always be rebuilt from git
+2. **Audit trail** — Every feature linked to specific commit
+3. **Verification** — Always verify documentation matches reality
+4. **Auto-sync** — All files update automatically after `/done`
+
+---
+
 ## References
 
 - Tech stack → `PROJECT.md#tech-stack`
@@ -324,3 +369,4 @@ Sprint workflow is **optional**. Without `sprint/` directory, framework works as
 - Context hierarchy → `CONTEXT_HIERARCHY.md`
 - MCP integrations → `integrations/mcp/`
 - Sprint tracking → `sprint/` (v2.1)
+- Git-first tracking → v2.2 commands (v2.2)

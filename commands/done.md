@@ -4,7 +4,7 @@ Complete the current feature with mandatory testing and git commit.
 
 ## Usage
 
-```
+```bash
 /done [--skip-tests] [--message "custom commit message"]
 ```
 
@@ -34,12 +34,15 @@ Complete the current feature with mandatory testing and git commit.
 ### Step 3: Git Commit
 
 1. **Stage relevant files**
+
    ```bash
    git add .
    ```
-2. **Create descriptive commit**
+
+2. **Create descriptive commit with feature ID**
+
    ```bash
-   git commit -m "feat(<scope>): <feature name>
+   git commit -m "feat(<scope>): F<ID> <feature name>
 
    - <key change 1>
    - <key change 2>
@@ -52,28 +55,43 @@ Complete the current feature with mandatory testing and git commit.
 
    Co-Authored-By: Claude <noreply@anthropic.com>"
    ```
-3. **Capture commit hash**
 
-### Step 4: Update sprint.json
+   **IMPORTANT:** Commit message MUST include `F<ID>` pattern for git tracking.
+
+3. **Capture git hash and timestamp**
+
+   ```bash
+   git rev-parse HEAD        # Get full hash
+   git log -1 --format="%aI" # Get ISO timestamp
+   ```
+
+### Step 4: Update sprint.json (v2.2 format)
 
 ```json
 {
   "features": [
     {
       "id": "F001",
-      "status": "done",        // Updated
-      "tested": true,          // Updated
-      "commits": ["abc1234"]   // Added
+      "status": "done",
+      "tested": true,
+      "git": {
+        "hash": "abc1234def5678...",
+        "message": "feat(scope): F001 feature name",
+        "timestamp": "2025-12-06T12:00:00+02:00"
+      }
     }
   ],
-  "current_feature": null,     // Cleared
+  "current_feature": null,
   "stats": {
-    "completed": 1,            // Incremented
-    "in_progress": 0,          // Decremented
-    "pending": 4               // Same
-  }
+    "completed": 1,
+    "in_progress": 0,
+    "pending": 4
+  },
+  "last_verified": "<current ISO timestamp>"
 }
 ```
+
+**Git info is required** - This enables `/sprint-reconstruct` to rebuild from git history.
 
 ### Step 5: Update progress.md
 
@@ -87,10 +105,22 @@ Complete the current feature with mandatory testing and git commit.
 1. Find next pending feature
 2. Display summary
 
+### Step 7: Auto-Sync All Files (MANDATORY)
+
+1. **Run /sync automatically**
+   - Updates progress.md from sprint.json
+   - Updates PROJECT.md with sprint progress
+   - Ensures all framework files match sprint.json
+
+2. **Report sync results**
+   - Show updated file count
+   - Confirm consistency
+
 ## Output Format
 
 ### Success
-```
+
+```text
 ╔══════════════════════════════════════════════════╗
 ║  Feature Completed: F001                         ║
 ╚══════════════════════════════════════════════════╝
@@ -109,7 +139,8 @@ Use /feature to start.
 ```
 
 ### Test Failure
-```
+
+```text
 ╔══════════════════════════════════════════════════╗
 ║  Cannot Complete: Tests Failed                   ║
 ╚══════════════════════════════════════════════════╝
@@ -125,7 +156,8 @@ Feature remains: in_progress
 ```
 
 ### No Tests
-```
+
+```text
 ╔══════════════════════════════════════════════════╗
 ║  Cannot Complete: No Tests Found                 ║
 ╚══════════════════════════════════════════════════╝
@@ -159,7 +191,8 @@ Then run /done again.
 2. **One commit per feature** - Clean git history
 3. **Atomic updates** - sprint.json and progress.md together
 4. **No partial completion** - Either fully done or still in_progress
+5. **Auto-sync always runs** - Framework files stay in sync after /done
 
 ---
 
-*Part of DG-SuperVibe-Framework v2.1*
+*Part of DG-SuperVibe-Framework v2.2*

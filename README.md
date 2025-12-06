@@ -1,10 +1,19 @@
-# DG-SuperVibe-Framework v2.1
+# DG-SuperVibe-Framework v2.2
 
 > **Philosophy:** Start Simple, Scale Smart, Learn Continuously
 
 Intelligent, self-learning AI development platform optimized for Claude Code + VS Code dual workflow.
 
-## What's New in v2.1
+## What's New in v2.2
+
+- **Git-First Tracking** — Git history is the ultimate source of truth
+- **`/sprint-reconstruct`** — Rebuild sprint.json from git commits
+- **`/sync --verify`** — Verify documentation matches git reality
+- **`/sprint-validate`** — Validate sprint.json consistency
+- **Auto-sync** — All framework files update automatically after `/done`
+- **Disaster recovery** — Never lose progress, always rebuildable from git
+
+### v2.1 Features (retained)
 
 - **Sprint Workflow** — Anthropic's agentic workflow for long tasks
 - **`/sprint-init`** — Initialize sprint from PROJECT.md tasks
@@ -267,6 +276,15 @@ Activates multi-agent workflow for complex tasks.
 | `/done` | Complete feature (test + commit) |
 | `/sprint-status` | Show sprint progress |
 
+### v2.2 Git-First Commands
+
+| Command | Description |
+|---------|-------------|
+| `/sprint-reconstruct` | Rebuild sprint.json from git history |
+| `/sync` | Synchronize all framework files |
+| `/sync --verify` | Verify git matches sprint.json |
+| `/sprint-validate` | Validate sprint.json consistency |
+
 ---
 
 ## Sprint Workflow (v2.1)
@@ -321,17 +339,13 @@ Shows current state and what to resume.
 
 ---
 
-## Migration from v1.1
+## Migration
 
-See [MIGRATION.md](MIGRATION.md) for upgrade guide.
+See [MIGRATION.md](MIGRATION.md) for upgrade guides:
 
-Quick summary:
-1. Copy `.vscode/` directory to your project
-2. Copy `agents/` directory to your project
-3. Update `CLAUDE.md` with agent loading logic
-4. Enable meta-programming (optional)
-5. Configure MCP integrations
+- **v2.1 → v2.2** — Git-First Tracking upgrade
+- **v1.1 → v2.0** — Multi-agent system upgrade
 
 ---
 
-*v2.1 — Sprint Workflow + SuperCloud concepts + DG-VibeCoding-Framework v1.1*
+*v2.2 — Git-First Tracking + Sprint Workflow + Multi-Agent System*

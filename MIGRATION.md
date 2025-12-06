@@ -289,5 +289,176 @@ Sprint workflow is **completely optional**:
 
 ---
 
-*Migration Guide for DG-SuperVibe-Framework v2.1*
-*Last updated: 2025-12-05*
+# Migration Guide: v2.1 → v2.2
+
+## Overview
+
+This guide helps you migrate from DG-SuperVibe-Framework v2.1 to v2.2 (Git-First Tracking).
+
+## What's New in v2.2
+
+### Git-First Tracking
+
+Git history is now the **ultimate source of truth**:
+
+```text
+┌─────────────────────────────────────────────────────────┐
+│                  ULTIMATE SOURCE OF TRUTH                │
+│                     GIT HISTORY                          │
+│     (immutable, auditable, cannot be lost)               │
+└────────────────────────┬────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────┐
+│                  DERIVED STATE                           │
+│                  sprint.json                             │
+│     (reconstructable from git, cached state)             │
+└────────────────────────┬────────────────────────────────┘
+                         │
+         ┌───────────────┼───────────────┐
+         │               │               │
+         ▼               ▼               ▼
+   progress.md     PROJECT.md     SESSION_LOG.md
+    (visual)       (summary)       (history)
+```
+
+### New Commands
+
+| Command | Purpose |
+|---------|---------|
+| `/sprint-reconstruct` | Rebuild sprint.json from git history |
+| `/sync` | Synchronize all framework files |
+| `/sync --verify` | Verify git matches sprint.json |
+| `/sprint-validate` | Validate sprint.json consistency |
+
+### Updated Commands
+
+| Command | Changes |
+|---------|---------|
+| `/done` | Now captures git hash + timestamp, runs auto-sync |
+| `/start-session` | Now verifies git sync before starting |
+
+### Updated sprint.json Format
+
+Old (v2.1):
+
+```json
+{
+  "version": "2.1",
+  "features": [
+    {
+      "id": "F001",
+      "status": "done",
+      "commits": ["abc1234"]
+    }
+  ]
+}
+```
+
+New (v2.2):
+
+```json
+{
+  "version": "2.2",
+  "source": "git",
+  "features": [
+    {
+      "id": "F001",
+      "status": "done",
+      "git": {
+        "hash": "abc1234def5678...",
+        "message": "feat(scope): F001 feature name",
+        "timestamp": "2025-12-06T12:00:00+02:00"
+      }
+    }
+  ],
+  "last_verified": "2025-12-06T15:00:00+02:00"
+}
+```
+
+## Migration Steps
+
+### Step 1: Copy New Commands
+
+```bash
+cp framework/commands/sprint-reconstruct.md your-project/.claude/commands/
+cp framework/commands/sync.md your-project/.claude/commands/
+cp framework/commands/sprint-validate.md your-project/.claude/commands/
+```
+
+### Step 2: Update Existing Commands
+
+```bash
+cp framework/commands/done.md your-project/.claude/commands/
+cp framework/commands/start-session.md your-project/.claude/commands/
+```
+
+### Step 3: Update sprint.json Template
+
+```bash
+cp framework/core/sprint/sprint.json.template your-project/core/sprint/
+```
+
+### Step 4: Migrate Existing sprint.json
+
+If you have an existing sprint with features, run:
+
+```bash
+/sprint-reconstruct
+```
+
+This will rebuild sprint.json from git history with proper v2.2 format.
+
+### Step 5: Verify Migration
+
+```bash
+/sync --verify
+```
+
+Should report all features verified against git.
+
+## Commit Message Standard (CRITICAL)
+
+For `/sprint-reconstruct` to work, commits MUST include feature ID:
+
+**Format:**
+
+```text
+feat(<scope>): F<ID> <description>
+```
+
+**Examples:**
+
+```text
+feat(telemetry): F001 add withPerformanceLog utility
+feat(auth): F002 implement OAuth flow
+feat(ui): F003 create dashboard component
+```
+
+**Bulk commits:**
+
+```text
+feat(telemetry): complete F001-F004 full integration
+```
+
+Expands to: F001, F002, F003, F004
+
+## Benefits of v2.2
+
+1. **100% kindlus** — Git is immutable, cannot be accidentally overwritten
+2. **Disaster recovery** — sprint.json can always be rebuilt from git
+3. **Audit trail** — Every feature linked to specific commit
+4. **Merge conflict resolution** — Reconstruct from git after merge
+5. **Verification** — Always verify documentation matches reality
+
+## Backwards Compatibility
+
+- Existing sprint.json will continue to work
+- `/sprint-reconstruct` can upgrade v2.1 → v2.2 format
+- All v2.1 commands still work
+- Auto-sync ensures files stay in sync
+
+---
+
+*Migration Guide for DG-SuperVibe-Framework v2.2*
+*Last updated: 2025-12-06*

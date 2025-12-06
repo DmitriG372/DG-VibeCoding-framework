@@ -1,5 +1,6 @@
 {
-  "version": "2.1",
+  "version": "2.2",
+  "source": "git",
   "project": "[PROJECT_NAME]",
   "sprint": {
     "name": "Sprint 1",
@@ -13,7 +14,11 @@
       "description": "[Brief description]",
       "status": "pending",
       "tested": false,
-      "commits": [],
+      "git": {
+        "hash": null,
+        "message": null,
+        "timestamp": null
+      },
       "acceptance": [
         "[Acceptance criterion 1]",
         "[Acceptance criterion 2]"
@@ -26,5 +31,6 @@
     "completed": 0,
     "in_progress": 0,
     "pending": 1
-  }
+  },
+  "last_verified": null
 }
