@@ -1,10 +1,17 @@
-# DG-SuperVibe-Framework v2.2
+# DG-SuperVibe-Framework v2.3
 
 > **Philosophy:** Start Simple, Scale Smart, Learn Continuously
 
 Intelligent, self-learning AI development platform optimized for Claude Code + VS Code dual workflow.
 
-## What's New in v2.2
+## What's New in v2.3
+
+- **Anthropic Skills v2.0+** — Official Claude skill format with YAML frontmatter
+- **`.claude/skills/`** — Skills in standard location for auto-activation
+- **22 Migrated Skills** — All core-skills converted to official format
+- **VS Code Integration** — `@github` and terminal output in conversation
+
+## v2.2 Features (retained)
 
 - **Git-First Tracking** — Git history is the ultimate source of truth
 - **`/sprint-reconstruct`** — Rebuild sprint.json from git commits
@@ -55,18 +62,25 @@ cp -r core/.vscode your-project/.vscode
 | **normal** | Standard projects | → `scale/normal.md` |
 | **max** | Complex, long-term | → `scale/max.md` |
 
-### 3. Load Skills as Needed
+### 3. Skills Auto-Activate (v2.3)
 
-Skills auto-load based on task keywords (see `CLAUDE.md#auto-skill-detection`), or load manually:
+Skills are now in `.claude/skills/` using Anthropic's official format. Claude auto-activates relevant skills based on task context.
 
+**Official location:** `.claude/skills/*.md`
+
+**Format:**
+
+```markdown
+---
+name: skill-name
+description: "Brief description for auto-activation"
+---
+
+# Skill Content
+...
 ```
-core-skills/ui.skill       # Frontend patterns
-core-skills/database.skill # Database patterns
-core-skills/testing.skill  # Testing patterns
-core-skills/api.skill      # API patterns
-```
 
-See `core-skills/INDEX.md` for full list.
+See `.claude/skills/` for all 22 skills (framework-philosophy, vue, react, database, etc.).
 
 ---
 
@@ -99,9 +113,10 @@ DG-VibeCoding-framework/
 │       ├── context7.integration.md
 │       ├── github.integration.md
 │       └── memory.integration.md
+├── .claude/skills/         # Official Anthropic v2.0+ skills (22)
 ├── scale/                  # Pick your level (mini/normal/max)
-├── core-skills/            # Universal skills (22)
-├── project-skills/         # Project-specific skills
+├── core-skills/            # Legacy skills (deprecated, use .claude/skills/)
+├── project-skills/         # Legacy project skills
 ├── commands/               # Slash commands (11 total)
 ├── devops/                 # CI/CD templates
 └── prompts/                # Reusable system prompts
@@ -206,7 +221,8 @@ VS Code: Quick fixes, exploration, code review, debugging
 | `core/.vscode/` | VS Code settings | — |
 | `agents/*.md` | Agent definitions | ~100-200 each |
 | `meta/*.md` | Meta-programming | ~150 each |
-| `core-skills/*.skill` | Domain knowledge | ~100-400 each |
+| `.claude/skills/*.md` | Official skills (v2.3) | ~100-400 each |
+| `core-skills/*.skill` | Legacy skills (deprecated) | ~100-400 each |
 | `commands/*.md` | Slash commands | ~50-100 each |
 
 ---
@@ -348,4 +364,4 @@ See [MIGRATION.md](MIGRATION.md) for upgrade guides:
 
 ---
 
-*v2.2 — Git-First Tracking + Sprint Workflow + Multi-Agent System*
+*v2.3 — Anthropic Skills v2.0+ + Git-First Tracking + Sprint Workflow + Multi-Agent System*
