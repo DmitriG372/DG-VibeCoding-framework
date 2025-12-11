@@ -85,7 +85,6 @@ One feature → One PR → One review
 ### DON'T
 
 - Put detailed plans in PROJECT.md (use docs/)
-- Load all skills at once
 - Write code without reading PROJECT.md first
 - Create god-files (> 500 lines)
 - Skip tests for business logic
@@ -93,7 +92,7 @@ One feature → One PR → One review
 ### DO
 
 - Keep PROJECT.md concise
-- Load skills on-demand
+- Let skills auto-activate based on task context
 - Update task status immediately
 - Split large files
 - Write tests for complex logic

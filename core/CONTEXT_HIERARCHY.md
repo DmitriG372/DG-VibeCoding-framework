@@ -95,7 +95,7 @@ The system automatically selects context level based on task keywords:
       ↓
 4. Load relevant agents (if Level 2+)
       ↓
-5. Load skills on-demand
+5. Skills auto-activate from .claude/skills/ based on context
 ```
 
 ## File Priority
@@ -209,4 +209,4 @@ context_response:
 
 ---
 
-*Part of DG-SuperVibe-Framework v2.0*
+*Part of DG-VibeCoding-Framework v2.3*

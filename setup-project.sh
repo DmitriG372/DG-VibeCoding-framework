@@ -1,5 +1,5 @@
 #!/bin/bash
-# DG-VibeCoding-Framework v2.0 - Project Setup Script
+# DG-VibeCoding-Framework v2.3 - Project Setup Script
 # Usage: ./setup-project.sh /path/to/your/project [scale]
 # Scale options: mini, normal (default), max
 
@@ -18,7 +18,7 @@ PROJECT_DIR="${1:-.}"
 SCALE="${2:-normal}"
 
 echo -e "${BLUE}╔════════════════════════════════════════════════════╗${NC}"
-echo -e "${BLUE}║  DG-VibeCoding-Framework v2.0 - Project Setup      ║${NC}"
+echo -e "${BLUE}║  DG-VibeCoding-Framework v2.3 - Project Setup      ║${NC}"
 echo -e "${BLUE}╚════════════════════════════════════════════════════╝${NC}"
 echo ""
 
@@ -45,7 +45,7 @@ fi
 # ─────────────────────────────────────────────────────────────
 # 1. Copy core files
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[1/6] Copying core files...${NC}"
+echo -e "${YELLOW}[1/7] Copying core files...${NC}"
 
 cp "$FRAMEWORK_DIR/core/PROJECT.md" "$PROJECT_DIR/PROJECT.md"
 cp "$FRAMEWORK_DIR/core/CLAUDE.md" "$PROJECT_DIR/CLAUDE.md"
@@ -59,7 +59,7 @@ echo -e "  ${GREEN}✓${NC} AGENT_PROTOCOL.md, CONTEXT_HIERARCHY.md"
 # ─────────────────────────────────────────────────────────────
 # 2. Copy .vscode settings
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[2/6] Setting up VS Code...${NC}"
+echo -e "${YELLOW}[2/7] Setting up VS Code...${NC}"
 
 mkdir -p "$PROJECT_DIR/.vscode"
 cp "$FRAMEWORK_DIR/core/.vscode/settings.json" "$PROJECT_DIR/.vscode/settings.json"
@@ -71,7 +71,7 @@ echo -e "  ${GREEN}✓${NC} .vscode/extensions.json"
 # ─────────────────────────────────────────────────────────────
 # 3. Copy agents
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[3/6] Copying agents...${NC}"
+echo -e "${YELLOW}[3/7] Copying agents...${NC}"
 
 mkdir -p "$PROJECT_DIR/agents"
 cp "$FRAMEWORK_DIR/agents/"*.md "$PROJECT_DIR/agents/"
@@ -82,7 +82,7 @@ echo -e "  ${GREEN}✓${NC} $AGENT_COUNT agents copied"
 # ─────────────────────────────────────────────────────────────
 # 4. Copy slash commands
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[4/6] Setting up slash commands...${NC}"
+echo -e "${YELLOW}[4/7] Setting up slash commands...${NC}"
 
 mkdir -p "$PROJECT_DIR/.claude/commands"
 cp "$FRAMEWORK_DIR/commands/"*.md "$PROJECT_DIR/.claude/commands/"
@@ -91,20 +91,22 @@ COMMAND_COUNT=$(ls -1 "$PROJECT_DIR/.claude/commands/"*.md 2>/dev/null | wc -l |
 echo -e "  ${GREEN}✓${NC} $COMMAND_COUNT commands copied to .claude/commands/"
 
 # ─────────────────────────────────────────────────────────────
-# 5. Copy core skills
+# 5. Copy skills (v2.3 - Anthropic v2.0+ format)
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[5/6] Copying core skills...${NC}"
+echo -e "${YELLOW}[5/7] Copying skills (Anthropic v2.0+ format)...${NC}"
 
-mkdir -p "$PROJECT_DIR/core-skills"
-cp "$FRAMEWORK_DIR/core-skills/"*.skill "$PROJECT_DIR/core-skills/"
-cp "$FRAMEWORK_DIR/core-skills/INDEX.md" "$PROJECT_DIR/core-skills/"
+mkdir -p "$PROJECT_DIR/.claude/skills"
 
-mkdir -p "$PROJECT_DIR/project-skills"
-cp "$FRAMEWORK_DIR/project-skills/INDEX.md" "$PROJECT_DIR/project-skills/"
+# Copy all skills from framework
+SKILL_COUNT=0
+for skill in "$FRAMEWORK_DIR/.claude/skills"/*.md; do
+    if [ -f "$skill" ]; then
+        cp "$skill" "$PROJECT_DIR/.claude/skills/"
+        ((SKILL_COUNT++))
+    fi
+done
 
-SKILL_COUNT=$(ls -1 "$PROJECT_DIR/core-skills/"*.skill 2>/dev/null | wc -l | tr -d ' ')
-echo -e "  ${GREEN}✓${NC} $SKILL_COUNT skills copied"
-echo -e "  ${GREEN}✓${NC} project-skills/ directory created"
+echo -e "  ${GREEN}✓${NC} $SKILL_COUNT skills copied to .claude/skills/"
 
 # ─────────────────────────────────────────────────────────────
 # 6. Copy sprint templates (v2.1)
@@ -160,6 +162,10 @@ echo "  /feature       - Start next feature"
 echo "  /done          - Complete feature (test + commit)"
 echo "  /sprint-status - Show sprint progress"
 echo ""
+echo -e "${YELLOW}Skills (v2.3):${NC}"
+echo "  Skills auto-activate from .claude/skills/ based on task context."
+echo "  No manual loading required - Claude detects relevant skills."
+echo ""
 echo -e "${YELLOW}Structure created:${NC}"
 echo "  $PROJECT_DIR/"
 echo "  ├── PROJECT.md           # Single source of truth"
@@ -169,8 +175,7 @@ echo "  ├── AGENT_PROTOCOL.md    # Agent communication"
 echo "  ├── CONTEXT_HIERARCHY.md # Token optimization"
 echo "  ├── .vscode/             # VS Code settings"
 echo "  ├── .claude/commands/    # Slash commands"
+echo "  ├── .claude/skills/      # Skills (v2.3 - auto-activate)"
 echo "  ├── agents/              # Agent definitions"
-echo "  ├── core-skills/         # Universal skills"
-echo "  ├── core/sprint/         # Sprint templates (v2.1)"
-echo "  └── project-skills/      # Project-specific skills"
+echo "  └── core/sprint/         # Sprint templates (v2.1)"
 echo ""

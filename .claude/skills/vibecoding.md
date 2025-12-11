@@ -108,7 +108,7 @@ Start Session
 Read PROJECT.md
     │
     ▼
-Load skill if needed
+Skills auto-activate
     │
     ▼
 Work on task

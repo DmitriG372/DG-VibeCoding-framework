@@ -3,7 +3,7 @@ Implement: $ARGUMENTS
 ## Instructions
 
 1. Read PROJECT.md for context and patterns
-2. Load relevant skills (see PROJECT.md#skills-to-load)
+2. Skills auto-activate from `.claude/skills/` based on task context
 3. Follow the plan if one exists
 4. Implement step by step
 

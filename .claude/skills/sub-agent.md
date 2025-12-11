@@ -31,7 +31,7 @@ description: "Sub-agent orchestration patterns: when to use Haiku agents, task d
 ┌─────────────────────────────────────────────────────────┐
 │              OPUS/SONNET (Orchestrator)                 │
 │  • Reads PROJECT.md for context                         │
-│  • Loads relevant skills                                │
+│  • Skills auto-activate based on task                   │
 │  • Decomposes task into sub-tasks                       │
 │  • Spawns sub-agents                                    │
 │  • Aggregates and validates results                     │

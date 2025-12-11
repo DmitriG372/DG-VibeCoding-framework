@@ -347,7 +347,7 @@ Shows current state and what to resume.
 ## Links
 
 - [PROJECT.md Template](core/PROJECT.md)
-- [Skills Index](core-skills/INDEX.md)
+- [Skills Directory](.claude/skills/) (Anthropic v2.0+ format)
 - [Agent Protocol](core/AGENT_PROTOCOL.md)
 - [Context Hierarchy](core/CONTEXT_HIERARCHY.md)
 - [Scale Levels](scale/)
@@ -359,6 +359,7 @@ Shows current state and what to resume.
 
 See [MIGRATION.md](MIGRATION.md) for upgrade guides:
 
+- **v2.2 → v2.3** — Anthropic Skills v2.0+ format migration
 - **v2.1 → v2.2** — Git-First Tracking upgrade
 - **v1.1 → v2.0** — Multi-agent system upgrade
 
