@@ -111,12 +111,13 @@ Add from `devops/`:
 
 ## Skills
 
-Load all relevant:
-- `ui.skill`
-- `database.skill`
-- `testing.skill`
-- `api.skill`
-- Consider custom skills for project-specific patterns
+Auto-activated from `.claude/skills/` as needed:
+
+- `ui.md`
+- `database.md`
+- `testing.md`
+- `api.md`
+- Consider adding project-specific skills to `.claude/skills/`
 
 ## Workflow
 

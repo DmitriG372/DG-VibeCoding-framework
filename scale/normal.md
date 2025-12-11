@@ -59,11 +59,12 @@ Add from `devops/`:
 
 ## Skills
 
-Load as needed:
-- `ui.skill` — Frontend
-- `database.skill` — DB work
-- `testing.skill` — Tests
-- `api.skill` — APIs
+Auto-activated from `.claude/skills/` as needed:
+
+- `ui.md` — Frontend
+- `database.md` — DB work
+- `testing.md` — Tests
+- `api.md` — APIs
 
 ## Workflow
 

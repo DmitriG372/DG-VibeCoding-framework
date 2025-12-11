@@ -27,10 +27,9 @@ Start new session for: $ARGUMENTS
 
 1. Read PROJECT.md for full project context
 2. Read SESSION_LOG.md for last session summary
-3. Load `framework-philosophy.skill` (always)
-4. Auto-detect and load relevant skills based on $ARGUMENTS keywords
-5. Show last session summary to user
-6. Ask what to focus on today (or continue from last session)
+3. Skills auto-activate based on task context (`.claude/skills/`)
+4. Show last session summary to user
+5. Ask what to focus on today (or continue from last session)
 
 ## Output Format
 
@@ -83,11 +82,10 @@ What would you like to work on?
 
 ---
 
-## Skills Loaded
+## Skills
 
-- framework-philosophy.skill (always)
-- [auto-detected skills based on focus]
+Skills in `.claude/skills/` auto-activate based on task context.
 
 ---
 
-*Part of DG-SuperVibe-Framework v2.2*
+*Part of DG-SuperVibe-Framework v2.3*

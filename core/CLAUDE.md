@@ -1,7 +1,8 @@
-# Claude Code Rules (v2.2)
+# Claude Code Rules (v2.3)
 
 > All project details → `PROJECT.md`
 > Agent definitions → `agents/`
+> Skills → `.claude/skills/` (Anthropic v2.0+ format)
 
 ---
 
@@ -13,33 +14,40 @@
 - Commits: English
 - Chat: Match user's language
 
-### Context Loading (v2.0)
+### Context Loading (v2.3)
 
 **Level-based loading** — See `CONTEXT_HIERARCHY.md` for details.
 
 1. Always read `PROJECT.md` first
-2. **Always load `core-skills/framework-philosophy.skill`** (core principles)
+2. Skills auto-activate based on task context (`.claude/skills/`)
 3. Determine context level based on task complexity (0-4)
 4. Load agents as needed (see Agent Loading below)
-5. Load skills from `core-skills/` based on auto-detection
-6. Load project-specific skills from `project-skills/` when applicable
-7. Check active tasks in PROJECT.md#current-sprint
+5. Check active tasks in PROJECT.md#current-sprint
 
-### Skills Structure
+### Skills (Anthropic v2.0+ Format)
+
+Skills are in `.claude/skills/` with YAML frontmatter. Claude auto-activates relevant skills based on task context.
+
 ```
-core-skills/           # Universal skills (any project)
-├── INDEX.md           # Skills registry
-├── framework-philosophy.skill  # ALWAYS LOAD
-├── react.skill        # React patterns
-├── vue.skill          # Vue patterns
-├── api.skill          # API patterns
-├── database.skill     # Database patterns
-├── testing.skill      # Testing patterns
-└── ...
+.claude/skills/
+├── framework-philosophy.md  # Core principles (auto-activated)
+├── react.md                 # React patterns
+├── vue.md                   # Vue patterns
+├── api.md                   # API patterns
+├── database.md              # Database patterns
+├── testing.md               # Testing patterns
+└── ... (22 skills total)
+```
 
-project-skills/        # Project-specific skills
-├── INDEX.md           # Project skills registry
-└── melior-patterns.skill  # Example: Melior Plus project
+**Skill format:**
+
+```markdown
+---
+name: skill-name
+description: "Brief description for auto-activation"
+---
+
+# Skill Content
 ```
 
 ---
@@ -94,25 +102,25 @@ agents/
 
 ---
 
-## Auto Skill Detection
+## Auto Skill Activation (v2.3)
 
-Load skills automatically based on task keywords:
+Claude automatically activates skills from `.claude/skills/` based on task context. Skill descriptions in YAML frontmatter guide activation:
 
-| Keywords | Skill to Load |
-|----------|---------------|
-| component, UI, CSS, style, Tailwind | ui.skill |
-| database, migration, query, RLS, Supabase | database.skill |
-| test, spec, coverage, vitest, jest | testing.skill |
-| API, endpoint, REST, route, handler | api.skill |
-| React, useState, useEffect, hooks | react.skill |
-| Vue, ref, computed, composable | vue.skill |
-| Next.js, app router, server actions | nextjs.skill |
-| auth, login, session, JWT, password | security.skill |
-| debug, error, fix, issue, bug | debugging.skill |
-| TypeScript, types, interface, generics | typescript.skill |
-| git, commit, branch, merge, PR | git.skill |
+| Task Context | Auto-Activated Skill |
+|--------------|---------------------|
+| UI, CSS, Tailwind, component | ui.md |
+| database, Supabase, RLS, query | database.md |
+| test, vitest, jest, spec | testing.md |
+| API, endpoint, REST | api.md |
+| React, useState, hooks | react.md |
+| Vue, ref, composable | vue.md |
+| Next.js, app router | nextjs.md |
+| auth, security, JWT | security.md |
+| debug, error, fix | debugging.md |
+| TypeScript, types | typescript.md |
+| git, commit, branch | git.md |
 
-When task matches multiple keywords, load all relevant skills.
+Multiple skills can activate simultaneously for complex tasks.
 
 ---
 
@@ -361,9 +369,7 @@ Examples:
 - Session history → `SESSION_LOG.md`
 - Iteration log → `PROJECT.md#iteration-log`
 - Decisions → `PROJECT.md#decisions-log`
-- Core skills → `core-skills/INDEX.md`
-- Project skills → `project-skills/INDEX.md`
-- Framework philosophy → `core-skills/framework-philosophy.skill`
+- **Skills → `.claude/skills/` (v2.3)**
 - Agents → `agents/`
 - Agent protocol → `AGENT_PROTOCOL.md`
 - Context hierarchy → `CONTEXT_HIERARCHY.md`

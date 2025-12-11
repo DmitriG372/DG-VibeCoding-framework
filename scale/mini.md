@@ -37,9 +37,10 @@ At mini scale, skip:
 
 ## Skills
 
-Usually sufficient:
-- `core` patterns from PROJECT.md
-- `ui.skill` if frontend
+Usually sufficient (auto-activated from `.claude/skills/`):
+
+- Core patterns from PROJECT.md
+- `ui.md` if frontend
 
 ## Workflow
 

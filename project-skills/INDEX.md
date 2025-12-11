@@ -1,134 +1,39 @@
-# Project Skills Index
+# Project Skills Index (DEPRECATED)
 
-> Project-specific patterns. Load only when working on that specific project.
-
----
-
-## Available Projects
-
-| Project | Skill File | Description | Status |
-|---------|------------|-------------|--------|
-| Melior Plus MVP | `melior-patterns.skill` | Internal PM tool for electrical engineering | Active |
+> **This directory is deprecated as of v2.3.**
+>
+> Project-specific skills should now be placed in `.claude/skills/` using Anthropic's official v2.0+ format.
 
 ---
 
-## When to Load
+## New Location
 
-**Only load project skills when:**
-- Working directly on that project
-- Need project-specific conventions
-- Implementing features for that project
+All skills are now in: **`.claude/skills/*.md`**
 
-**Do NOT load project skills when:**
-- Working on different project
-- General learning or exploration
-- Project is completed/archived
+Project-specific skills use the same format:
 
----
-
-## Current Project Skills
-
-### melior-patterns.skill
-**Project:** Melior Plus MVP
-**Tech Stack:** Vue.js → React, Node.js + Express, Supabase, TypeScript
-**Tokens:** ~500
-
-**Contains:**
-- API response format
-- Authentication patterns
-- Database schema conventions
-- Frontend component structure
-- Backend service patterns
-- TypeScript types
-- Naming conventions
-
-**Load when:**
-```
-Working on Melior Plus → Load: melior-patterns.skill + [task skill]
-```
-
----
-
-## Creating New Project Skills
-
-### When to Create
-Create a project skill when:
-- Project has unique conventions
-- Multiple team members need same context
-- Project deviates from standard patterns
-- Custom API formats or data structures
-
-### File Location
-```
-project-skills/[project-name]-patterns.skill
-```
-
-### Template
 ```markdown
-# [Project Name] Patterns Skill
-
-> [Brief project description]
-
-**Tech Stack:** [Technologies used]
-**Status:** [Active/Maintenance/Archived]
-
+---
+name: project-patterns
+description: "Project-specific patterns and conventions"
 ---
 
-## Project Overview
+# Project Patterns
 
-[What this project does, who uses it]
-
----
-
-## API Patterns
-
-### Response Format
-[Project-specific API conventions]
-
----
-
-## Database Patterns
-
-### Tables
-[Key tables and relationships]
-
----
-
-## Frontend Patterns
-
-### Component Structure
-[Project-specific component organization]
-
----
-
-## Backend Patterns
-
-### Service Layer
-[Project-specific service conventions]
-
----
-
-## Naming Conventions
-
-[Project-specific naming rules]
-
----
-
-## Avoid
-
-- [Project-specific anti-patterns]
+## Content...
 ```
 
-### After Creating
-1. Add to the table above
-2. Document when to load
-3. Notify team members
+---
+
+## Migration
+
+See [MIGRATION.md](../MIGRATION.md#migration-guide-v22--v23) for upgrade instructions.
 
 ---
 
-## Archiving Project Skills
+## Legacy Files
 
-When a project is completed:
-1. Move skill to `project-skills/archived/`
-2. Update status in this index to "Archived"
-3. Keep for reference (don't delete)
+The `.skill` files in this directory are kept for historical reference only.
+New projects should use `.claude/skills/` exclusively.
+
+Deprecated in DG-SuperVibe-Framework v2.3

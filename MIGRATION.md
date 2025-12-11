@@ -460,5 +460,129 @@ Expands to: F001, F002, F003, F004
 
 ---
 
-*Migration Guide for DG-SuperVibe-Framework v2.2*
-*Last updated: 2025-12-06*
+# Migration Guide: v2.2 → v2.3
+
+## Overview
+
+This guide helps you migrate from DG-SuperVibe-Framework v2.2 to v2.3 (Anthropic Skills v2.0+).
+
+## What's New in v2.3
+
+### Anthropic Official Skills Format
+
+Skills now use Anthropic's official format with YAML frontmatter:
+
+**Old location:** `core-skills/*.skill`
+**New location:** `.claude/skills/*.md`
+
+**Old format:**
+
+```markdown
+# Skill Name
+
+> Description
+
+## Content...
+```
+
+**New format (v2.3):**
+
+```markdown
+---
+name: skill-name
+description: "Brief description for auto-activation"
+---
+
+# Skill Name
+
+> Description
+
+## Content...
+```
+
+### Auto-Activation
+
+Claude now automatically activates relevant skills based on the `description` field in YAML frontmatter. No manual loading required.
+
+### 22 Migrated Skills
+
+All core-skills have been converted:
+
+| Skill | Purpose |
+|-------|---------|
+| `framework-philosophy.md` | Core principles |
+| `vue.md` | Vue 3 + Composition API |
+| `react.md` | React 18+ patterns |
+| `database.md` | Database design |
+| `testing.md` | Testing patterns |
+| ... | (22 total) |
+
+## Migration Steps
+
+### Step 1: Create Skills Directory
+
+```bash
+mkdir -p your-project/.claude/skills
+```
+
+### Step 2: Migrate Skills
+
+For each `.skill` file:
+
+1. Copy to `.claude/skills/[name].md`
+2. Add YAML frontmatter:
+
+```yaml
+---
+name: skill-name
+description: "Brief description for auto-activation"
+---
+```
+
+### Step 3: Update References
+
+Update any documentation that references:
+
+- `core-skills/*.skill` → `.claude/skills/*.md`
+- `project-skills/*.skill` → `.claude/skills/*.md`
+- "Load skill" → "Skills auto-activate"
+
+### Step 4: Update CLAUDE.md
+
+Replace skill loading sections with:
+
+```markdown
+## Skills (Anthropic v2.0+ Format)
+
+Skills in `.claude/skills/` auto-activate based on task context.
+
+See `.claude/skills/` for all available skills.
+```
+
+### Step 5: Clean Up (Optional)
+
+Legacy directories can be kept for reference or removed:
+
+```bash
+# Optional: Remove legacy skill directories
+rm -rf core-skills/
+rm -rf project-skills/
+```
+
+## Backwards Compatibility
+
+- Legacy `.skill` files continue to work if manually loaded
+- Framework auto-detects new format in `.claude/skills/`
+- All v2.2 features (Git-First, Sprint Workflow) unchanged
+
+## Benefits of v2.3
+
+1. **Official format** — Uses Anthropic's recommended skill format
+2. **Auto-activation** — No manual skill loading needed
+3. **Standard location** — `.claude/skills/` is the official directory
+4. **Better discovery** — YAML frontmatter enables smart activation
+
+---
+
+*Migration Guide for DG-SuperVibe-Framework v2.3*
+*Last updated: 2025-12-11*

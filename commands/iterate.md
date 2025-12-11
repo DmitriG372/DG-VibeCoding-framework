@@ -5,7 +5,7 @@ Log iteration: $ARGUMENTS
 1. Document the current attempt/iteration
 2. Capture what was requested, what happened, and what was learned
 3. Add entry to PROJECT.md under ## Iteration Log
-4. If pattern is reusable across projects, suggest adding to project-skills/
+4. If pattern is reusable across projects, suggest adding to `.claude/skills/`
 5. Keep older iterations in collapsed section (after 5+ entries)
 
 ## Output Format
@@ -36,7 +36,8 @@ $ARGUMENTS
 [Why it didn't work as expected]
 
 **Reusable pattern?**
-- [ ] Yes → Consider adding to project-skills/
+
+- [ ] Yes → Consider adding to `.claude/skills/`
 - [x] No → Project-specific learning
 
 ---

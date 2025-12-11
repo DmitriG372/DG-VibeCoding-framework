@@ -139,16 +139,17 @@ Types: feat, fix, refactor, docs, test, chore
 
 ---
 
-## Skills to Load
+## Skills (Auto-Activated)
 
-Load these based on current work (or let auto-detection handle it):
-- `ui.skill` — When doing frontend/UI work
-- `database.skill` — When doing DB/queries
-- `testing.skill` — When writing tests
-- `api.skill` — When building APIs
+Skills in `.claude/skills/` auto-activate based on task context:
 
-→ See `core-skills/INDEX.md` for full list
-→ See `CLAUDE.md#auto-skill-detection` for automatic loading
+- `ui.md` — Frontend/UI work
+- `database.md` — DB/queries
+- `testing.md` — Writing tests
+- `api.md` — Building APIs
+
+→ See `.claude/skills/` for all 22 skills
+→ Claude auto-activates relevant skills based on task keywords
 
 ---
 

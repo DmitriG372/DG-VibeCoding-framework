@@ -11,32 +11,42 @@ The Skill Generator creates new skills based on patterns detected in successful 
 - Maintain consistent quality
 - Build project-specific knowledge
 
-## Skill Structure
+## Skill Structure (Anthropic v2.0+ Format)
+
+Skills are stored in `.claude/skills/*.md` with YAML frontmatter:
 
 ```yaml
 ---
-skill: <skill-name>
-category: <category>
-complexity: <low|medium|high>
-requires: [<prerequisite-skills>]
-tags: [<tag1>, <tag2>]
+name: <skill-name>
+description: "<Brief description for auto-activation>"
 ---
 
-# Skill: <Name>
+# <Skill Name>
 
-## Description
-<What this skill enables>
+> <Brief description>
+
+---
 
 ## When to Use
+
 <Trigger conditions>
 
+---
+
 ## Implementation
+
 <Step-by-step guide>
 
+---
+
 ## Examples
+
 <Code examples>
 
+---
+
 ## Common Pitfalls
+
 <What to avoid>
 ```
 
@@ -61,7 +71,7 @@ input:
   - category: <skill category>
 
 output:
-  - skill_file: <generated .skill file>
+  - skill_file: <generated .md file in .claude/skills/>
   - validation_checklist: <quality checks>
 ```
 
@@ -194,4 +204,4 @@ Options:
 
 ---
 
-*Part of DG-SuperVibe-Framework v2.0 Meta-Programming System*
+Part of DG-SuperVibe-Framework v2.3 Meta-Programming System
