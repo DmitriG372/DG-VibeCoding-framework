@@ -29,10 +29,9 @@ DG-VibeCoding-framework/
 │   ├── AGENT_PROTOCOL.md     # NEW
 │   ├── CONTEXT_HIERARCHY.md  # NEW
 │   └── .vscode/              # NEW: VS Code config
-└── commands/
-    ├── orchestrate.md        # NEW
-    ├── generate-skill.md     # NEW
-    └── analyze-patterns.md   # NEW
+└── .claude/
+    ├── commands/             # Slash commands
+    └── skills/               # Anthropic v2.0+ skills
 ```
 
 ## Migration Steps
@@ -229,10 +228,10 @@ cp framework/core/sprint/*.template your-project/core/sprint/
 #### Step 2: Copy Commands
 
 ```bash
-cp framework/commands/sprint-init.md your-project/.claude/commands/
-cp framework/commands/feature.md your-project/.claude/commands/
-cp framework/commands/done.md your-project/.claude/commands/
-cp framework/commands/sprint-status.md your-project/.claude/commands/
+cp framework/.claude/commands/sprint-init.md your-project/.claude/commands/
+cp framework/.claude/commands/feature.md your-project/.claude/commands/
+cp framework/.claude/commands/done.md your-project/.claude/commands/
+cp framework/.claude/commands/sprint-status.md your-project/.claude/commands/
 ```
 
 #### Step 3: Update Agents
@@ -381,16 +380,16 @@ New (v2.2):
 ### Step 1: Copy New Commands
 
 ```bash
-cp framework/commands/sprint-reconstruct.md your-project/.claude/commands/
-cp framework/commands/sync.md your-project/.claude/commands/
-cp framework/commands/sprint-validate.md your-project/.claude/commands/
+cp framework/.claude/commands/sprint-reconstruct.md your-project/.claude/commands/
+cp framework/.claude/commands/sync.md your-project/.claude/commands/
+cp framework/.claude/commands/sprint-validate.md your-project/.claude/commands/
 ```
 
 ### Step 2: Update Existing Commands
 
 ```bash
-cp framework/commands/done.md your-project/.claude/commands/
-cp framework/commands/start-session.md your-project/.claude/commands/
+cp framework/.claude/commands/done.md your-project/.claude/commands/
+cp framework/.claude/commands/start-session.md your-project/.claude/commands/
 ```
 
 ### Step 3: Update sprint.json Template

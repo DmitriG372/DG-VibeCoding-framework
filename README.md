@@ -114,7 +114,7 @@ DG-VibeCoding-framework/
 │       ├── github.integration.md
 │       └── memory.integration.md
 ├── .claude/
-│   ├── commands/           # Slash commands (20 total)
+│   ├── commands/           # Slash commands (18 total)
 │   └── skills/             # Official Anthropic v2.0+ skills (22)
 ├── scale/                  # Pick your level (mini/normal/max)
 ├── devops/                 # CI/CD templates
