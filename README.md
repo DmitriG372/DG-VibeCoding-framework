@@ -113,11 +113,10 @@ DG-VibeCoding-framework/
 │       ├── context7.integration.md
 │       ├── github.integration.md
 │       └── memory.integration.md
-├── .claude/skills/         # Official Anthropic v2.0+ skills (22)
+├── .claude/
+│   ├── commands/           # Slash commands (20 total)
+│   └── skills/             # Official Anthropic v2.0+ skills (22)
 ├── scale/                  # Pick your level (mini/normal/max)
-├── core-skills/            # Legacy skills (deprecated, use .claude/skills/)
-├── project-skills/         # Legacy project skills
-├── commands/               # Slash commands (11 total)
 ├── devops/                 # CI/CD templates
 └── prompts/                # Reusable system prompts
 ```
@@ -222,8 +221,7 @@ VS Code: Quick fixes, exploration, code review, debugging
 | `agents/*.md` | Agent definitions | ~100-200 each |
 | `meta/*.md` | Meta-programming | ~150 each |
 | `.claude/skills/*.md` | Official skills (v2.3) | ~100-400 each |
-| `core-skills/*.skill` | Legacy skills (deprecated) | ~100-400 each |
-| `commands/*.md` | Slash commands | ~50-100 each |
+| `.claude/commands/*.md` | Slash commands | ~50-100 each |
 
 ---
 
@@ -351,7 +349,7 @@ Shows current state and what to resume.
 - [Agent Protocol](core/AGENT_PROTOCOL.md)
 - [Context Hierarchy](core/CONTEXT_HIERARCHY.md)
 - [Scale Levels](scale/)
-- [Slash Commands](commands/)
+- [Slash Commands](.claude/commands/)
 
 ---
 

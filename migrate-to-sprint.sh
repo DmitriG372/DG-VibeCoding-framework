@@ -62,10 +62,10 @@ echo -e "  ${GREEN}✓${NC} Sprint templates copied"
 echo -e "${YELLOW}[2/5] Copying sprint commands...${NC}"
 
 mkdir -p "$PROJECT_DIR/.claude/commands"
-cp "$FRAMEWORK_DIR/commands/sprint-init.md" "$PROJECT_DIR/.claude/commands/"
-cp "$FRAMEWORK_DIR/commands/feature.md" "$PROJECT_DIR/.claude/commands/"
-cp "$FRAMEWORK_DIR/commands/done.md" "$PROJECT_DIR/.claude/commands/"
-cp "$FRAMEWORK_DIR/commands/sprint-status.md" "$PROJECT_DIR/.claude/commands/"
+cp "$FRAMEWORK_DIR/.claude/commands/sprint-init.md" "$PROJECT_DIR/.claude/commands/"
+cp "$FRAMEWORK_DIR/.claude/commands/feature.md" "$PROJECT_DIR/.claude/commands/"
+cp "$FRAMEWORK_DIR/.claude/commands/done.md" "$PROJECT_DIR/.claude/commands/"
+cp "$FRAMEWORK_DIR/.claude/commands/sprint-status.md" "$PROJECT_DIR/.claude/commands/"
 
 echo -e "  ${GREEN}✓${NC} 4 sprint commands copied"
 

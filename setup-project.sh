@@ -85,7 +85,7 @@ echo -e "  ${GREEN}✓${NC} $AGENT_COUNT agents copied"
 echo -e "${YELLOW}[4/7] Setting up slash commands...${NC}"
 
 mkdir -p "$PROJECT_DIR/.claude/commands"
-cp "$FRAMEWORK_DIR/commands/"*.md "$PROJECT_DIR/.claude/commands/"
+cp "$FRAMEWORK_DIR/.claude/commands/"*.md "$PROJECT_DIR/.claude/commands/"
 
 COMMAND_COUNT=$(ls -1 "$PROJECT_DIR/.claude/commands/"*.md 2>/dev/null | wc -l | tr -d ' ')
 echo -e "  ${GREEN}✓${NC} $COMMAND_COUNT commands copied to .claude/commands/"
