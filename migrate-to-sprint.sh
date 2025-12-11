@@ -1,7 +1,7 @@
 #!/bin/bash
-# DG-VibeCoding-Framework v2.1 - Sprint Migration Script
+# DG-VibeCoding-Framework v2.3 - Sprint Migration Script
 # Usage: ./migrate-to-sprint.sh /path/to/your/project
-# Migrates existing v2.0 project to use sprint workflow
+# Migrates existing project to use sprint workflow + Anthropic v2.0+ skills
 
 set -e
 
@@ -17,7 +17,7 @@ FRAMEWORK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="${1:-.}"
 
 echo -e "${BLUE}╔════════════════════════════════════════════════════╗${NC}"
-echo -e "${BLUE}║  DG-VibeCoding-Framework v2.1 - Sprint Migration   ║${NC}"
+echo -e "${BLUE}║  DG-VibeCoding-Framework v2.3 - Sprint Migration   ║${NC}"
 echo -e "${BLUE}╚════════════════════════════════════════════════════╝${NC}"
 echo ""
 
@@ -48,7 +48,7 @@ fi
 # ─────────────────────────────────────────────────────────────
 # 1. Copy sprint templates
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[1/4] Copying sprint templates...${NC}"
+echo -e "${YELLOW}[1/5] Copying sprint templates...${NC}"
 
 mkdir -p "$PROJECT_DIR/core/sprint"
 cp "$FRAMEWORK_DIR/core/sprint/sprint.json.template" "$PROJECT_DIR/core/sprint/"
@@ -59,7 +59,7 @@ echo -e "  ${GREEN}✓${NC} Sprint templates copied"
 # ─────────────────────────────────────────────────────────────
 # 2. Copy new sprint commands
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[2/4] Copying sprint commands...${NC}"
+echo -e "${YELLOW}[2/5] Copying sprint commands...${NC}"
 
 mkdir -p "$PROJECT_DIR/.claude/commands"
 cp "$FRAMEWORK_DIR/commands/sprint-init.md" "$PROJECT_DIR/.claude/commands/"
@@ -70,9 +70,27 @@ cp "$FRAMEWORK_DIR/commands/sprint-status.md" "$PROJECT_DIR/.claude/commands/"
 echo -e "  ${GREEN}✓${NC} 4 sprint commands copied"
 
 # ─────────────────────────────────────────────────────────────
-# 3. Update agents (if exist)
+# 3. Copy skills (v2.3 - Anthropic v2.0+ format)
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[3/4] Updating agents...${NC}"
+echo -e "${YELLOW}[3/5] Copying skills (Anthropic v2.0+ format)...${NC}"
+
+mkdir -p "$PROJECT_DIR/.claude/skills"
+
+# Copy all skills from framework
+SKILL_COUNT=0
+for skill in "$FRAMEWORK_DIR/.claude/skills"/*.md; do
+    if [ -f "$skill" ]; then
+        cp "$skill" "$PROJECT_DIR/.claude/skills/"
+        ((SKILL_COUNT++))
+    fi
+done
+
+echo -e "  ${GREEN}✓${NC} $SKILL_COUNT skills copied to .claude/skills/"
+
+# ─────────────────────────────────────────────────────────────
+# 4. Update agents (if exist)
+# ─────────────────────────────────────────────────────────────
+echo -e "${YELLOW}[4/5] Updating agents...${NC}"
 
 if [ -d "$PROJECT_DIR/agents" ]; then
     cp "$FRAMEWORK_DIR/agents/orchestrator.md" "$PROJECT_DIR/agents/"
@@ -84,9 +102,9 @@ else
 fi
 
 # ─────────────────────────────────────────────────────────────
-# 4. Update CLAUDE.md (if exists)
+# 5. Update CLAUDE.md (if exists)
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[4/4] Updating CLAUDE.md...${NC}"
+echo -e "${YELLOW}[5/5] Updating CLAUDE.md...${NC}"
 
 if [ -f "$PROJECT_DIR/CLAUDE.md" ]; then
     # Check if already has Sprint Workflow section
@@ -121,6 +139,24 @@ See `core/sprint/` for templates.
 EOF
         echo -e "  ${GREEN}✓${NC} Sprint Workflow section added to CLAUDE.md"
     fi
+
+    # Check if already has Skills section (v2.3)
+    if grep -q "Skills (Anthropic v2.0" "$PROJECT_DIR/CLAUDE.md" || grep -q ".claude/skills/" "$PROJECT_DIR/CLAUDE.md"; then
+        echo -e "  ${YELLOW}⚠${NC} Skills section already exists"
+    else
+        # Append skills section
+        cat >> "$PROJECT_DIR/CLAUDE.md" << 'EOF'
+
+---
+
+## Skills (Anthropic v2.0+ Format)
+
+Skills in `.claude/skills/` auto-activate based on task context.
+
+See `.claude/skills/` for all available skills.
+EOF
+        echo -e "  ${GREEN}✓${NC} Skills section added to CLAUDE.md"
+    fi
 else
     echo -e "  ${YELLOW}⚠${NC} CLAUDE.md not found, skipping"
 fi
@@ -133,7 +169,7 @@ echo -e "${GREEN}╔════════════════════
 echo -e "${GREEN}║  Migration Complete!                               ║${NC}"
 echo -e "${GREEN}╚════════════════════════════════════════════════════╝${NC}"
 echo ""
-echo -e "Project upgraded to v2.1 at: ${BLUE}$PROJECT_DIR${NC}"
+echo -e "Project upgraded to v2.3 at: ${BLUE}$PROJECT_DIR${NC}"
 echo ""
 echo -e "${YELLOW}New sprint commands available:${NC}"
 echo "  /sprint-init   - Initialize sprint from PROJECT.md tasks"
@@ -146,6 +182,10 @@ echo "  1. Add tasks to PROJECT.md#Current Sprint"
 echo "  2. Run /sprint-init to create sprint.json"
 echo "  3. Use /feature to start working"
 echo "  4. Use /done when implementation is tested"
+echo ""
+echo -e "${YELLOW}Skills (v2.3):${NC}"
+echo "  Skills auto-activate from .claude/skills/ based on task context."
+echo "  No manual loading required - Claude detects relevant skills."
 echo ""
 echo -e "${YELLOW}Sprint workflow is optional:${NC}"
 echo "  Without running /sprint-init, project works as before."
