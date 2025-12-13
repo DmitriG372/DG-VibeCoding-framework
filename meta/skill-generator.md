@@ -11,9 +11,9 @@ The Skill Generator creates new skills based on patterns detected in successful 
 - Maintain consistent quality
 - Build project-specific knowledge
 
-## Skill Structure (Anthropic v2.0+ Format)
+## Skill Structure (v2.4 Subdirectory Format)
 
-Skills are stored in `.claude/skills/*.md` with YAML frontmatter:
+Skills are stored in `.claude/skills/<name>/SKILL.md` with YAML frontmatter:
 
 ```yaml
 ---
@@ -71,7 +71,7 @@ input:
   - category: <skill category>
 
 output:
-  - skill_file: <generated .md file in .claude/skills/>
+  - skill_file: <generated .claude/skills/<name>/SKILL.md>
   - validation_checklist: <quality checks>
 ```
 
@@ -204,4 +204,4 @@ Options:
 
 ---
 
-Part of DG-SuperVibe-Framework v2.3 Meta-Programming System
+Part of DG-SuperVibe-Framework v2.4 Meta-Programming System

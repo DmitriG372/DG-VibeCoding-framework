@@ -141,15 +141,16 @@ Types: feat, fix, refactor, docs, test, chore
 
 ## Skills (Auto-Activated)
 
-Skills in `.claude/skills/` auto-activate based on task context:
+Skills in `.claude/skills/*/SKILL.md` auto-activate based on task context:
 
-- `ui.md` — Frontend/UI work
-- `database.md` — DB/queries
-- `testing.md` — Writing tests
-- `api.md` — Building APIs
+- `ui/SKILL.md` — Frontend/UI work
+- `database/SKILL.md` — DB/queries
+- `testing/SKILL.md` — Writing tests
+- `api/SKILL.md` — Building APIs
 
 → See `.claude/skills/` for all 22 skills
 → Claude auto-activates relevant skills based on task keywords
+→ v2.4 requires subdirectory format: `.claude/skills/<name>/SKILL.md`
 
 ---
 

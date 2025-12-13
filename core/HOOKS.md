@@ -251,91 +251,6 @@ process.stdin.on('end', () => {
 
 ---
 
-### 4. Run Tests After Edit (Post-tool)
-
-Auto-run related tests when source files change.
-
-**`hooks/auto-test.js`:**
-
-```javascript
-#!/usr/bin/env node
-const { execSync } = require('child_process');
-const path = require('path');
-
-let input = '';
-process.stdin.on('data', chunk => input += chunk);
-process.stdin.on('end', () => {
-  const data = JSON.parse(input);
-  const filePath = data.tool_input?.file_path || '';
-
-  // Only for source files
-  if (!filePath.match(/src\/.*\.(ts|tsx|js|jsx)$/)) {
-    process.exit(0);
-  }
-
-  // Find related test file
-  const testFile = filePath
-    .replace('/src/', '/tests/')
-    .replace(/\.(ts|tsx|js|jsx)$/, '.test.$1');
-
-  try {
-    execSync(`npx vitest run "${testFile}" --reporter=verbose`, {
-      stdio: ['ignore', 'pipe', 'pipe'],
-      timeout: 60000
-    });
-    console.error('✅ Tests passed');
-  } catch (error) {
-    console.error(`❌ Test failures:\n${error.stdout?.toString()}`);
-  }
-
-  process.exit(0);
-});
-```
-
----
-
-### 5. Duplicate Code Prevention (Post-tool)
-
-Launch secondary Claude to check for duplicates (advanced).
-
-**`hooks/check-duplicates.js`:**
-
-```javascript
-#!/usr/bin/env node
-const { execSync } = require('child_process');
-
-let input = '';
-process.stdin.on('data', chunk => input += chunk);
-process.stdin.on('end', () => {
-  const data = JSON.parse(input);
-  const filePath = data.tool_input?.file_path || '';
-
-  // Only check specific directories
-  if (!filePath.includes('/queries/') && !filePath.includes('/utils/')) {
-    process.exit(0);
-  }
-
-  try {
-    // Use Claude Code SDK to analyze
-    const result = execSync(
-      `claude --print "Review ${filePath} for duplicate code patterns. Compare with existing files in same directory. Report if duplicates found."`,
-      { stdio: ['ignore', 'pipe', 'pipe'], timeout: 60000 }
-    );
-
-    if (result.toString().toLowerCase().includes('duplicate')) {
-      console.error(`⚠️ Potential duplicate code detected in ${filePath}`);
-      process.exit(2);
-    }
-  } catch (e) {
-    // Continue on error
-  }
-
-  process.exit(0);
-});
-```
-
----
-
 ## Framework Integration
 
 ### Recommended Hooks for VibeCoding
@@ -372,6 +287,15 @@ Add to `.claude/settings.local.json`:
             "command": "node ./hooks/auto-format.js"
           }
         ]
+      },
+      {
+        "matcher": "Skill|SlashCommand|Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ./hooks/usage-tracker.js"
+          }
+        ]
       }
     ]
   }
@@ -385,18 +309,19 @@ project/
 ├── .claude/
 │   ├── settings.local.json    # Hook configuration
 │   ├── commands/              # Slash commands
-│   └── skills/                # Skills
+│   ├── skills/*/SKILL.md      # Skills (v2.4 subdirectory format)
+│   └── usage.log              # Usage tracking output
 ├── hooks/                     # Hook scripts
-│   ├── block-env.js
-│   ├── type-check.js
-│   ├── auto-format.js
-│   └── auto-test.js
+│   ├── block-env.js           # Block sensitive file access
+│   ├── type-check.js          # TypeScript error detection
+│   ├── auto-format.js         # Auto-format on edit
+│   └── usage-tracker.js       # Track skill/command/agent usage
 └── ...
 ```
 
 ---
 
-### 6. Usage Tracker (Post-tool)
+### 4. Usage Tracker (Post-tool)
 
 Track when skills, slash commands, and agents are used. Helps verify framework components work.
 

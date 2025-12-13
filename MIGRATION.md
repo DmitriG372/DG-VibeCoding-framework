@@ -713,27 +713,55 @@ Key tools: `browser_navigate`, `browser_snapshot`, `browser_click`, `browser_fil
 
 ## Migration Steps
 
-### Step 1: Copy New Core Files
+### Step 1: Migrate Skills to Subdirectory Format (CRITICAL)
+
+**This is a breaking change.** Skills must be in subdirectory format.
 
 ```bash
-cp framework/core/HOOKS.md your-project/core/
-cp framework/core/REASONING_MODES.md your-project/core/
+# Option A: Use migration script (recommended)
+chmod +x framework/scripts/migrate-skills.sh
+cp framework/scripts/migrate-skills.sh your-project/scripts/
+cd your-project && ./scripts/migrate-skills.sh
+
+# Option B: Manual migration
+# For each skill, move from:
+#   .claude/skills/testing.md
+# To:
+#   .claude/skills/testing/SKILL.md
 ```
 
-### Step 2: Copy Hooks Directory
+### Step 2: Copy New Core Files
+
+```bash
+cp framework/core/HOOKS.md your-project/HOOKS.md
+cp framework/core/REASONING_MODES.md your-project/REASONING_MODES.md
+cp framework/core/AGENT_ACTIVATION.md your-project/AGENT_ACTIVATION.md
+cp framework/VERIFICATION.md your-project/VERIFICATION.md
+```
+
+### Step 3: Copy Hooks Directory
 
 ```bash
 mkdir -p your-project/hooks
 cp framework/hooks/*.js your-project/hooks/
 ```
 
-### Step 3: Copy Playwright Integration
+### Step 4: Copy Scripts Directory
 
 ```bash
+mkdir -p your-project/scripts
+cp framework/scripts/migrate-skills.sh your-project/scripts/
+chmod +x your-project/scripts/migrate-skills.sh
+```
+
+### Step 5: Copy Playwright Integration (Optional)
+
+```bash
+mkdir -p your-project/integrations/mcp
 cp framework/integrations/mcp/playwright.integration.md your-project/integrations/mcp/
 ```
 
-### Step 4: Update CLAUDE.md
+### Step 6: Update CLAUDE.md
 
 Add to your project's CLAUDE.md:
 
@@ -759,7 +787,7 @@ Configuration: `.claude/settings.local.json`
 See: core/HOOKS.md
 ```
 
-### Step 5: Configure Hooks (Optional)
+### Step 7: Configure Hooks (Optional)
 
 Add to `.claude/settings.local.json`:
 
@@ -792,13 +820,13 @@ Add to `.claude/settings.local.json`:
 }
 ```
 
-### Step 6: Install Playwright MCP (Optional)
+### Step 8: Install Playwright MCP (Optional)
 
 ```bash
 claude mcp add playwright -- npx @anthropic-ai/mcp-playwright
 ```
 
-### Step 7: Remove GitHub MCP (If Present)
+### Step 9: Remove GitHub MCP (If Present)
 
 GitHub MCP has been removed. Use `gh` CLI directly instead:
 
@@ -867,11 +895,12 @@ Hooks can be defined in three locations (priority order):
 
 ## Quick Start Checklist
 
-- [ ] Copy `core/HOOKS.md`
-- [ ] Copy `core/REASONING_MODES.md`
-- [ ] Copy `hooks/` directory
-- [ ] Copy `integrations/mcp/playwright.integration.md`
+- [ ] **CRITICAL:** Migrate skills to subdirectory format (run `scripts/migrate-skills.sh`)
+- [ ] Copy `HOOKS.md`, `REASONING_MODES.md`, `AGENT_ACTIVATION.md`, `VERIFICATION.md`
+- [ ] Copy `hooks/` directory (4 hook scripts)
+- [ ] Copy `scripts/migrate-skills.sh`
 - [ ] Update CLAUDE.md with v2.4 sections
+- [ ] (Optional) Copy `integrations/mcp/playwright.integration.md`
 - [ ] (Optional) Configure hooks in settings.local.json
 - [ ] (Optional) Install Playwright MCP
 - [ ] (Optional) Remove GitHub MCP if present

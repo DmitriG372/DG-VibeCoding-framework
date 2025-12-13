@@ -4,7 +4,7 @@
 
 Creates a new reusable skill from a successful implementation pattern. Part of the meta-programming system.
 
-**Skills location:** `.claude/skills/` (Anthropic v2.0+ format)
+**Skills location:** `.claude/skills/<name>/SKILL.md` (v2.4 subdirectory format)
 
 ## Usage
 
@@ -55,12 +55,12 @@ Creates a new reusable skill from a successful implementation pattern. Part of t
                 ↓
       Generate Skill File
                 ↓
-      Save to .claude/skills/
+      Save to .claude/skills/<name>/SKILL.md
 ```
 
 ## Output
 
-Creates a file at `.claude/skills/<skill-name>.md` with:
+Creates a file at `.claude/skills/<skill-name>/SKILL.md` with:
 
 ```markdown
 ---
@@ -117,7 +117,7 @@ description: "<Brief description for auto-activation>"
   - Error message display
   - Submit handling
 
-✓ Generated: .claude/skills/form-with-validation.md
+✓ Created: .claude/skills/form-with-validation/SKILL.md
 
 Skill includes:
 - 5 implementation steps
@@ -136,7 +136,7 @@ Skill includes:
   - Error handling
   - Response formatting
 
-✓ Generated: .claude/skills/crud-endpoint.md
+✓ Created: .claude/skills/crud-endpoint/SKILL.md
 ```
 
 ### Example 3: Hook Skill
@@ -150,7 +150,7 @@ Skill includes:
   - State management
   - Cleanup handling
 
-✓ Generated: .claude/skills/use-debounced-search.md
+✓ Created: .claude/skills/use-debounced-search/SKILL.md
 ```
 
 ## Quality Checks
@@ -172,4 +172,4 @@ After generation:
 
 ---
 
-*Part of DG-SuperVibe-Framework v2.3 Meta-Programming System*
+*Part of DG-SuperVibe-Framework v2.4 Meta-Programming System*

@@ -304,7 +304,7 @@ See `core/AGENT_ACTIVATION.md` for complete guide.
 | `hooks/*.js` | Hook scripts | ~50 each |
 | `agents/*.md` | Agent definitions | ~100-200 each |
 | `meta/*.md` | Meta-programming | ~150 each |
-| `.claude/skills/*.md` | Official skills (v2.3) | ~100-400 each |
+| `.claude/skills/*/SKILL.md` | Official skills (v2.4) | ~100-400 each |
 | `.claude/commands/*.md` | Slash commands | ~50-100 each |
 
 ---
