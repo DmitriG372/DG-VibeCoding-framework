@@ -195,4 +195,4 @@ Then run /done again.
 
 ---
 
-*Part of DG-SuperVibe-Framework v2.2*
+*Part of DG-SuperVibe-Framework v2.4*

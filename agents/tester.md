@@ -336,6 +336,46 @@ After test completion, report to orchestrator:
 
 ---
 
+## Playwright MCP Integration (v2.4)
+
+For E2E testing, leverage Playwright MCP when available:
+
+### E2E Test Workflow
+
+```yaml
+workflow:
+  1. browser_navigate:
+       url: "http://localhost:3000"
+  2. browser_snapshot:
+       # Get element refs
+  3. browser_fill_form:
+       # Fill test data
+  4. browser_click:
+       # Submit
+  5. browser_snapshot:
+       # Verify result
+```
+
+### When to Use Playwright
+
+| Test Type | Playwright? |
+|-----------|-------------|
+| Unit tests | No - use Vitest |
+| Component tests | No - use Testing Library |
+| Integration tests | Sometimes - API testing |
+| E2E tests | Yes - full user flows |
+| Visual regression | Yes - screenshots |
+
+### Auto-Trigger
+
+Use Playwright for:
+- "Test the login flow"
+- "Check the form submission"
+- "Verify the UI after changes"
+- "E2E test for [feature]"
+
+---
+
 *Agent created: 2025-11-29*
-*Updated: 2025-12-05 (v2.1 /done integration)*
-*Part of DG-SuperVibe-Framework v2.1*
+*Updated: 2025-12-13 (v2.4 Playwright MCP)*
+*Part of DG-SuperVibe-Framework v2.4*

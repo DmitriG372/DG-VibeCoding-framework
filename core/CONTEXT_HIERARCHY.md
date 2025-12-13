@@ -209,4 +209,4 @@ context_response:
 
 ---
 
-*Part of DG-VibeCoding-Framework v2.3*
+*Part of DG-SuperVibe-Framework v2.4*

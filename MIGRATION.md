@@ -10,7 +10,7 @@ This guide helps you migrate from DG-VibeCoding-Framework v1.1 to v2.0 (DG-Super
 - **16 Specialized Agents** - Multi-agent system for complex tasks
 - **Context Hierarchy** - 5-level token optimization system
 - **Meta-Programming** - Framework self-improvement capabilities
-- **MCP Integrations** - Context7, GitHub, Memory server support
+- **MCP Integrations** - Context7, Memory, Playwright server support
 - **VS Code Support** - Migrated from Cursor to VS Code
 
 ### New Commands
@@ -110,9 +110,9 @@ skills/
 ```
 
 ### 3. Scale Levels Renamed
-- `small` → `SOLO`
-- `medium` → `TEAM`
-- `large` → `SCALE`
+- `small` → `mini` (prototypes, experiments)
+- `medium` → `normal` (standard projects)
+- `large` → `max` (complex, long-term)
 
 ## Compatibility
 
@@ -583,5 +583,300 @@ rm -rf project-skills/
 
 ---
 
-*Migration Guide for DG-SuperVibe-Framework v2.3*
-*Last updated: 2025-12-11*
+# Migration Guide: v2.3 → v2.4
+
+## Overview
+
+This guide helps you migrate from DG-SuperVibe-Framework v2.3 to v2.4 (Hooks + Reasoning Modes + Agent Activation + Skills Format).
+
+## What's New in v2.4
+
+### Skills Subdirectory Format (BREAKING CHANGE)
+
+**Skills must now be in subdirectory format:**
+
+Old (v2.3):
+```
+.claude/skills/
+├── react.md          ❌ Won't be detected
+├── testing.md        ❌ Won't be detected
+└── vue.md            ❌ Won't be detected
+```
+
+New (v2.4):
+```
+.claude/skills/
+├── react/
+│   └── SKILL.md      ✅ Correct
+├── testing/
+│   └── SKILL.md      ✅ Correct
+└── vue/
+    └── SKILL.md      ✅ Correct
+```
+
+**Migration script:** `./scripts/migrate-skills.sh`
+
+### Agent Activation System
+
+Framework agents are now properly documented and activated via slash commands:
+
+```
+/orchestrate "Add authentication"
+       │
+       ▼
+Read: agents/orchestrator.md  ← Command loads agent file
+       │
+       ▼
+Claude adopts orchestrator role
+       │
+       ▼
+Output: Orchestration Plan
+```
+
+| Command | Loads Agent |
+|---------|-------------|
+| `/orchestrate` | `agents/orchestrator.md` |
+| `/plan` | `agents/planner.md` |
+| `/review` | `agents/reviewer.md` |
+| `/done` | `agents/tester.md` |
+
+### Hooks System
+
+Automated validation via pre/post tool-use hooks:
+
+| Hook Event | When | Can Block? |
+|------------|------|------------|
+| `PreToolUse` | Before tool execution | ✅ Yes (exit 2) |
+| `PostToolUse` | After tool execution | ❌ No |
+| `SessionStart` | Session begins | ❌ No |
+| `SessionEnd` | Session ends | ❌ No |
+| `UserPromptSubmit` | User submits prompt | ✅ Yes |
+
+### Usage Tracking
+
+New hook to monitor framework component usage:
+
+```bash
+cat .claude/usage.log
+
+# Output:
+# 2025-12-13T10:00:00Z | COMMAND: /orchestrate
+# 2025-12-13T10:01:00Z | SKILL: testing
+# 2025-12-13T10:02:00Z | AGENT: Explore
+```
+
+### Reasoning Modes (Extended Thinking)
+
+Unlock deeper reasoning with phrases:
+
+| Phrase | Level | Use Case |
+|--------|-------|----------|
+| `"Think"` | Basic | Simple logic |
+| `"Think more"` | Extended | Multi-step problems |
+| `"Think a lot"` | Comprehensive | Architecture decisions |
+| `"Think longer"` | Extended time | Deep debugging |
+| `"Ultrathink"` | Maximum | Critical decisions |
+
+### Context Control
+
+| Action | Method | Purpose |
+|--------|--------|---------|
+| Stop | `Escape` | Stop mid-response |
+| Rewind | `Escape` twice | Jump back in conversation |
+| Summarize | `/compact` | Preserve knowledge, reduce noise |
+| Fresh start | `/clear` | Delete conversation |
+
+### Playwright MCP
+
+Browser automation for UI development:
+
+```bash
+claude mcp add playwright -- npx @anthropic-ai/mcp-playwright
+```
+
+Key tools: `browser_navigate`, `browser_snapshot`, `browser_click`, `browser_fill_form`
+
+### New Files
+
+| File | Purpose |
+|------|---------|
+| `core/HOOKS.md` | Hook system documentation |
+| `core/REASONING_MODES.md` | Thinking modes + context control |
+| `core/AGENT_ACTIVATION.md` | How agents work via commands |
+| `VERIFICATION.md` | Framework testing guide |
+| `hooks/block-env.js` | Block sensitive file access |
+| `hooks/type-check.js` | TypeScript error detection |
+| `hooks/auto-format.js` | Auto-format on edit |
+| `hooks/usage-tracker.js` | Track skill/command/agent usage |
+| `scripts/migrate-skills.sh` | Convert skills to subdirectory format |
+| `integrations/mcp/playwright.integration.md` | Playwright MCP guide |
+
+## Migration Steps
+
+### Step 1: Copy New Core Files
+
+```bash
+cp framework/core/HOOKS.md your-project/core/
+cp framework/core/REASONING_MODES.md your-project/core/
+```
+
+### Step 2: Copy Hooks Directory
+
+```bash
+mkdir -p your-project/hooks
+cp framework/hooks/*.js your-project/hooks/
+```
+
+### Step 3: Copy Playwright Integration
+
+```bash
+cp framework/integrations/mcp/playwright.integration.md your-project/integrations/mcp/
+```
+
+### Step 4: Update CLAUDE.md
+
+Add to your project's CLAUDE.md:
+
+```markdown
+## Reasoning Modes (v2.4)
+
+For complex tasks, use thinking phrases:
+- "Think" → Simple logic
+- "Think more" → Multi-step problems
+- "Think a lot" → Architecture decisions
+- "Ultrathink" → Critical decisions
+
+See: core/REASONING_MODES.md
+
+---
+
+## Hooks (v2.4)
+
+Automated validation via hooks.
+
+Configuration: `.claude/settings.local.json`
+
+See: core/HOOKS.md
+```
+
+### Step 5: Configure Hooks (Optional)
+
+Add to `.claude/settings.local.json`:
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Read|Grep",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ./hooks/block-env.js"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ./hooks/type-check.js"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+### Step 6: Install Playwright MCP (Optional)
+
+```bash
+claude mcp add playwright -- npx @anthropic-ai/mcp-playwright
+```
+
+### Step 7: Remove GitHub MCP (If Present)
+
+GitHub MCP has been removed. Use `gh` CLI directly instead:
+
+```bash
+# Remove from MCP config if present
+claude mcp remove github
+```
+
+## Hook Configuration Locations
+
+Hooks can be defined in three locations (priority order):
+
+| Location | Scope | Committed? |
+|----------|-------|------------|
+| `~/.claude/settings.json` | Global (all projects) | No |
+| `.claude/settings.json` | Project (team) | Yes |
+| `.claude/settings.local.json` | Project (personal) | No |
+
+## Hook Format (2025)
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Read|Grep|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ./hooks/my-hook.js",
+            "timeout": 30,
+            "statusMessage": "Running validation..."
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+**Important:** Tool names are case-sensitive (`Read`, not `read`).
+
+## MCP Changes
+
+| v2.3 | v2.4 |
+|------|------|
+| Context7 | Context7 ✅ |
+| Memory | Memory ✅ |
+| GitHub | ❌ Removed (use `gh` CLI) |
+| — | Playwright ✅ NEW |
+
+## Backwards Compatibility
+
+- All v2.3 features (Skills, Git-First, Sprint) unchanged
+- Hooks are optional — framework works without them
+- Reasoning modes are optional — just add phrases when needed
+- Playwright MCP is optional — install only if needed
+
+## Benefits of v2.4
+
+1. **Automated validation** — Hooks catch errors before they happen
+2. **Deeper reasoning** — Thinking modes for complex tasks
+3. **Visual development** — Playwright for UI work
+4. **Better control** — Context control for long sessions
+5. **Security** — Block sensitive file access with hooks
+
+## Quick Start Checklist
+
+- [ ] Copy `core/HOOKS.md`
+- [ ] Copy `core/REASONING_MODES.md`
+- [ ] Copy `hooks/` directory
+- [ ] Copy `integrations/mcp/playwright.integration.md`
+- [ ] Update CLAUDE.md with v2.4 sections
+- [ ] (Optional) Configure hooks in settings.local.json
+- [ ] (Optional) Install Playwright MCP
+- [ ] (Optional) Remove GitHub MCP if present
+
+---
+
+*Migration Guide for DG-SuperVibe-Framework v2.4*
+*Last updated: 2025-12-13*

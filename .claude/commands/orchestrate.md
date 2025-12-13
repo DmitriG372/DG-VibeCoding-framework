@@ -1,144 +1,99 @@
-# Command: /orchestrate
+---
+description: Orchestrate complex multi-step tasks with agent coordination
+---
 
-## Purpose
+# /orchestrate
 
-Activates the orchestrator agent for complex, multi-step tasks that require coordination between multiple agents.
+Coordinate complex tasks that require multiple specialist agents.
 
-## Usage
+## Instructions
 
-```
-/orchestrate <task-description>
-```
+1. **Load orchestrator agent definition:**
+   ```
+   Read: agents/orchestrator.md
+   ```
 
-## When to Use
+2. **Analyze task complexity:**
+   - LOW: Single file, simple change → route directly to implementer
+   - MEDIUM: Multiple files, needs review → primary agent + reviewer
+   - HIGH: Cross-domain, architecture needed → full orchestration
 
-- Complex features requiring multiple agents
-- Tasks with unclear scope needing analysis
-- Multi-file changes across different domains
-- When unsure which agent to use
+3. **Select agent team based on task type:**
 
-## Workflow
+   | Task Type | Primary | Support |
+   |-----------|---------|---------|
+   | New feature | planner | architect, implementer, tester |
+   | Bug fix | debugger | implementer, tester |
+   | Refactor | refactorer | reviewer, tester |
+   | Performance | performance-specialist | implementer |
+   | Security | security-specialist | reviewer |
+   | UI work | frontend-specialist | implementer |
+   | API work | backend-specialist | database-specialist |
 
-```
-/orchestrate "Add user authentication"
-           ↓
-    Orchestrator Activates
-           ↓
-    Analyzes Task Complexity
-           ↓
-    Selects Agent Team
-           ↓
-    Creates Execution Plan
-           ↓
-    Coordinates Agents
-           ↓
-    Synthesizes Results
-```
+4. **Create execution plan:**
+   - List phases in order
+   - Identify parallel opportunities
+   - Note dependencies between phases
 
-## Agent Selection
+5. **Check for sprint mode:**
+   ```
+   If exists: sprint/sprint.json
+   Then: Enforce one-feature-at-a-time rule
+   ```
 
-The orchestrator selects agents based on:
-
-| Task Type | Primary Agent | Support Agents |
-|-----------|---------------|----------------|
-| New feature | planner | architect, implementer |
-| Bug fix | debugger | implementer, tester |
-| Performance | performance-specialist | implementer |
-| Security | security-specialist | reviewer |
-| Refactor | refactorer | reviewer, tester |
-| API work | backend-specialist | database-specialist |
-| UI work | frontend-specialist | implementer |
-
-## Output Format
+6. **Output orchestration plan** in this format:
 
 ```yaml
 ## Orchestration Plan
 
-**Task:** <task description>
-**Complexity:** <LOW|MEDIUM|HIGH>
+**Task:** <user's task description>
+**Complexity:** LOW | MEDIUM | HIGH
 
 ### Agent Team
-- Primary: <agent>
+- Primary: <agent name>
 - Support: [<agent>, <agent>]
 
 ### Execution Phases
-1. **Phase 1**: <description>
+1. **<Phase name>**
    - Agent: <agent>
-   - Output: <expected>
+   - Action: <what to do>
+   - Output: <expected result>
 
-2. **Phase 2**: <description>
+2. **<Phase name>**
    - Agent: <agent>
-   - Input: <from phase 1>
-   - Output: <expected>
+   - Depends on: Phase 1
+   - Action: <what to do>
 
-### Context Level
-Loading: Level <0-4>
-
-### Estimated Steps
-<number> agent handoffs
+### Next Step
+<What Claude should do immediately>
 ```
 
-## Examples
+## Example
 
-### Example 1: Feature Request
-```
-/orchestrate "Add dark mode toggle to settings"
+Input: `/orchestrate Add user authentication with JWT`
 
+Output:
+```yaml
 ## Orchestration Plan
 
-**Task:** Add dark mode toggle to settings
-**Complexity:** MEDIUM
+**Task:** Add user authentication with JWT
+**Complexity:** HIGH
 
 ### Agent Team
-- Primary: planner
-- Support: [frontend-specialist, implementer, tester]
+- Primary: architect
+- Support: [backend-specialist, security-specialist, tester]
 
 ### Execution Phases
-1. **Planning**: Define requirements and acceptance criteria
-2. **Architecture**: Design state management approach
-3. **Implementation**: Build toggle component and theme system
-4. **Testing**: Unit and integration tests
-5. **Review**: Code quality check
+1. **Design** - architect designs auth flow
+2. **Database** - database-specialist creates user schema
+3. **API** - backend-specialist implements endpoints
+4. **Security** - security-specialist reviews
+5. **Testing** - tester writes auth tests
 
-### Context Level
-Loading: Level 2 (Extended)
+### Next Step
+Reading agents/architect.md to begin design phase...
 ```
-
-### Example 2: Bug Fix
-```
-/orchestrate "Fix login not working on mobile"
-
-## Orchestration Plan
-
-**Task:** Fix login not working on mobile
-**Complexity:** MEDIUM
-
-### Agent Team
-- Primary: debugger
-- Support: [frontend-specialist, tester]
-
-### Execution Phases
-1. **Diagnosis**: Reproduce and identify root cause
-2. **Fix**: Implement minimal fix
-3. **Testing**: Verify fix on mobile devices
-4. **Prevention**: Add mobile-specific tests
-```
-
-## Options
-
-| Option | Description |
-|--------|-------------|
-| --dry-run | Show plan without executing |
-| --context <level> | Force specific context level |
-| --agents <list> | Override agent selection |
-
-## Best Practices
-
-1. **Be Descriptive**: More detail = better orchestration
-2. **Include Context**: Mention relevant files or features
-3. **State Goals**: What success looks like
-4. **Trust the Plan**: Let orchestrator coordinate
 
 ---
 
-*Part of DG-SuperVibe-Framework v2.0*
+*Part of DG-SuperVibe-Framework v2.4*

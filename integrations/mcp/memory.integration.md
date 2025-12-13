@@ -153,4 +153,4 @@ Memory enables continuity:
 
 ---
 
-*Part of DG-SuperVibe-Framework v2.0*
+*Part of DG-SuperVibe-Framework v2.4*

@@ -360,6 +360,33 @@ In sprint mode, agent selection considers feature context:
 
 ---
 
+## Reasoning Modes (v2.4)
+
+When orchestrating complex tasks, recommend appropriate reasoning modes:
+
+| Task Complexity | Recommended Mode | When to Suggest |
+|----------------|------------------|-----------------|
+| Simple feature | No mode | Straightforward CRUD |
+| Multi-file changes | "Think more" | Multiple components |
+| Architecture decisions | "Think a lot" | System design |
+| Security/Critical | "Ultrathink" | Auth, payments, data |
+
+**Integration:**
+```
+/orchestrate "Ultrathink: Design authentication system"
+```
+
+---
+
+## Hooks Integration (v2.4)
+
+Orchestrator should be aware of configured hooks:
+- Pre-tool hooks may block file access (e.g., .env files)
+- Post-tool hooks provide feedback (TypeScript errors, formatting)
+- If hook blocks an action, route to alternative approach
+
+---
+
 *Agent created: 2025-11-29*
-*Updated: 2025-12-05 (v2.1 Sprint Cycle)*
-*Part of DG-SuperVibe-Framework v2.1*
+*Updated: 2025-12-13 (v2.4 Reasoning Modes, Hooks)*
+*Part of DG-SuperVibe-Framework v2.4*

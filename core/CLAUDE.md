@@ -1,4 +1,4 @@
-# Claude Code Rules (v2.3)
+# Claude Code Rules (v2.4)
 
 > All project details → `PROJECT.md`
 > Agent definitions → `agents/`
@@ -28,16 +28,20 @@
 
 Skills are in `.claude/skills/` with YAML frontmatter. Claude auto-activates relevant skills based on task context.
 
+**IMPORTANT:** Skills must be in subdirectory format:
+
 ```
 .claude/skills/
-├── framework-philosophy.md  # Core principles (auto-activated)
-├── react.md                 # React patterns
-├── vue.md                   # Vue patterns
-├── api.md                   # API patterns
-├── database.md              # Database patterns
-├── testing.md               # Testing patterns
-└── ... (22 skills total)
+├── framework-philosophy/
+│   └── SKILL.md            ✅ Correct format
+├── react/
+│   └── SKILL.md            ✅ Correct format
+├── testing/
+│   └── SKILL.md            ✅ Correct format
+└── vue.md                  ❌ Won't be detected
 ```
+
+**Migration:** Run `./scripts/migrate-skills.sh` to convert flat files.
 
 **Skill format:**
 
@@ -52,7 +56,40 @@ description: "Brief description for auto-activation"
 
 ---
 
-## Agent System (v2.0)
+## Agent System (v2.4)
+
+### How Agents Work
+
+**IMPORTANT:** Framework agents are NOT separate processes. They are **role definitions** that Claude adopts when executing slash commands.
+
+```
+/orchestrate "Add authentication"
+       │
+       ▼
+Read: agents/orchestrator.md    ← Command loads agent file
+       │
+       ▼
+Claude adopts orchestrator role ← Same session, full context
+       │
+       ▼
+Output: Orchestration Plan
+```
+
+See `AGENT_ACTIVATION.md` for complete documentation.
+
+### Agent Activation Methods
+
+1. **Slash commands** (primary):
+   - `/orchestrate` → loads `agents/orchestrator.md`
+   - `/plan` → loads `agents/planner.md`
+   - `/review` → loads `agents/reviewer.md`
+   - `/done` → loads `agents/tester.md`
+
+2. **Direct request:**
+   - "Use the security-specialist agent to review this"
+
+3. **Orchestrator routing:**
+   - Orchestrator automatically selects agents based on task
 
 ### Agent Loading
 
@@ -254,17 +291,37 @@ Available in `.claude/commands/`:
 
 ---
 
-## MCP Integrations (v2.0)
+## MCP Integrations (v2.4)
 
 When available, use MCP servers automatically:
 
 | MCP Server | Auto-Use Scenario |
 |------------|-------------------|
 | Context7 | Fetch docs for unknown libraries |
-| GitHub | Issue/PR management |
-| Memory | Store/retrieve project patterns |
+| Memory | Store/retrieve project patterns, decisions |
+| Playwright | Browser automation, UI testing, visual feedback |
 
-See `integrations/mcp/` for details.
+### Playwright Quick Reference
+
+```bash
+# Install
+claude mcp add playwright -- npx @anthropic-ai/mcp-playwright
+```
+
+**Common workflow:**
+1. `browser_navigate` → open URL
+2. `browser_snapshot` → get element refs (ALWAYS do this first!)
+3. `browser_click/type/fill_form` → interact
+4. `browser_snapshot` → verify result
+
+**Key tools:**
+- `browser_snapshot` — Get accessibility tree (machine-readable)
+- `browser_take_screenshot` — Visual capture
+- `browser_click` — Click element by ref
+- `browser_fill_form` — Fill multiple fields
+- `browser_console_messages` — Debug errors
+
+See `integrations/mcp/playwright.integration.md` for full documentation.
 
 ---
 
@@ -357,8 +414,62 @@ Examples:
 
 ---
 
+## Reasoning Modes (v2.4)
+
+For complex tasks, use thinking phrases:
+
+| Phrase | Use Case |
+|--------|----------|
+| `"Think"` | Simple logic |
+| `"Think more"` | Multi-step problems |
+| `"Think a lot"` | Architecture decisions |
+| `"Think longer"` | Deep debugging |
+| `"Ultrathink"` | Critical decisions, complex algorithms |
+
+**Example:** `"Ultrathink about the best auth implementation"`
+
+### Plan Mode vs Thinking Mode
+
+- **Plan Mode** (`Shift+Tab` twice) → Breadth: research more files
+- **Thinking Mode** (phrase) → Depth: more reasoning tokens
+
+See: `core/REASONING_MODES.md` for full documentation.
+
+---
+
+## Hooks (v2.4)
+
+Automated validation via pre/post tool-use hooks.
+
+**Configuration:** `.claude/settings.local.json` or `/hooks` command
+
+**Available hooks:**
+- `hooks/block-env.js` — Block sensitive file access (PreToolUse)
+- `hooks/type-check.js` — TypeScript error detection (PostToolUse)
+- `hooks/auto-format.js` — Auto-format on edit (PostToolUse)
+- `hooks/usage-tracker.js` — Track skill/command/agent usage (PostToolUse)
+
+### Usage Tracking
+
+Monitor framework component usage:
+
+```bash
+# View usage log
+cat .claude/usage.log
+
+# Output:
+# 2025-12-13T10:00:00Z | COMMAND: /orchestrate
+# 2025-12-13T10:01:00Z | SKILL: testing
+# 2025-12-13T10:02:00Z | AGENT: Explore
+```
+
+See: `core/HOOKS.md` for full documentation.
+
+---
+
 ## References
 
+### Project Files
 - Tech stack → `PROJECT.md#tech-stack`
 - Structure → `PROJECT.md#structure`
 - Tasks → `PROJECT.md#current-sprint`
@@ -367,12 +478,22 @@ Examples:
 - Commands → `PROJECT.md#commands`
 - Git → `PROJECT.md#git`
 - Session history → `SESSION_LOG.md`
-- Iteration log → `PROJECT.md#iteration-log`
-- Decisions → `PROJECT.md#decisions-log`
-- **Skills → `.claude/skills/` (v2.3)**
+
+### Framework Core
+- Skills → `.claude/skills/[name]/SKILL.md` (v2.4 format)
 - Agents → `agents/`
 - Agent protocol → `AGENT_PROTOCOL.md`
+- **Agent activation → `AGENT_ACTIVATION.md` (v2.4)**
 - Context hierarchy → `CONTEXT_HIERARCHY.md`
+
+### v2.4 Features
+- Hooks → `HOOKS.md`
+- Reasoning modes → `REASONING_MODES.md`
+- Playwright → `integrations/mcp/playwright.integration.md`
+- **Verification → `VERIFICATION.md`**
+- **Migration script → `scripts/migrate-skills.sh`**
+
+### Other
 - MCP integrations → `integrations/mcp/`
 - Sprint tracking → `sprint/` (v2.1)
-- Git-first tracking → v2.2 commands (v2.2)
+- Git-first tracking → v2.2 commands

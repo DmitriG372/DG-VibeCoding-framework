@@ -1,10 +1,30 @@
-# DG-SuperVibe-Framework v2.3
+# DG-SuperVibe-Framework v2.4
 
 > **Philosophy:** Start Simple, Scale Smart, Learn Continuously
 
 Intelligent, self-learning AI development platform optimized for Claude Code + VS Code dual workflow.
 
-## What's New in v2.3
+## What's New in v2.4
+
+### Core Features
+- **Hooks System** — Pre/post tool-use hooks for automated validation
+- **Reasoning Modes** — "Think", "Think more", "Ultrathink" for complex tasks
+- **Context Control** — Escape, Compact, Clear commands documented
+- **Agent Activation** — Documented how agents work via slash commands
+
+### New Files
+- `core/AGENT_ACTIVATION.md` — Complete guide to agent system
+- `VERIFICATION.md` — Framework testing and verification guide
+- `hooks/usage-tracker.js` — Track skill/command/agent usage
+- `scripts/migrate-skills.sh` — Convert skills to subdirectory format
+
+### Improvements
+- **Skills format** — Must be in `[skill-name]/SKILL.md` subdirectory format
+- **Command updates** — `/orchestrate`, `/plan`, `/review` now explicitly load agent files
+- **4 Hooks total** — block-env.js, type-check.js, auto-format.js, usage-tracker.js
+- **Usage logging** — Monitor framework component usage via `.claude/usage.log`
+
+### v2.3 Features (retained)
 
 - **Anthropic Skills v2.0+** — Official Claude skill format with YAML frontmatter
 - **`.claude/skills/`** — Skills in standard location for auto-activation
@@ -33,7 +53,7 @@ Intelligent, self-learning AI development platform optimized for Claude Code + V
 - Multi-Agent System — 16 specialized agents
 - Meta-Programming — Framework learns automatically
 - Smart Orchestration — Intelligent agent coordination
-- MCP Integration — Context7, GitHub, Memory
+- MCP Integration — Context7, Memory, Playwright
 - Context Hierarchy — 5-level token optimization
 
 ### v1.1 Features (retained)
@@ -62,11 +82,11 @@ cp -r core/.vscode your-project/.vscode
 | **normal** | Standard projects | → `scale/normal.md` |
 | **max** | Complex, long-term | → `scale/max.md` |
 
-### 3. Skills Auto-Activate (v2.3)
+### 3. Skills Auto-Activate (v2.4)
 
-Skills are now in `.claude/skills/` using Anthropic's official format. Claude auto-activates relevant skills based on task context.
+Skills are in `.claude/skills/` using Anthropic's official format. Claude auto-activates relevant skills based on task context.
 
-**Official location:** `.claude/skills/*.md`
+**Official location:** `.claude/skills/[skill-name]/SKILL.md`
 
 **Format:**
 
@@ -80,7 +100,27 @@ description: "Brief description for auto-activation"
 ...
 ```
 
+**Important:** Skills must be in subdirectory format:
+```
+.claude/skills/
+├── react/
+│   └── SKILL.md     ✅ Correct
+├── testing/
+│   └── SKILL.md     ✅ Correct
+└── vue.md           ❌ Won't be detected
+```
+
+**Migration script:** `./scripts/migrate-skills.sh` converts flat files to subdirectory format.
+
 See `.claude/skills/` for all 22 skills (framework-philosophy, vue, react, database, etc.).
+
+### 4. Verify Installation
+
+See `VERIFICATION.md` for complete testing guide:
+- Skills visibility check
+- Slash command testing
+- Hook verification
+- Agent activation testing
 
 ---
 
@@ -94,7 +134,17 @@ DG-VibeCoding-framework/
 │   ├── SESSION_LOG.md      # Session history
 │   ├── AGENT_PROTOCOL.md   # Agent communication (v2.0)
 │   ├── CONTEXT_HIERARCHY.md # Token optimization (v2.0)
+│   ├── HOOKS.md            # Hook system docs (v2.4)
+│   ├── REASONING_MODES.md  # Thinking modes + context control (v2.4)
+│   ├── AGENT_ACTIVATION.md # How agents work (v2.4)
 │   └── .vscode/            # VS Code settings (v2.0)
+├── hooks/                  # Hook scripts (v2.4)
+│   ├── block-env.js        # Block sensitive file access
+│   ├── type-check.js       # TypeScript error detection
+│   ├── auto-format.js      # Auto-format on edit
+│   └── usage-tracker.js    # Track skill/command/agent usage
+├── scripts/                # Utility scripts (v2.4)
+│   └── migrate-skills.sh   # Convert skills to subdirectory format
 ├── agents/                 # Multi-agent system (v2.0)
 │   ├── orchestrator.md     # Main coordinator
 │   ├── planner.md          # Planning agent
@@ -108,17 +158,20 @@ DG-VibeCoding-framework/
 │   ├── skill-generator.md  # Auto-generate skills
 │   ├── pattern-detector.md # Detect patterns
 │   └── framework-optimizer.md # Self-optimization
-├── integrations/           # MCP integrations (v2.0)
+├── integrations/           # MCP integrations (v2.4)
 │   └── mcp/
 │       ├── context7.integration.md
-│       ├── github.integration.md
-│       └── memory.integration.md
+│       ├── memory.integration.md
+│       └── playwright.integration.md  # NEW in v2.4
 ├── .claude/
 │   ├── commands/           # Slash commands (18 total)
-│   └── skills/             # Official Anthropic v2.0+ skills (22)
+│   ├── skills/             # Official Anthropic v2.0+ skills (22)
+│   └── settings.local.json # Hook configuration (v2.4)
 ├── scale/                  # Pick your level (mini/normal/max)
 ├── devops/                 # CI/CD templates
-└── prompts/                # Reusable system prompts
+├── prompts/                # Reusable system prompts
+├── VERIFICATION.md         # Testing & verification guide (v2.4)
+└── MIGRATION.md            # Migration guide between versions
 ```
 
 ---
@@ -200,11 +253,39 @@ VS Code: Quick fixes, exploration, code review, debugging
 | `backend-specialist` | API development |
 | `research-specialist` | Research and analysis |
 
-### Using Agents
-```bash
-/orchestrate "Add user authentication"
-# Orchestrator routes to: planner → architect → implementer → reviewer → tester
+### How Agents Work (v2.4)
+
+**Important:** Framework agents are NOT separate processes. They are **role definitions** that Claude adopts when executing slash commands.
+
 ```
+/orchestrate "Add auth"
+       │
+       ▼
+Read: agents/orchestrator.md
+       │
+       ▼
+Claude adopts orchestrator role
+       │
+       ▼
+Output: Orchestration Plan
+```
+
+**Activation methods:**
+1. **Slash commands** — `/orchestrate`, `/plan`, `/review`, `/done`
+2. **Direct request** — "Use the security-specialist agent"
+3. **Orchestrator routing** — Automatic for complex tasks
+
+See `core/AGENT_ACTIVATION.md` for complete guide.
+
+### Quick Reference
+
+| Command | Activates Agent | Use For |
+|---------|-----------------|---------|
+| `/orchestrate` | orchestrator | Complex multi-step tasks |
+| `/plan` | planner | Before implementing features |
+| `/review` | reviewer | Code review |
+| `/done` | tester | Complete feature with tests |
+| `/fix` | debugger | Bug investigation |
 
 ---
 
@@ -217,11 +298,101 @@ VS Code: Quick fixes, exploration, code review, debugging
 | `core/SESSION_LOG.md` | Session history | ~100 |
 | `core/AGENT_PROTOCOL.md` | Agent communication | ~150 |
 | `core/CONTEXT_HIERARCHY.md` | Token optimization | ~100 |
+| `core/HOOKS.md` | Hook system documentation | ~200 |
+| `core/REASONING_MODES.md` | Thinking modes + control | ~150 |
 | `core/.vscode/` | VS Code settings | — |
+| `hooks/*.js` | Hook scripts | ~50 each |
 | `agents/*.md` | Agent definitions | ~100-200 each |
 | `meta/*.md` | Meta-programming | ~150 each |
 | `.claude/skills/*.md` | Official skills (v2.3) | ~100-400 each |
 | `.claude/commands/*.md` | Slash commands | ~50-100 each |
+
+---
+
+## Hooks System (v2.4)
+
+Hooks run commands before/after Claude executes tools.
+
+### Hook Types
+
+| Type | When | Can Block? |
+|------|------|------------|
+| Pre-tool use | Before execution | ✅ Yes (exit code 2) |
+| Post-tool use | After execution | ❌ No |
+
+### Configuration Locations
+
+```
+~/.claude/settings.json          # Global (all projects)
+.claude/settings.json            # Project (shared)
+.claude/settings.local.json      # Project local (personal)
+```
+
+### Example Configuration
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [{
+      "matcher": "Read|Grep",
+      "hooks": [{ "type": "command", "command": "node ./hooks/block-env.js" }]
+    }],
+    "PostToolUse": [{
+      "matcher": "Edit",
+      "hooks": [{ "type": "command", "command": "node ./hooks/type-check.js" }]
+    }]
+  }
+}
+```
+
+### Included Hooks
+
+| Hook | Purpose |
+|------|---------|
+| `block-env.js` | Block access to .env, credentials, secrets |
+| `type-check.js` | Run TypeScript checker after edits |
+| `auto-format.js` | Auto-format files with Prettier |
+
+See `core/HOOKS.md` for full documentation.
+
+---
+
+## Reasoning Modes (v2.4)
+
+Use thinking phrases for complex tasks:
+
+| Phrase | Level | Use Case |
+|--------|-------|----------|
+| `"Think"` | Basic | Simple logic |
+| `"Think more"` | Extended | Multi-step problems |
+| `"Think a lot"` | Comprehensive | Complex architecture |
+| `"Think longer"` | Extended time | Deep debugging |
+| `"Ultrathink"` | Maximum | Critical decisions |
+
+### Usage
+
+```
+"Ultrathink about the best way to implement real-time sync"
+/orchestrate "Think a lot: Design OAuth2 implementation"
+```
+
+### Plan Mode vs Thinking Mode
+
+| Mode | Activation | Focus |
+|------|------------|-------|
+| Plan Mode | `Shift+Tab` twice | Breadth (research more files) |
+| Thinking Mode | Phrase in prompt | Depth (more reasoning) |
+
+### Context Control
+
+| Action | Shortcut | Purpose |
+|--------|----------|---------|
+| Stop | `Escape` | Stop mid-response |
+| Rewind | `Escape` twice | Jump back in conversation |
+| Summarize | `/compact` | Summarize, preserve knowledge |
+| Fresh start | `/clear` | Delete conversation |
+
+See `core/REASONING_MODES.md` for full documentation.
 
 ---
 
@@ -301,6 +472,65 @@ Activates multi-agent workflow for complex tasks.
 
 ---
 
+## MCP Servers (v2.4)
+
+Three MCP servers are integrated:
+
+| Server | Purpose | Install |
+|--------|---------|---------|
+| Context7 | Library documentation | `claude mcp add context7 -- npx -y @upstash/context7-mcp` |
+| Memory | Persistent knowledge graph | `claude mcp add memory -- npx @anthropic-ai/mcp-memory` |
+| Playwright | Browser automation | `claude mcp add playwright -- npx @anthropic-ai/mcp-playwright` |
+
+### Playwright Quick Start
+
+**1. Install:**
+```bash
+claude mcp add playwright -- npx @anthropic-ai/mcp-playwright
+```
+
+**2. Basic workflow:**
+```
+# Open page
+browser_navigate → "http://localhost:3000"
+
+# Get element references (ALWAYS DO THIS FIRST!)
+browser_snapshot → returns accessibility tree with refs
+
+# Interact using refs
+browser_click → element="Button", ref="btn-1"
+browser_type → element="Input", ref="input-2", text="hello"
+
+# Verify result
+browser_snapshot → check changes
+```
+
+**3. Common tools:**
+
+| Tool | Use |
+|------|-----|
+| `browser_navigate` | Go to URL |
+| `browser_snapshot` | Get elements (preferred over screenshot) |
+| `browser_take_screenshot` | Visual capture |
+| `browser_click` | Click element |
+| `browser_type` | Type text |
+| `browser_fill_form` | Fill multiple fields |
+| `browser_console_messages` | Debug errors |
+
+**4. UI Development Loop:**
+```
+1. browser_navigate → localhost:3000
+2. browser_snapshot → see current state
+3. Edit code
+4. browser_navigate → refresh
+5. browser_snapshot → verify changes
+6. Repeat until done
+```
+
+See `integrations/mcp/playwright.integration.md` for full documentation.
+
+---
+
 ## Sprint Workflow (v2.1)
 
 Based on Anthropic's recommended agentic workflow for long tasks.
@@ -348,6 +578,9 @@ Shows current state and what to resume.
 - [Skills Directory](.claude/skills/) (Anthropic v2.0+ format)
 - [Agent Protocol](core/AGENT_PROTOCOL.md)
 - [Context Hierarchy](core/CONTEXT_HIERARCHY.md)
+- [Hooks Documentation](core/HOOKS.md) (v2.4)
+- [Reasoning Modes](core/REASONING_MODES.md) (v2.4)
+- [Playwright Integration](integrations/mcp/playwright.integration.md) (v2.4)
 - [Scale Levels](scale/)
 - [Slash Commands](.claude/commands/)
 
@@ -357,10 +590,11 @@ Shows current state and what to resume.
 
 See [MIGRATION.md](MIGRATION.md) for upgrade guides:
 
+- **v2.3 → v2.4** — Hooks, Thinking Modes, Playwright MCP
 - **v2.2 → v2.3** — Anthropic Skills v2.0+ format migration
 - **v2.1 → v2.2** — Git-First Tracking upgrade
 - **v1.1 → v2.0** — Multi-agent system upgrade
 
 ---
 
-*v2.3 — Anthropic Skills v2.0+ + Git-First Tracking + Sprint Workflow + Multi-Agent System*
+*v2.4 — Hooks + Reasoning Modes + Playwright MCP + Git-First + Sprint Workflow + Multi-Agent System*

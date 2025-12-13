@@ -192,5 +192,5 @@ implementer → reviewer → [if changes needed] → implementer → reviewer
 
 ---
 
-*Protocol Version: 2.0*
-*Part of DG-SuperVibe-Framework v2.0*
+*Protocol Version: 2.4*
+*Part of DG-SuperVibe-Framework v2.4*

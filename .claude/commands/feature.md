@@ -115,4 +115,4 @@ When feature starts, auto-detect agent needs:
 
 ---
 
-*Part of DG-SuperVibe-Framework v2.1*
+*Part of DG-SuperVibe-Framework v2.4*

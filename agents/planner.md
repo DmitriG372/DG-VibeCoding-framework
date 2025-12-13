@@ -180,5 +180,18 @@ Enable users to switch between light and dark themes via settings.
 
 ---
 
+## Reasoning Mode Recommendations (v2.4)
+
+When planning, suggest appropriate thinking levels:
+
+| Plan Complexity | Suggest |
+|----------------|---------|
+| Simple task | Default (no phrase) |
+| Feature with tests | "Think more" |
+| Architecture | "Think a lot" or "Ultrathink" |
+
+---
+
 *Agent created: 2025-11-29*
-*Part of DG-SuperVibe-Framework v2.0*
+*Updated: 2025-12-13 (v2.4 Reasoning Modes)*
+*Part of DG-SuperVibe-Framework v2.4*
