@@ -205,7 +205,7 @@ Run the migration script:
 
 ```bash
 cd /path/to/framework
-./migrate-to-sprint.sh /path/to/your/project
+./migrate-project.sh /path/to/your/project
 ```
 
 This will:

@@ -1,6 +1,6 @@
 #!/bin/bash
 # DG-VibeCoding-Framework v2.4 - Project Migration Script
-# Usage: ./migrate-to-sprint.sh /path/to/your/project
+# Usage: ./migrate-project.sh /path/to/your/project
 # Migrates existing project to use v2.4 features (skills, hooks, agents)
 
 set -e
