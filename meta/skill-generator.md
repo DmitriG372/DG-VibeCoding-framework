@@ -204,4 +204,4 @@ Options:
 
 ---
 
-Part of DG-SuperVibe-Framework v2.4 Meta-Programming System
+Part of DG-VibeCoding-Framework v2.5 Meta-Programming System

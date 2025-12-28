@@ -1,10 +1,7 @@
 ---
-agent: planner
-role: Task breakdown and implementation planning
-priority: 9
-triggers: [plan, design, breakdown, requirements, feature]
-communicates_with: [orchestrator, architect, implementer]
-requires_skills: [framework-philosophy]
+name: planner
+description: Task breakdown and implementation planning
+skills: framework-philosophy
 ---
 
 # Agent: Planner

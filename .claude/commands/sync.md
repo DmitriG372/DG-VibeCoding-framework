@@ -1,3 +1,7 @@
+---
+description: "Sünkroniseerib kõik framework failid sprint.json põhjal."
+---
+
 # Command: /sync
 
 Sünkroniseerib kõik framework failid sprint.json põhjal.
@@ -229,4 +233,4 @@ Stats validated: ✓
 
 ---
 
-*Part of DG-SuperVibe-Framework v2.2*
+*Part of DG-VibeCoding-Framework v2.2*

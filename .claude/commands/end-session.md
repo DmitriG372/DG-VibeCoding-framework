@@ -1,3 +1,7 @@
+---
+description: "End current session"
+---
+
 End current session
 
 ## Instructions

@@ -1,4 +1,4 @@
-# Agent Activation Guide (v2.4)
+# Agent Activation Guide (v2.5)
 
 > How framework agents work and how to activate them.
 
@@ -327,4 +327,4 @@ cat .claude/usage.log
 
 ---
 
-*Part of DG-SuperVibe-Framework v2.4*
+*Part of DG-VibeCoding-Framework v2.5*

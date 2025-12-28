@@ -1,10 +1,7 @@
 ---
-agent: database-specialist
-role: Database design and optimization
-priority: 7
-triggers: [database, db, sql, query, schema, migration, prisma, drizzle]
-communicates_with: [orchestrator, architect, backend-specialist, security-specialist]
-requires_skills: [database, framework-philosophy]
+name: database-specialist
+description: Database design and optimization
+skills: database, framework-philosophy
 ---
 
 # Agent: Database Specialist

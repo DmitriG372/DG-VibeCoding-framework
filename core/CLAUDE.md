@@ -1,4 +1,4 @@
-# Claude Code Rules (v2.4)
+# Claude Code Rules (v2.5)
 
 > All project details → `PROJECT.md`
 > Agent definitions → `agents/`

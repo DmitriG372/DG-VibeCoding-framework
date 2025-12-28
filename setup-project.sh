@@ -76,15 +76,15 @@ echo -e "  ${GREEN}✓${NC} .vscode/settings.json"
 echo -e "  ${GREEN}✓${NC} .vscode/extensions.json"
 
 # ─────────────────────────────────────────────────────────────
-# 3. Copy agents
+# 3. Copy agents (to .claude/agents/ for Claude Code native support)
 # ─────────────────────────────────────────────────────────────
 echo -e "${YELLOW}[3/9] Copying agents...${NC}"
 
-mkdir -p "$PROJECT_DIR/agents"
-cp "$FRAMEWORK_DIR/agents/"*.md "$PROJECT_DIR/agents/"
+mkdir -p "$PROJECT_DIR/.claude/agents"
+cp "$FRAMEWORK_DIR/.claude/agents/"*.md "$PROJECT_DIR/.claude/agents/"
 
-AGENT_COUNT=$(ls -1 "$PROJECT_DIR/agents/"*.md 2>/dev/null | wc -l | tr -d ' ')
-echo -e "  ${GREEN}✓${NC} $AGENT_COUNT agents copied"
+AGENT_COUNT=$(ls -1 "$PROJECT_DIR/.claude/agents/"*.md 2>/dev/null | wc -l | tr -d ' ')
+echo -e "  ${GREEN}✓${NC} $AGENT_COUNT agents copied to .claude/agents/"
 
 # ─────────────────────────────────────────────────────────────
 # 4. Copy slash commands
@@ -214,7 +214,7 @@ echo "  ├── VERIFICATION.md        # Testing guide (v2.4)"
 echo "  ├── .vscode/               # VS Code settings"
 echo "  ├── .claude/commands/      # Slash commands"
 echo "  ├── .claude/skills/*/      # Skills (v2.4 subdirectory format)"
-echo "  ├── agents/                # Agent definitions"
+echo "  ├── .claude/agents/        # Agent definitions (Claude Code native)"
 echo "  ├── hooks/                 # Hook scripts (v2.4)"
 echo "  ├── scripts/               # Utility scripts (v2.4)"
 echo "  └── core/sprint/           # Sprint templates"

@@ -1,10 +1,7 @@
 ---
-agent: integration-specialist
-role: External service and API integration
-priority: 6
-triggers: [api, integration, external, third-party, webhook, oauth]
-communicates_with: [orchestrator, architect, backend-specialist, security-specialist]
-requires_skills: [api-design, framework-philosophy]
+name: integration-specialist
+description: External service and API integration
+skills: api-design, framework-philosophy
 ---
 
 # Agent: Integration Specialist

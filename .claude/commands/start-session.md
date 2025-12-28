@@ -1,3 +1,7 @@
+---
+description: "Start new session for: $ARGUMENTS"
+---
+
 Start new session for: $ARGUMENTS
 
 ## Instructions
@@ -88,4 +92,4 @@ Skills in `.claude/skills/` auto-activate based on task context.
 
 ---
 
-*Part of DG-SuperVibe-Framework v2.3*
+*Part of DG-VibeCoding-Framework v2.3*

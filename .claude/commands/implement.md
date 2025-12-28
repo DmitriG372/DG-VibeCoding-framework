@@ -1,3 +1,7 @@
+---
+description: "Implement: $ARGUMENTS"
+---
+
 Implement: $ARGUMENTS
 
 ## Instructions

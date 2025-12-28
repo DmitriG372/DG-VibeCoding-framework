@@ -1,3 +1,7 @@
+---
+description: "Analyzes the codebase to detect recurring patterns, anti-patterns, and standardi"
+---
+
 # Command: /analyze-patterns
 
 ## Purpose
@@ -200,4 +204,4 @@ Results can feed into:
 
 ---
 
-*Part of DG-SuperVibe-Framework v2.0 Meta-Programming System*
+*Part of DG-VibeCoding-Framework v2.0 Meta-Programming System*

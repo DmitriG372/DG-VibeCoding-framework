@@ -1,10 +1,7 @@
 ---
-agent: frontend-specialist
-role: Frontend development and UI implementation
-priority: 7
-triggers: [frontend, ui, component, react, css, tailwind, styling, responsive]
-communicates_with: [orchestrator, architect, implementer, designer]
-requires_skills: [react, tailwind, framework-philosophy]
+name: frontend-specialist
+description: Frontend development and UI implementation
+skills: react, tailwind, framework-philosophy
 ---
 
 # Agent: Frontend Specialist

@@ -1,3 +1,7 @@
+---
+description: "Display current sprint progress and status."
+---
+
 # Command: /sprint-status
 
 Display current sprint progress and status.
@@ -140,4 +144,4 @@ At end of session, `/sprint-status` shows exactly where things are.
 
 ---
 
-*Part of DG-SuperVibe-Framework v2.1*
+*Part of DG-VibeCoding-Framework v2.1*

@@ -1,3 +1,7 @@
+---
+description: "Log iteration: $ARGUMENTS"
+---
+
 Log iteration: $ARGUMENTS
 
 ## Instructions

@@ -1,10 +1,7 @@
 ---
-agent: refactorer
-role: Code refactoring and improvement
-priority: 6
-triggers: [refactor, clean, improve, restructure, reorganize]
-communicates_with: [orchestrator, architect, reviewer, implementer]
-requires_skills: [framework-philosophy, typescript]
+name: refactorer
+description: Code refactoring and improvement
+skills: framework-philosophy, typescript
 ---
 
 # Agent: Refactorer

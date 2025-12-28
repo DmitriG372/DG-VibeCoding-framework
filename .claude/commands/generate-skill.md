@@ -1,3 +1,7 @@
+---
+description: "Creates a new reusable skill from a successful implementation pattern. Part of t"
+---
+
 # Command: /generate-skill
 
 ## Purpose
@@ -172,4 +176,4 @@ After generation:
 
 ---
 
-*Part of DG-SuperVibe-Framework v2.4 Meta-Programming System*
+*Part of DG-VibeCoding-Framework v2.5 Meta-Programming System*

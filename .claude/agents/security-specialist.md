@@ -1,10 +1,7 @@
 ---
-agent: security-specialist
-role: Security review and hardening
-priority: 8
-triggers: [security, auth, vulnerability, injection, xss, csrf]
-communicates_with: [orchestrator, reviewer, backend-specialist, database-specialist]
-requires_skills: [security, framework-philosophy]
+name: security-specialist
+description: Security review and hardening
+skills: security, framework-philosophy
 ---
 
 # Agent: Security Specialist

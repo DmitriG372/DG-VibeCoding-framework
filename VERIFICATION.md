@@ -1,6 +1,6 @@
 # Framework Verification Guide
 
-> How to verify that DG-SuperVibe-Framework components are working correctly.
+> How to verify that DG-VibeCoding-Framework components are working correctly.
 
 ---
 
@@ -239,4 +239,4 @@ Then check Claude Code's tool feedback for debug output.
 
 ---
 
-*Part of DG-SuperVibe-Framework v2.4*
+*Part of DG-VibeCoding-Framework v2.5*

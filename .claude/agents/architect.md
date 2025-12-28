@@ -1,10 +1,7 @@
 ---
-agent: architect
-role: System design and architecture decisions
-priority: 9
-triggers: [architecture, design, structure, system, pattern]
-communicates_with: [orchestrator, planner, implementer, security-specialist]
-requires_skills: [framework-philosophy, techstack]
+name: architect
+description: System design and architecture decisions
+skills: framework-philosophy, techstack
 ---
 
 # Agent: Architect

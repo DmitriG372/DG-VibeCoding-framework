@@ -1,3 +1,7 @@
+---
+description: "Kontrollib sprint.json konsistentsust ja framework failide sünkrooni."
+---
+
 # Command: /sprint-validate
 
 Kontrollib sprint.json konsistentsust ja framework failide sünkrooni.
@@ -143,4 +147,4 @@ Overall: ✓ All OK | ✗ Issues found
 
 ---
 
-*Part of DG-SuperVibe-Framework v2.2*
+*Part of DG-VibeCoding-Framework v2.2*

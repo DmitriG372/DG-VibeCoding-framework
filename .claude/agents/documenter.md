@@ -1,10 +1,7 @@
 ---
-agent: documenter
-role: Documentation creation and maintenance
-priority: 5
-triggers: [document, readme, explain, jsdoc, comments]
-communicates_with: [orchestrator, implementer, architect]
-requires_skills: [markdown, framework-philosophy]
+name: documenter
+description: Documentation creation and maintenance
+skills: markdown, framework-philosophy
 ---
 
 # Agent: Documenter

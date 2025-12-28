@@ -1,10 +1,7 @@
 ---
-agent: research-specialist
-role: Technical research and solution discovery
-priority: 6
-triggers: [research, find, discover, compare, evaluate, alternatives, best practice]
-communicates_with: [orchestrator, architect, planner]
-requires_skills: [research, framework-philosophy]
+name: research-specialist
+description: Technical research and solution discovery
+skills: research, framework-philosophy
 ---
 
 # Agent: Research Specialist

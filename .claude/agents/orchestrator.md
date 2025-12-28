@@ -1,10 +1,7 @@
 ---
-agent: orchestrator
-role: Central coordinator and task router
-priority: 10
-triggers: [complex task, multi-step, orchestrate, coordinate]
-communicates_with: [all agents]
-requires_skills: [framework-philosophy]
+name: orchestrator
+description: Central coordinator and task router
+skills: framework-philosophy
 ---
 
 # Agent: Orchestrator

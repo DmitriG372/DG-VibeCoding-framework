@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document defines how agents communicate, delegate tasks, and share context within the DG-SuperVibe-Framework.
+This document defines how agents communicate, delegate tasks, and share context within the DG-VibeCoding-Framework.
 
 ## Agent Registry
 
@@ -193,4 +193,4 @@ implementer → reviewer → [if changes needed] → implementer → reviewer
 ---
 
 *Protocol Version: 2.4*
-*Part of DG-SuperVibe-Framework v2.4*
+*Part of DG-VibeCoding-Framework v2.5*

@@ -1,10 +1,7 @@
 ---
-agent: tester
-role: Test creation and execution
-priority: 7
-triggers: [test, spec, coverage, vitest, jest, testing]
-communicates_with: [orchestrator, implementer, reviewer, debugger]
-requires_skills: [testing, framework-philosophy]
+name: tester
+description: Test creation and execution
+skills: testing, framework-philosophy
 ---
 
 # Agent: Tester

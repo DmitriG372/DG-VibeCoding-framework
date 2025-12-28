@@ -1,10 +1,7 @@
 ---
-agent: implementer
-role: Code writing and modification
-priority: 8
-triggers: [implement, create, add, build, write, code]
-communicates_with: [orchestrator, planner, architect, reviewer, tester]
-requires_skills: [framework-philosophy, typescript]
+name: implementer
+description: Code writing and modification
+skills: framework-philosophy, typescript
 ---
 
 # Agent: Implementer

@@ -1,3 +1,7 @@
+---
+description: "Create PR for: $ARGUMENTS"
+---
+
 Create PR for: $ARGUMENTS
 
 ## Instructions

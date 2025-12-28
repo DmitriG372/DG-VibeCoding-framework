@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Framework Optimizer analyzes framework usage and suggests improvements to the DG-SuperVibe-Framework itself. It enables continuous self-improvement.
+The Framework Optimizer analyzes framework usage and suggests improvements to the DG-VibeCoding-Framework itself. It enables continuous self-improvement.
 
 ## Purpose
 
@@ -206,4 +206,4 @@ The optimizer supports:
 
 ---
 
-*Part of DG-SuperVibe-Framework v2.0 Meta-Programming System*
+*Part of DG-VibeCoding-Framework v2.0 Meta-Programming System*

@@ -1,10 +1,7 @@
 ---
-agent: backend-specialist
-role: Backend development and API implementation
-priority: 7
-triggers: [backend, api, server, endpoint, route, middleware, node]
-communicates_with: [orchestrator, architect, database-specialist, security-specialist]
-requires_skills: [node, api-design, framework-philosophy]
+name: backend-specialist
+description: Backend development and API implementation
+skills: node, api-design, framework-philosophy
 ---
 
 # Agent: Backend Specialist

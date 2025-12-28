@@ -112,4 +112,4 @@ Common libraries with good Context7 support:
 
 ---
 
-*Part of DG-SuperVibe-Framework v2.4*
+*Part of DG-VibeCoding-Framework v2.5*

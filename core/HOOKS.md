@@ -1,4 +1,4 @@
-# Claude Code Hooks (v2.4)
+# Claude Code Hooks (v2.5)
 
 > **Hooks** = commands that run before/after Claude executes tools
 

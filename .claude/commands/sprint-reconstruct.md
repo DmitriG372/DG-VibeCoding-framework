@@ -1,3 +1,7 @@
+---
+description: "Rekonstrueerib sprint.json git history põhjal."
+---
+
 # Command: /sprint-reconstruct
 
 Rekonstrueerib sprint.json git history põhjal.
@@ -237,4 +241,4 @@ Expands to: F001, F002, F003, F004
 
 ---
 
-*Part of DG-SuperVibe-Framework v2.2*
+*Part of DG-VibeCoding-Framework v2.2*

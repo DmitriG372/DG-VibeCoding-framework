@@ -1,10 +1,7 @@
 ---
-agent: reviewer
-role: Code review and quality assurance
-priority: 7
-triggers: [review, check, audit, quality, patterns]
-communicates_with: [orchestrator, implementer, tester, security-specialist]
-requires_skills: [framework-philosophy, testing]
+name: reviewer
+description: Code review and quality assurance
+skills: framework-philosophy, testing
 ---
 
 # Agent: Reviewer

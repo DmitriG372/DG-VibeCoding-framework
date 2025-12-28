@@ -59,7 +59,7 @@ Output
 ## Prompt Template
 
 ```
-You are the [Agent Name] agent in the DG-SuperVibe-Framework.
+You are the [Agent Name] agent in the DG-VibeCoding-Framework.
 
 **Your role:** [role description]
 
@@ -96,4 +96,4 @@ You are the [Agent Name] agent in the DG-SuperVibe-Framework.
 ---
 
 *Agent created: [date]*
-*Part of DG-SuperVibe-Framework v2.0*
+*Part of DG-VibeCoding-Framework v2.0*

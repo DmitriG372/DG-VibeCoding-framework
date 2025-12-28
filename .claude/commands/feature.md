@@ -1,3 +1,7 @@
+---
+description: "Start working on the next feature in the sprint cycle."
+---
+
 # Command: /feature
 
 Start working on the next feature in the sprint cycle.
@@ -115,4 +119,4 @@ When feature starts, auto-detect agent needs:
 
 ---
 
-*Part of DG-SuperVibe-Framework v2.4*
+*Part of DG-VibeCoding-Framework v2.5*

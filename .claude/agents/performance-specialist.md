@@ -1,10 +1,7 @@
 ---
-agent: performance-specialist
-role: Performance optimization and profiling
-priority: 7
-triggers: [performance, slow, optimize, speed, memory, bundle, lazy]
-communicates_with: [orchestrator, architect, implementer, reviewer]
-requires_skills: [performance, framework-philosophy]
+name: performance-specialist
+description: Performance optimization and profiling
+skills: performance, framework-philosophy
 ---
 
 # Agent: Performance Specialist

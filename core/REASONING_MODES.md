@@ -1,4 +1,4 @@
-# Claude Code Reasoning & Control Modes (v2.4)
+# Claude Code Reasoning & Control Modes (v2.5)
 
 > Optimize Claude's reasoning depth and control conversation flow
 

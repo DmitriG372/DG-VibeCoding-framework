@@ -1,3 +1,7 @@
+---
+description: "Complete the current feature with mandatory testing and git commit."
+---
+
 # Command: /done
 
 Complete the current feature with mandatory testing and git commit.
@@ -195,4 +199,4 @@ Then run /done again.
 
 ---
 
-*Part of DG-SuperVibe-Framework v2.4*
+*Part of DG-VibeCoding-Framework v2.5*

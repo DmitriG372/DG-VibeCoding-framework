@@ -1,10 +1,7 @@
 ---
-agent: debugger
-role: Issue diagnosis and fixing
-priority: 8
-triggers: [debug, error, bug, issue, fix, broken, not working]
-communicates_with: [orchestrator, implementer, tester, reviewer]
-requires_skills: [debugging, framework-philosophy]
+name: debugger
+description: Issue diagnosis and fixing
+skills: debugging, framework-philosophy
 ---
 
 # Agent: Debugger

@@ -1,3 +1,7 @@
+---
+description: "Fix the issue: $ARGUMENTS"
+---
+
 Fix the issue: $ARGUMENTS
 
 ## Instructions
