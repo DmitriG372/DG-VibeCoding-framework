@@ -907,5 +907,226 @@ Hooks can be defined in three locations (priority order):
 
 ---
 
-*Migration Guide for DG-SuperVibe-Framework v2.4*
-*Last updated: 2025-12-13*
+# Migration Guide: v2.4 → v2.5
+
+## Overview
+
+This guide helps you migrate from DG-VibeCoding-Framework v2.4 to v2.5 (QA Loop + Spec Pipeline + Worktree Isolation + Parallel Orchestration).
+
+## What's New in v2.5
+
+### QA Loop Command
+
+Automated test-fix-repeat cycle inspired by Auto-Claude:
+
+```bash
+/qa-loop [max_iterations] [target]
+```
+
+**Features:**
+- Runs tests, analyzes failures, fixes issues automatically
+- Max 10 iterations (safety limit)
+- Categorizes issues: TRIVIAL / MODERATE / COMPLEX
+- Hands off COMPLEX issues to human
+- Generates detailed QA report
+
+**Example:**
+```bash
+/qa-loop 5 src/components
+```
+
+### Spec Pipeline Command
+
+Multi-agent specification workflow:
+
+```bash
+/spec [feature_name] [complexity]
+```
+
+**Complexity levels:**
+- `SIMPLE` (3 phases): Discovery → Quick Spec → Validate
+- `STANDARD` (5 phases): Discovery → Requirements → Context → Spec Creation → Validate
+- `COMPLEX` (7 phases): + Research + Self-Critique
+
+**Output:** `specs/{feature_name}_spec.md`
+
+### Worktree Isolation
+
+Safe experimentation with git worktrees:
+
+```bash
+# Create isolated workspace
+git worktree add .worktrees/feature-auth -b feature/auth
+
+# Work in isolation
+cd .worktrees/feature-auth
+
+# Merge when ready
+git merge feature/auth
+
+# Clean up
+git worktree remove .worktrees/feature-auth
+```
+
+**Benefits:**
+- Main branch stays clean
+- Safe to experiment
+- Easy rollback (just delete worktree)
+
+### Parallel Orchestration
+
+Enhanced `/orchestrate` with parallel execution:
+
+```yaml
+### Execution Phases
+
+1. **Design** (sequential)
+   - Agent: architect
+
+2. **Implementation** (PARALLEL)
+   - 2a. Agent: frontend-specialist
+   - 2b. Agent: backend-specialist
+   - 2c. Agent: documenter (background)
+
+3. **Testing** (PARALLEL)
+   - 3a. Agent: tester - Unit tests
+   - 3b. Agent: tester - Integration tests
+```
+
+**Limits:**
+- Max 4 parallel agents (Claude rate limiting)
+- No parallel git operations
+- Database migrations always sequential
+
+### New Files
+
+| File | Purpose |
+|------|---------|
+| `core/WORKTREE_ISOLATION.md` | Git worktree workflow guide |
+| `.claude/commands/qa-loop.md` | Automated QA cycle |
+| `.claude/commands/spec.md` | Spec pipeline |
+
+### Updated Files
+
+| File | Changes |
+|------|---------|
+| `.claude/commands/orchestrate.md` | Added Parallel Execution section |
+
+## Migration Steps
+
+### Step 1: Copy New Commands
+
+```bash
+cp framework/.claude/commands/qa-loop.md your-project/.claude/commands/
+cp framework/.claude/commands/spec.md your-project/.claude/commands/
+```
+
+### Step 2: Copy Worktree Documentation
+
+```bash
+cp framework/core/WORKTREE_ISOLATION.md your-project/core/
+```
+
+### Step 3: Update Orchestrate Command
+
+```bash
+cp framework/.claude/commands/orchestrate.md your-project/.claude/commands/
+```
+
+### Step 4: Update .gitignore (Optional)
+
+Add worktrees directory to .gitignore:
+
+```bash
+echo ".worktrees/" >> your-project/.gitignore
+```
+
+### Step 5: Create Specs Directory (Optional)
+
+```bash
+mkdir -p your-project/specs
+```
+
+## Using New Features
+
+### QA Loop Workflow
+
+```bash
+# After implementing a feature
+/qa-loop
+
+# With custom iterations and target
+/qa-loop 5 src/api
+
+# Review the QA report
+# Fix any COMPLEX issues manually
+```
+
+### Spec Pipeline Workflow
+
+```bash
+# Create spec for new feature
+/spec user-authentication COMPLEX
+
+# Review generated spec
+cat specs/user-authentication_spec.md
+
+# Implement from spec
+/sprint-init specs/user-authentication_spec.md
+```
+
+### Worktree Workflow
+
+```bash
+# Start isolated feature work
+git worktree add .worktrees/my-feature -b feature/my-feature
+cd .worktrees/my-feature
+
+# Work safely...
+# All changes are isolated
+
+# When ready, merge to main
+cd ../..
+git merge feature/my-feature
+git worktree remove .worktrees/my-feature
+```
+
+### Parallel Orchestration
+
+```bash
+# Orchestrate with parallelization hints
+/orchestrate "Add dashboard with charts"
+
+# Claude will identify parallel opportunities:
+# - Frontend and backend can run in parallel
+# - Unit and integration tests can run in parallel
+```
+
+## Backwards Compatibility
+
+- All v2.4 features (Hooks, Reasoning Modes, Playwright) unchanged
+- New commands are additive — existing commands work as before
+- Worktree isolation is optional workflow enhancement
+- Parallel orchestration is automatic (no config needed)
+
+## Benefits of v2.5
+
+1. **Automated QA** — Catch and fix issues without manual intervention
+2. **Structured specs** — Better planning before implementation
+3. **Safe experimentation** — Worktrees protect main branch
+4. **Faster execution** — Parallel tasks reduce total time
+5. **Inspired by Auto-Claude** — Best patterns without UI complexity
+
+## Quick Start Checklist
+
+- [ ] Copy `qa-loop.md` to `.claude/commands/`
+- [ ] Copy `spec.md` to `.claude/commands/`
+- [ ] Copy `WORKTREE_ISOLATION.md` to `core/`
+- [ ] Update `orchestrate.md` with parallel section
+- [ ] (Optional) Add `.worktrees/` to `.gitignore`
+- [ ] (Optional) Create `specs/` directory
+
+---
+
+*Migration Guide for DG-VibeCoding-Framework v2.5*
+*Last updated: 2025-12-28*

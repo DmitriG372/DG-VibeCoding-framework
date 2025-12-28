@@ -96,4 +96,99 @@ Reading agents/architect.md to begin design phase...
 
 ---
 
-*Part of DG-SuperVibe-Framework v2.4*
+## Parallel Execution (NEW v2.5)
+
+Teatud ülesandeid saab täita paralleelselt, kiirendades töövoogu.
+
+### Paralleelsuse Võimalused
+
+| Faas | Paralleelne? | Näide |
+|------|--------------|-------|
+| Planeerimine | EI | Üks plaan korraga |
+| Uurimine | JAH | Mitu faili korraga |
+| Implementeerimine | OSALISELT | Sõltumatud komponendid |
+| Testimine | JAH | Erinevad test suite'id |
+| Review | EI | Järjestikku |
+
+### Paralleelse Täitmise Juhis
+
+1. **Identifitseeri sõltumatud ülesanded:**
+   ```yaml
+   Independent:
+     - Component A tests
+     - Component B tests
+     - Documentation update
+
+   Dependent (must be sequential):
+     - Database migration → API update → Frontend update
+   ```
+
+2. **Kasuta Task tool'i paralleelseks:**
+   ```
+   # Käivita mitu agenti korraga
+   Task: "Run unit tests" (background)
+   Task: "Run integration tests" (background)
+   Task: "Check linting" (background)
+
+   # Oota tulemusi
+   TaskOutput: all
+   ```
+
+3. **Jälgi ressursse:**
+   - Max 3-4 paralleelset ülesannet korraga
+   - Ära ülekoorma süsteemi
+   - CPU-intensiivsed ülesanded järjestikku
+
+### Parallel Orchestration Example
+
+```yaml
+## Orchestration Plan (Parallel)
+
+**Task:** Add user dashboard with charts
+**Complexity:** HIGH
+
+### Agent Team
+- Primary: architect
+- Support: [frontend-specialist, backend-specialist, tester]
+
+### Execution Phases
+
+1. **Design** (sequential)
+   - Agent: architect
+   - Action: Design dashboard architecture
+
+2. **Implementation** (PARALLEL)
+   - 2a. Agent: frontend-specialist
+     - Action: Create chart components
+   - 2b. Agent: backend-specialist
+     - Action: Create data endpoints
+   - 2c. Agent: documenter (background)
+     - Action: Update API docs
+
+3. **Integration** (sequential, depends on 2a+2b)
+   - Agent: implementer
+   - Action: Connect frontend to backend
+
+4. **Testing** (PARALLEL)
+   - 4a. Agent: tester - Unit tests
+   - 4b. Agent: tester - Integration tests
+   - 4c. Agent: tester - E2E tests
+
+5. **Review** (sequential)
+   - Agent: reviewer
+   - Action: Final code review
+```
+
+### Paralleelsuse Piirangud
+
+| Piirang | Põhjus |
+|---------|--------|
+| Max 4 paralleelset agenti | Claude rate limiting |
+| Ära paralleliseeri git operatsioone | Konfliktid |
+| Database migrations järjestikku | Andmete terviklikkus |
+| Review alati lõpus | Vajab täielikku pilti |
+
+---
+
+*Part of DG-VibeCoding-Framework v2.5*
+*Parallel execution inspired by Auto-Claude multi-terminal pattern*

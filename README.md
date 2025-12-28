@@ -1,28 +1,32 @@
-# DG-SuperVibe-Framework v2.4
+# DG-VibeCoding-Framework v2.5
 
 > **Philosophy:** Start Simple, Scale Smart, Learn Continuously
 
 Intelligent, self-learning AI development platform optimized for Claude Code + VS Code dual workflow.
 
-## What's New in v2.4
+## What's New in v2.5
 
 ### Core Features
+- **QA Loop** — Automated test-fix-repeat cycle with `/qa-loop` command
+- **Spec Pipeline** — Multi-agent specification workflow with `/spec` command
+- **Worktree Isolation** — Safe experimentation with git worktrees
+- **Parallel Orchestration** — Enhanced `/orchestrate` with parallelization
+
+### New Files
+- `core/WORKTREE_ISOLATION.md` — Git worktree workflow documentation
+- `.claude/commands/qa-loop.md` — Auto-healing QA cycle (max 10 iterations)
+- `.claude/commands/spec.md` — Spec pipeline (SIMPLE/STANDARD/COMPLEX)
+
+### Improvements
+- **`/orchestrate`** — Added parallel execution section for concurrent tasks
+- **20 commands total** — Added `/qa-loop` and `/spec`
+- **Inspired by Auto-Claude** — Adopted best patterns without UI complexity
+
+### v2.4 Features (retained)
 - **Hooks System** — Pre/post tool-use hooks for automated validation
 - **Reasoning Modes** — "Think", "Think more", "Ultrathink" for complex tasks
 - **Context Control** — Escape, Compact, Clear commands documented
 - **Agent Activation** — Documented how agents work via slash commands
-
-### New Files
-- `core/AGENT_ACTIVATION.md` — Complete guide to agent system
-- `VERIFICATION.md` — Framework testing and verification guide
-- `hooks/usage-tracker.js` — Track skill/command/agent usage
-- `scripts/migrate-skills.sh` — Convert skills to subdirectory format
-
-### Improvements
-- **Skills format** — Must be in `[skill-name]/SKILL.md` subdirectory format
-- **Command updates** — `/orchestrate`, `/plan`, `/review` now explicitly load agent files
-- **4 Hooks total** — block-env.js, type-check.js, auto-format.js, usage-tracker.js
-- **Usage logging** — Monitor framework component usage via `.claude/usage.log`
 
 ### v2.3 Features (retained)
 
@@ -137,6 +141,7 @@ DG-VibeCoding-framework/
 │   ├── HOOKS.md            # Hook system docs (v2.4)
 │   ├── REASONING_MODES.md  # Thinking modes + context control (v2.4)
 │   ├── AGENT_ACTIVATION.md # How agents work (v2.4)
+│   ├── WORKTREE_ISOLATION.md # Git worktree workflow (v2.5)
 │   └── .vscode/            # VS Code settings (v2.0)
 ├── hooks/                  # Hook scripts (v2.4)
 │   ├── block-env.js        # Block sensitive file access
@@ -164,7 +169,7 @@ DG-VibeCoding-framework/
 │       ├── memory.integration.md
 │       └── playwright.integration.md  # NEW in v2.4
 ├── .claude/
-│   ├── commands/           # Slash commands (18 total)
+│   ├── commands/           # Slash commands (20 total)
 │   ├── skills/             # Official Anthropic v2.0+ skills (22)
 │   └── settings.local.json # Hook configuration (v2.4)
 ├── scale/                  # Pick your level (mini/normal/max)
@@ -470,6 +475,13 @@ Activates multi-agent workflow for complex tasks.
 | `/sync --verify` | Verify git matches sprint.json |
 | `/sprint-validate` | Validate sprint.json consistency |
 
+### v2.5 QA & Spec Commands
+
+| Command | Description |
+|---------|-------------|
+| `/qa-loop` | Automated test-fix cycle (max 10 iterations) |
+| `/spec` | Multi-agent specification pipeline |
+
 ---
 
 ## MCP Servers (v2.4)
@@ -578,6 +590,7 @@ Shows current state and what to resume.
 - [Skills Directory](.claude/skills/) (Anthropic v2.0+ format)
 - [Agent Protocol](core/AGENT_PROTOCOL.md)
 - [Context Hierarchy](core/CONTEXT_HIERARCHY.md)
+- [Worktree Isolation](core/WORKTREE_ISOLATION.md) (v2.5)
 - [Hooks Documentation](core/HOOKS.md) (v2.4)
 - [Reasoning Modes](core/REASONING_MODES.md) (v2.4)
 - [Playwright Integration](integrations/mcp/playwright.integration.md) (v2.4)
@@ -590,6 +603,7 @@ Shows current state and what to resume.
 
 See [MIGRATION.md](MIGRATION.md) for upgrade guides:
 
+- **v2.4 → v2.5** — QA Loop, Spec Pipeline, Worktree Isolation, Parallel Orchestration
 - **v2.3 → v2.4** — Hooks, Thinking Modes, Playwright MCP
 - **v2.2 → v2.3** — Anthropic Skills v2.0+ format migration
 - **v2.1 → v2.2** — Git-First Tracking upgrade
@@ -597,4 +611,4 @@ See [MIGRATION.md](MIGRATION.md) for upgrade guides:
 
 ---
 
-*v2.4 — Hooks + Reasoning Modes + Playwright MCP + Git-First + Sprint Workflow + Multi-Agent System*
+*v2.5 — QA Loop + Spec Pipeline + Worktree Isolation + Parallel Orchestration + Hooks + Reasoning Modes + Git-First + Sprint Workflow + Multi-Agent System*
