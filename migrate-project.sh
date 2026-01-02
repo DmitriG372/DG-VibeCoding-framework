@@ -1,7 +1,7 @@
 #!/bin/bash
-# DG-VibeCoding-Framework v2.4 - Project Migration Script
+# DG-VibeCoding-Framework v2.5 - Project Migration Script
 # Usage: ./migrate-project.sh /path/to/your/project
-# Migrates existing project to use v2.4 features (skills, hooks, agents)
+# Migrates existing project to use v2.5 features (skills, hooks, agents, codex)
 
 set -e
 
@@ -17,7 +17,7 @@ FRAMEWORK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="${1:-.}"
 
 echo -e "${BLUE}╔════════════════════════════════════════════════════╗${NC}"
-echo -e "${BLUE}║  DG-VibeCoding-Framework v2.4 - Project Migration  ║${NC}"
+echo -e "${BLUE}║  DG-VibeCoding-Framework v2.5 - Project Migration  ║${NC}"
 echo -e "${BLUE}╚════════════════════════════════════════════════════╝${NC}"
 echo ""
 
@@ -48,7 +48,7 @@ fi
 # ─────────────────────────────────────────────────────────────
 # 1. Copy sprint templates
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[1/7] Copying sprint templates...${NC}"
+echo -e "${YELLOW}[1/8] Copying sprint templates...${NC}"
 
 mkdir -p "$PROJECT_DIR/core/sprint"
 cp "$FRAMEWORK_DIR/core/sprint/sprint.json.template" "$PROJECT_DIR/core/sprint/"
@@ -59,7 +59,7 @@ echo -e "  ${GREEN}✓${NC} Sprint templates copied"
 # ─────────────────────────────────────────────────────────────
 # 2. Copy new sprint commands
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[2/7] Copying sprint commands...${NC}"
+echo -e "${YELLOW}[2/8] Copying sprint commands...${NC}"
 
 mkdir -p "$PROJECT_DIR/.claude/commands"
 cp "$FRAMEWORK_DIR/.claude/commands/sprint-init.md" "$PROJECT_DIR/.claude/commands/"
@@ -72,7 +72,7 @@ echo -e "  ${GREEN}✓${NC} 4 sprint commands copied"
 # ─────────────────────────────────────────────────────────────
 # 3. Copy skills (v2.4 - subdirectory format)
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[3/7] Copying skills (v2.4 subdirectory format)...${NC}"
+echo -e "${YELLOW}[3/8] Copying skills (v2.5 subdirectory format)...${NC}"
 
 mkdir -p "$PROJECT_DIR/.claude/skills"
 
@@ -91,7 +91,7 @@ echo -e "  ${GREEN}✓${NC} $SKILL_COUNT skills copied to .claude/skills/*/SKILL
 # ─────────────────────────────────────────────────────────────
 # 4. Update agents (if exist)
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[4/7] Updating agents...${NC}"
+echo -e "${YELLOW}[4/8] Updating agents...${NC}"
 
 if [ -d "$PROJECT_DIR/agents" ]; then
     cp "$FRAMEWORK_DIR/agents/orchestrator.md" "$PROJECT_DIR/agents/"
@@ -107,7 +107,7 @@ fi
 # ─────────────────────────────────────────────────────────────
 # 5. Copy hooks (v2.4)
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[5/7] Copying hooks (v2.4)...${NC}"
+echo -e "${YELLOW}[5/8] Copying hooks...${NC}"
 
 mkdir -p "$PROJECT_DIR/hooks"
 cp "$FRAMEWORK_DIR/hooks/"*.js "$PROJECT_DIR/hooks/"
@@ -118,7 +118,7 @@ echo -e "  ${GREEN}✓${NC} $HOOK_COUNT hooks copied to hooks/"
 # ─────────────────────────────────────────────────────────────
 # 6. Copy v2.4 documentation
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[6/7] Copying v2.4 documentation...${NC}"
+echo -e "${YELLOW}[6/8] Copying documentation...${NC}"
 
 cp "$FRAMEWORK_DIR/core/HOOKS.md" "$PROJECT_DIR/HOOKS.md" 2>/dev/null && echo -e "  ${GREEN}✓${NC} HOOKS.md"
 cp "$FRAMEWORK_DIR/core/REASONING_MODES.md" "$PROJECT_DIR/REASONING_MODES.md" 2>/dev/null && echo -e "  ${GREEN}✓${NC} REASONING_MODES.md"
@@ -134,7 +134,7 @@ echo -e "  ${GREEN}✓${NC} scripts/migrate-skills.sh"
 # ─────────────────────────────────────────────────────────────
 # 7. Update CLAUDE.md (if exists)
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[7/7] Updating CLAUDE.md...${NC}"
+echo -e "${YELLOW}[7/8] Updating CLAUDE.md...${NC}"
 
 if [ -f "$PROJECT_DIR/CLAUDE.md" ]; then
     # Check if already has Sprint Workflow section
@@ -192,6 +192,20 @@ else
 fi
 
 # ─────────────────────────────────────────────────────────────
+# 8. Copy Codex integration (v2.5)
+# ─────────────────────────────────────────────────────────────
+echo -e "${YELLOW}[8/8] Copying Codex integration files...${NC}"
+
+# Copy codex-review command
+cp "$FRAMEWORK_DIR/.claude/commands/codex-review.md" "$PROJECT_DIR/.claude/commands/" 2>/dev/null && \
+    echo -e "  ${GREEN}✓${NC} codex-review.md command"
+
+# Copy codex skill
+mkdir -p "$PROJECT_DIR/.claude/skills/codex"
+cp "$FRAMEWORK_DIR/.claude/skills/codex/SKILL.md" "$PROJECT_DIR/.claude/skills/codex/" 2>/dev/null && \
+    echo -e "  ${GREEN}✓${NC} codex skill"
+
+# ─────────────────────────────────────────────────────────────
 # Summary
 # ─────────────────────────────────────────────────────────────
 echo ""
@@ -199,7 +213,7 @@ echo -e "${GREEN}╔════════════════════
 echo -e "${GREEN}║  Migration Complete!                               ║${NC}"
 echo -e "${GREEN}╚════════════════════════════════════════════════════╝${NC}"
 echo ""
-echo -e "Project upgraded to v2.4 at: ${BLUE}$PROJECT_DIR${NC}"
+echo -e "Project upgraded to v2.5 at: ${BLUE}$PROJECT_DIR${NC}"
 echo ""
 echo -e "${YELLOW}New sprint commands available:${NC}"
 echo "  /sprint-init   - Initialize sprint from PROJECT.md tasks"
@@ -215,9 +229,14 @@ echo -e "${YELLOW}Hooks (v2.4):${NC}"
 echo "  Configure hooks in .claude/settings.local.json"
 echo "  See HOOKS.md for documentation"
 echo ""
-echo -e "${YELLOW}Agent Activation (v2.4):${NC}"
+echo -e "${YELLOW}Agent Activation:${NC}"
 echo "  Use /orchestrate, /plan, /review to activate agents"
 echo "  See AGENT_ACTIVATION.md for details"
+echo ""
+echo -e "${YELLOW}Codex Integration (v2.5):${NC}"
+echo "  /codex-review - Run Codex as secondary reviewer"
+echo "  Requires: npm install -g @openai/codex"
+echo "  Set OPENAI_API_KEY for Codex to work"
 echo ""
 echo -e "${YELLOW}Next steps:${NC}"
 echo "  1. Add tasks to PROJECT.md#Current Sprint"

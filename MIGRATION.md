@@ -1128,5 +1128,72 @@ git worktree remove .worktrees/my-feature
 
 ---
 
-*Migration Guide for DG-VibeCoding-Framework v2.5*
-*Last updated: 2025-12-28*
+# Update: v2.5.1 — Codex Integration
+
+## What's New
+
+**Concept:** Claude Code = Builder, Codex = Critic
+
+> "Two eyes are good, but four are better!"
+
+OpenAI Codex as secondary code reviewer running in headless mode.
+
+## New Files
+
+| File | Purpose |
+|------|---------|
+| `.claude/commands/codex-review.md` | Headless Codex review command |
+| `.claude/skills/codex/SKILL.md` | Codex skill for auto-activation |
+| `integrations/mcp/codex.integration.md` | Complete integration guide |
+
+## Installation
+
+```bash
+# Install Codex CLI
+npm install -g @openai/codex
+
+# Verify
+codex --version
+```
+
+## Usage
+
+```bash
+# Quick review (17-point checklist)
+/codex-review src/components/Timer.vue
+
+# Full audit (35-point checklist)
+/codex-review --full src/services/
+```
+
+## Workflow
+
+```
+1. Claude Code writes code
+2. User: /codex-review path/to/file
+3. Codex runs headless → JSON results
+4. Claude Code displays issues
+5. User confirms fixes
+6. Claude Code fixes issues
+7. (Optional) Re-run Codex to verify
+```
+
+## CC + Codex Cooperation
+
+| Agent | Role | Question |
+|-------|------|----------|
+| Claude Code | Builder | "How to build this?" |
+| Codex | Critic | "What could go wrong?" |
+
+## Quick Start Checklist
+
+- [ ] Install Codex CLI: `npm install -g @openai/codex`
+- [ ] Set `OPENAI_API_KEY` environment variable
+- [ ] Copy `codex-review.md` to `.claude/commands/`
+- [ ] Copy `codex/SKILL.md` to `.claude/skills/codex/`
+- [ ] (Optional) Set up `~/.codex/AGENTS.md` for global rules
+
+---
+
+*Migration Guide for DG-VibeCoding-Framework v2.5.1*
+*Last updated: 2026-01-02*

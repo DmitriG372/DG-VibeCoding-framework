@@ -225,6 +225,49 @@ ls -la .claude/skills/*/SKILL.md
 
 ---
 
+## Codex Verification
+
+### Check Codex CLI installed
+
+```bash
+which codex && codex --version
+```
+
+Expected: Path to codex and version (e.g., `codex-cli 0.63.0`)
+
+### Test headless execution
+
+```bash
+# Simple test
+codex exec "echo hello" --json | head -5
+
+# Should return JSON lines like:
+# {"type": "thread.started", ...}
+# {"type": "turn.started"}
+```
+
+### Test /codex-review command
+
+In Claude Code:
+
+```
+/codex-review src/components/SomeComponent.vue
+```
+
+Should output:
+- Codex running indicator
+- Issues found (CRITICAL/MAJOR/MINOR)
+- Score and verdict (PASS/NEEDS_CHANGES/FAIL)
+- Option to fix issues
+
+### Codex Not Working?
+
+1. **Not installed:** `npm install -g @openai/codex`
+2. **No API key:** Check `OPENAI_API_KEY` is set
+3. **Permission denied:** Try `chmod +x $(which codex)`
+
+---
+
 ## Debug Mode
 
 Add verbose logging to any hook:

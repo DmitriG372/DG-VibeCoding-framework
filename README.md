@@ -11,15 +11,19 @@ Intelligent, self-learning AI development platform optimized for Claude Code + V
 - **Spec Pipeline** — Multi-agent specification workflow with `/spec` command
 - **Worktree Isolation** — Safe experimentation with git worktrees
 - **Parallel Orchestration** — Enhanced `/orchestrate` with parallelization
+- **Codex Integration** — CC + Codex headless code review with `/codex-review`
 
 ### New Files
 - `core/WORKTREE_ISOLATION.md` — Git worktree workflow documentation
 - `.claude/commands/qa-loop.md` — Auto-healing QA cycle (max 10 iterations)
 - `.claude/commands/spec.md` — Spec pipeline (SIMPLE/STANDARD/COMPLEX)
+- `.claude/commands/codex-review.md` — OpenAI Codex as secondary reviewer (headless)
+- `.claude/skills/codex/SKILL.md` — Codex integration skill
+- `integrations/mcp/codex.integration.md` — Codex integration guide
 
 ### Improvements
 - **`/orchestrate`** — Added parallel execution section for concurrent tasks
-- **20 commands total** — Added `/qa-loop` and `/spec`
+- **21 commands total** — Added `/qa-loop`, `/spec`, and `/codex-review`
 - **Inspired by Auto-Claude** — Adopted best patterns without UI complexity
 
 ### v2.4 Features (retained)
@@ -169,8 +173,8 @@ DG-VibeCoding-framework/
 │       ├── memory.integration.md
 │       └── playwright.integration.md  # NEW in v2.4
 ├── .claude/
-│   ├── commands/           # Slash commands (20 total)
-│   ├── skills/             # Official Anthropic v2.0+ skills (22)
+│   ├── commands/           # Slash commands (21 total)
+│   ├── skills/             # Official Anthropic v2.0+ skills (23 incl. codex)
 │   └── settings.local.json # Hook configuration (v2.4)
 ├── scale/                  # Pick your level (mini/normal/max)
 ├── devops/                 # CI/CD templates
@@ -475,12 +479,13 @@ Activates multi-agent workflow for complex tasks.
 | `/sync --verify` | Verify git matches sprint.json |
 | `/sprint-validate` | Validate sprint.json consistency |
 
-### v2.5 QA & Spec Commands
+### v2.5 QA, Spec & Codex Commands
 
 | Command | Description |
 |---------|-------------|
 | `/qa-loop` | Automated test-fix cycle (max 10 iterations) |
 | `/spec` | Multi-agent specification pipeline |
+| `/codex-review` | OpenAI Codex as secondary code reviewer (headless) |
 
 ---
 
