@@ -282,4 +282,4 @@ Then check Claude Code's tool feedback for debug output.
 
 ---
 
-*Part of DG-VibeCoding-Framework v2.5*
+*Part of DG-VibeCoding-Framework v2.6*

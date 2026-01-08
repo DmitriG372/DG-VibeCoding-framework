@@ -192,4 +192,4 @@ Pattern detection can run:
 
 ---
 
-*Part of DG-VibeCoding-Framework v2.0 Meta-Programming System*
+*Part of DG-VibeCoding-Framework v2.6 Meta-Programming System*

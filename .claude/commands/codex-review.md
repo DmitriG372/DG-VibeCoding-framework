@@ -1,5 +1,10 @@
 ---
 description: Run OpenAI Codex as secondary code reviewer (headless)
+context: fork
+allowed-tools:
+  - Bash
+  - Read
+  - Glob
 ---
 
 # /codex-review
@@ -237,4 +242,4 @@ Fixed! Re-running Codex to verify...
 
 ---
 
-*Part of DG-VibeCoding-Framework v2.5 - CC + Codex Integration*
+*Part of DG-VibeCoding-Framework v2.6 - CC + Codex Integration*

@@ -193,4 +193,4 @@ implementer → reviewer → [if changes needed] → implementer → reviewer
 ---
 
 *Protocol Version: 2.4*
-*Part of DG-VibeCoding-Framework v2.5*
+*Part of DG-VibeCoding-Framework v2.6*

@@ -1,8 +1,33 @@
-# DG-VibeCoding-Framework v2.5
+# DG-VibeCoding-Framework v2.6
 
 > **Philosophy:** Start Simple, Scale Smart, Learn Continuously
 
 Intelligent, self-learning AI development platform optimized for Claude Code + VS Code dual workflow.
+
+## What's New in v2.6
+
+### Claude Code 2.1.0 Integration
+- **Native `/plan`** — Framework `/plan` removed, use CC built-in plan mode
+- **Wildcard Bash Permissions** — `Bash(npm *)`, `Bash(git *)`, etc. in settings
+- **`context: fork`** — Skills can run in isolated sub-agent context
+- **`agent` field** — Skills can specify model (haiku/sonnet/opus)
+- **`once: true` hooks** — Run hooks only once per session
+- **`Ctrl+B` backgrounding** — Background agents and commands
+- **YAML-style `allowed-tools`** — Cleaner skill frontmatter
+
+### New Files
+- `core/settings.template.json` — Wildcard permissions + hooks template
+- `hooks/session-init.js` — Session initialization hook (once: true)
+
+### Updated Skills (context: fork)
+- `.claude/skills/sub-agent/SKILL.md` — + context: fork, agent: haiku
+- `.claude/skills/database/SKILL.md` — + context: fork
+- `.claude/commands/codex-review.md` — + context: fork
+
+### Removed
+- `.claude/commands/plan.md` — Use CC native `/plan` instead
+
+---
 
 ## What's New in v2.5
 
@@ -608,6 +633,7 @@ Shows current state and what to resume.
 
 See [MIGRATION.md](MIGRATION.md) for upgrade guides:
 
+- **v2.5 → v2.6** — CC 2.1.0 integration, wildcard permissions, context: fork, native /plan
 - **v2.4 → v2.5** — QA Loop, Spec Pipeline, Worktree Isolation, Parallel Orchestration
 - **v2.3 → v2.4** — Hooks, Thinking Modes, Playwright MCP
 - **v2.2 → v2.3** — Anthropic Skills v2.0+ format migration
@@ -616,4 +642,4 @@ See [MIGRATION.md](MIGRATION.md) for upgrade guides:
 
 ---
 
-*v2.5 — QA Loop + Spec Pipeline + Worktree Isolation + Parallel Orchestration + Hooks + Reasoning Modes + Git-First + Sprint Workflow + Multi-Agent System*
+*v2.6 — CC 2.1.0 Integration + Wildcard Permissions + context: fork + once: true hooks + Ctrl+B backgrounding*

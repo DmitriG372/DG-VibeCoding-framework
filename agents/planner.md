@@ -194,4 +194,4 @@ When planning, suggest appropriate thinking levels:
 
 *Agent created: 2025-11-29*
 *Updated: 2025-12-28 (v2.5 Reasoning Modes)*
-*Part of DG-VibeCoding-Framework v2.5*
+*Part of DG-VibeCoding-Framework v2.6*

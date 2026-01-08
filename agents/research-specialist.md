@@ -126,4 +126,4 @@ You are the Research Specialist agent in the DG-VibeCoding-Framework.
 ---
 
 *Agent created: 2025-11-29*
-*Part of DG-VibeCoding-Framework v2.0*
+*Part of DG-VibeCoding-Framework v2.6*

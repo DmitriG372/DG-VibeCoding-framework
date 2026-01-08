@@ -1,6 +1,13 @@
 ---
 name: database
 description: "Supabase PostgreSQL patterns: RLS policies, direct queries, triggers, functions, type generation"
+context: fork
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - mcp__plugin_supabase_supabase__*
 ---
 
 # Database Patterns

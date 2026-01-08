@@ -190,5 +190,58 @@ Teatud ülesandeid saab täita paralleelselt, kiirendades töövoogu.
 
 ---
 
-*Part of DG-VibeCoding-Framework v2.5*
-*Parallel execution inspired by Auto-Claude multi-terminal pattern*
+## Background Execution (CC 2.1.0)
+
+Kasuta `Ctrl+B` agentide ja käskude taustal käivitamiseks.
+
+### Kuidas Kasutada
+
+1. **Käivita käsk tavaliselt:**
+   ```
+   /orchestrate "Generate tests for all components"
+   ```
+
+2. **Vajuta `Ctrl+B`** ajal kui käsk töötab:
+   - Käsk jätkab taustal
+   - Saad koheselt uue sisendi võimaluse
+   - Tulemused ilmuvad automaatselt kui valmis
+
+3. **Jätka teiste ülesannetega:**
+   ```
+   /review src/components/Button.tsx
+   ```
+
+### Backgrounding Use Cases
+
+| Stsenaarium | Käsk | Miks Backgroundida |
+|-------------|------|-------------------|
+| Testide genereerimine | `/orchestrate "Generate tests"` | Võtab kaua, saab vahepeal tegeleda |
+| Koodi migratsioon | `/orchestrate "Migrate Vue to React"` | Token-intensiivne |
+| Dokumentatsiooni genereerimine | `/orchestrate "Document API"` | Ei vaja kohest tulemust |
+| Turvaaudit | `/codex-review --full src/` | Codex töötab paralleelselt |
+
+### Backgrounding + Parallel
+
+Kombineeri background ja parallel execution:
+
+```yaml
+1. Käivita: /orchestrate "Add auth" [Ctrl+B] → background
+2. Käivita: /codex-review src/ [Ctrl+B] → background
+3. Tee manuaalselt väiksemaid muudatusi
+4. Tulemused saabuvad järjest
+```
+
+### Tulemuste Vaatamine
+
+```bash
+# Vaata taustaülesandeid
+/tasks
+
+# Loe konkreetse ülesande tulemust
+TaskOutput: <task_id>
+```
+
+---
+
+*Part of DG-VibeCoding-Framework v2.6*
+*Parallel execution + Ctrl+B backgrounding from CC 2.1.0*

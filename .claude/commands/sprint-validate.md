@@ -147,4 +147,4 @@ Overall: ✓ All OK | ✗ Issues found
 
 ---
 
-*Part of DG-VibeCoding-Framework v2.2*
+*Part of DG-VibeCoding-Framework v2.6*

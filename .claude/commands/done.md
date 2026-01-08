@@ -199,4 +199,4 @@ Then run /done again.
 
 ---
 
-*Part of DG-VibeCoding-Framework v2.5*
+*Part of DG-VibeCoding-Framework v2.6*

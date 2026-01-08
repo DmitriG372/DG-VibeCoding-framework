@@ -147,4 +147,4 @@ export OPENAI_API_KEY=sk-...
 
 ---
 
-*Part of DG-VibeCoding-Framework v2.5.1 — CC + Codex Integration*
+*Part of DG-VibeCoding-Framework v2.6 — CC + Codex Integration*

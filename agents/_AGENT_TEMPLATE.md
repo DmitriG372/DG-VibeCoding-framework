@@ -96,4 +96,4 @@ You are the [Agent Name] agent in the DG-VibeCoding-Framework.
 ---
 
 *Agent created: [date]*
-*Part of DG-VibeCoding-Framework v2.0*
+*Part of DG-VibeCoding-Framework v2.6*

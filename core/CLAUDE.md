@@ -1,4 +1,4 @@
-# Claude Code Rules (v2.5)
+# Claude Code Rules (v2.6)
 
 > All project details → `PROJECT.md`
 > Agent definitions → `agents/`
@@ -271,10 +271,12 @@ Complex tasks automatically activate the **orchestrator**.
 Available in `.claude/commands/`:
 
 ### Core Commands
-- `/plan` — Plan implementation
+- `/plan` — **Use CC native** (Shift+Tab twice or type `/plan`)
 - `/implement` — Execute plan
 - `/review` — Review code
 - `/fix` — Fix issues
+
+> **Note (v2.6):** Framework's `/plan` removed. Use Claude Code's native `/plan` which enters plan mode with file research.
 
 ### Session Commands
 - `/start-session` — Start with context from last session
@@ -430,8 +432,10 @@ For complex tasks, use thinking phrases:
 
 ### Plan Mode vs Thinking Mode
 
-- **Plan Mode** (`Shift+Tab` twice) → Breadth: research more files
+- **Plan Mode** (`Shift+Tab` twice or `/plan`) → Breadth: research more files
 - **Thinking Mode** (phrase) → Depth: more reasoning tokens
+
+> **v2.6:** Use CC native `/plan` command. Framework `/plan` has been removed.
 
 See: `core/REASONING_MODES.md` for full documentation.
 
@@ -485,6 +489,15 @@ See: `core/HOOKS.md` for full documentation.
 - Agent protocol → `AGENT_PROTOCOL.md`
 - **Agent activation → `AGENT_ACTIVATION.md` (v2.4)**
 - Context hierarchy → `CONTEXT_HIERARCHY.md`
+
+### v2.6 Features (CC 2.1.0)
+- **Native `/plan`** — Use CC built-in plan mode (framework /plan removed)
+- **Wildcard permissions** — `Bash(npm *)`, `Bash(git *)` in settings
+- **`context: fork`** — Skills run in isolated sub-agent context
+- **`once: true` hooks** — Run hook only once per session
+- **`Ctrl+B` backgrounding** — Background agents and commands
+- **Settings template** → `core/settings.template.json`
+- **Session init hook** → `hooks/session-init.js`
 
 ### v2.4 Features
 - Hooks → `HOOKS.md`

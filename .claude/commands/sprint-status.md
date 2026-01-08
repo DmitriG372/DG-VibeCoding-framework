@@ -144,4 +144,4 @@ At end of session, `/sprint-status` shows exactly where things are.
 
 ---
 
-*Part of DG-VibeCoding-Framework v2.1*
+*Part of DG-VibeCoding-Framework v2.6*

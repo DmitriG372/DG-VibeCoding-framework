@@ -265,5 +265,5 @@ Goal: Assess impact of changing validateToken()
 
 ---
 
-*Part of DG-VibeCoding-Framework v2.5*
+*Part of DG-VibeCoding-Framework v2.6*
 *Created: 2025-12-28*

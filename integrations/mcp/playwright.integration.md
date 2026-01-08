@@ -351,4 +351,4 @@ Or use pattern matching:
 
 ---
 
-*Part of DG-VibeCoding-Framework v2.5*
+*Part of DG-VibeCoding-Framework v2.6*

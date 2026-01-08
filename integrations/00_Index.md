@@ -57,4 +57,4 @@ Built-in Claude Code features that don't require MCP.
 
 ---
 
-*Part of DG-VibeCoding-Framework v2.5*
+*Part of DG-VibeCoding-Framework v2.6*

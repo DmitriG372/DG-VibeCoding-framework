@@ -242,5 +242,5 @@ Output:
 
 ---
 
-*Part of DG-VibeCoding-Framework v2.5*
+*Part of DG-VibeCoding-Framework v2.6*
 *Inspired by Auto-Claude Spec Pipeline pattern*

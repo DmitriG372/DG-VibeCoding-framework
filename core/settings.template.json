@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Claude Code settings template for DG-VibeCoding-Framework v2.6",
+
+  "permissions": {
+    "allow": [
+      "Bash(npm *)",
+      "Bash(npx *)",
+      "Bash(pnpm *)",
+      "Bash(bun *)",
+      "Bash(yarn *)",
+      "Bash(node *)",
+      "Bash(git *)",
+      "Bash(tsc *)",
+      "Bash(vitest *)",
+      "Bash(jest *)",
+      "Bash(eslint *)",
+      "Bash(prettier *)",
+      "Bash(supabase *)",
+      "Bash(vercel *)",
+      "Bash(turbo *)",
+      "Read(*)",
+      "Edit(*)",
+      "Write(*)",
+      "Glob(*)",
+      "Grep(*)",
+      "Task(*)"
+    ],
+    "deny": [
+      "Bash(rm -rf /)",
+      "Bash(rm -rf ~)",
+      "Bash(* --force push)",
+      "Bash(git push --force)"
+    ]
+  },
+
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Read|Grep",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ./hooks/block-env.js"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ./hooks/type-check.js"
+          },
+          {
+            "type": "command",
+            "command": "node ./hooks/auto-format.js"
+          }
+        ]
+      },
+      {
+        "matcher": "Skill|Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ./hooks/usage-tracker.js"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ./hooks/session-init.js",
+            "once": true
+          }
+        ]
+      }
+    ]
+  }
+}

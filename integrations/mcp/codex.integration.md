@@ -218,4 +218,4 @@ apt-get install jq  # Ubuntu
 
 ---
 
-*Part of DG-VibeCoding-Framework v2.5.1*
+*Part of DG-VibeCoding-Framework v2.6*

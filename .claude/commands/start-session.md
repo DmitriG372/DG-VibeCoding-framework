@@ -92,4 +92,4 @@ Skills in `.claude/skills/` auto-activate based on task context.
 
 ---
 
-*Part of DG-VibeCoding-Framework v2.3*
+*Part of DG-VibeCoding-Framework v2.6*

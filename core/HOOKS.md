@@ -397,7 +397,73 @@ cat .claude/usage.log
 
 ---
 
+## CC 2.1.0 New Features (v2.6)
+
+### `once: true` — Run Hook Only Once
+
+New in CC 2.1.0: hooks can run only once per session.
+
+```json
+{
+  "hooks": {
+    "SessionStart": [{
+      "hooks": [{
+        "type": "command",
+        "command": "node ./hooks/session-init.js",
+        "once": true
+      }]
+    }]
+  }
+}
+```
+
+**Use cases:**
+- Session initialization (load context, check environment)
+- One-time validation (verify dependencies)
+- Startup notifications (remind about pending tasks)
+
+### Hooks in Skill/Command Frontmatter
+
+New in CC 2.1.0: define hooks directly in skill or command YAML frontmatter.
+
+```yaml
+---
+name: security
+description: "Security review patterns"
+hooks:
+  PostToolUse:
+    - matcher: "Edit"
+      command: "node ./hooks/security-scan.js"
+---
+```
+
+**Benefits:**
+- Skill-specific validation
+- No need for global hook configuration
+- Hooks activate only when skill is used
+
+### YAML-Style `allowed-tools`
+
+New in CC 2.1.0: use YAML lists for cleaner frontmatter.
+
+```yaml
+---
+name: database
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - mcp__plugin_supabase_supabase__*
+---
+```
+
+**Note:** Wildcard `*` works for MCP tool namespaces.
+
+---
+
 ## References
 
 - Claude Code `/hooks` command for interactive setup
 - [Anthropic Docs: Claude Code Hooks](https://docs.anthropic.com/en/docs/claude-code/hooks)
+- CC 2.1.0 Changelog: `once: true`, frontmatter hooks, YAML allowed-tools

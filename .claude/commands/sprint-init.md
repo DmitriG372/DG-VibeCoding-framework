@@ -115,4 +115,4 @@ Use /feature to start working on F001.
 
 ---
 
-*Part of DG-VibeCoding-Framework v2.1*
+*Part of DG-VibeCoding-Framework v2.6*

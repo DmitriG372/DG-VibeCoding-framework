@@ -1,6 +1,13 @@
 ---
 name: sub-agent
 description: "Sub-agent orchestration patterns: when to use Haiku agents, task decomposition, parallel execution"
+context: fork
+agent: haiku
+allowed-tools:
+  - Task
+  - Read
+  - Glob
+  - Grep
 ---
 
 # Sub-Agent Orchestration

@@ -145,4 +145,4 @@ LSP incomingCalls cmd/server/main.go:25:2
 
 ---
 
-*Part of DG-VibeCoding-Framework v2.5*
+*Part of DG-VibeCoding-Framework v2.6*
