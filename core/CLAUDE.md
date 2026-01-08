@@ -1,7 +1,7 @@
-# Claude Code Rules (v2.6)
+# Claude Code Rules (v2.7)
 
 > All project details → `PROJECT.md`
-> Agent definitions → `agents/`
+> Agent definitions → `.claude/agents/`
 > Skills → `.claude/skills/` (Anthropic v2.0+ format)
 
 ---
@@ -16,7 +16,7 @@
 
 ### Context Loading (v2.3)
 
-**Level-based loading** — See `CONTEXT_HIERARCHY.md` for details.
+**Level-based loading** — See `.claude/agents/README.md` for details.
 
 1. Always read `PROJECT.md` first
 2. Skills auto-activate based on task context (`.claude/skills/`)
@@ -66,7 +66,7 @@ description: "Brief description for auto-activation"
 /orchestrate "Add authentication"
        │
        ▼
-Read: agents/orchestrator.md    ← Command loads agent file
+Read: .claude/agents/orchestrator.md  ← Command loads agent file
        │
        ▼
 Claude adopts orchestrator role ← Same session, full context
@@ -75,15 +75,15 @@ Claude adopts orchestrator role ← Same session, full context
 Output: Orchestration Plan
 ```
 
-See `AGENT_ACTIVATION.md` for complete documentation.
+See `.claude/agents/README.md` for complete documentation.
 
 ### Agent Activation Methods
 
 1. **Slash commands** (primary):
-   - `/orchestrate` → loads `agents/orchestrator.md`
-   - `/plan` → loads `agents/planner.md`
-   - `/review` → loads `agents/reviewer.md`
-   - `/done` → loads `agents/tester.md`
+   - `/orchestrate` → loads `.claude/agents/orchestrator.md`
+   - `/plan` → loads `.claude/agents/planner.md`
+   - `/review` → loads `.claude/agents/reviewer.md`
+   - `/done` → loads `.claude/agents/tester.md`
 
 2. **Direct request:**
    - "Use the security-specialist agent to review this"
@@ -109,15 +109,16 @@ Load agents based on task type:
 
 ### Agent Protocol
 
-Agents communicate via `AGENT_PROTOCOL.md`. Key points:
-- Orchestrator coordinates all agents
-- Agents pass context to next agent
-- Each agent has specific responsibilities
-- Parallel execution when tasks are independent
+See `.claude/agents/README.md` for:
+- Orchestrator coordination
+- Agent-to-agent context passing
+- Agent responsibilities
+- Parallel execution patterns
 
 ### Agent Directory
 ```
-agents/
+.claude/agents/
+├── README.md               # Agent system documentation
 ├── _AGENT_TEMPLATE.md      # Template for new agents
 ├── orchestrator.md         # Main coordinator
 ├── planner.md              # Planning
@@ -485,10 +486,8 @@ See: `core/HOOKS.md` for full documentation.
 
 ### Framework Core
 - Skills → `.claude/skills/[name]/SKILL.md` (v2.4 format)
-- Agents → `agents/`
-- Agent protocol → `AGENT_PROTOCOL.md`
-- **Agent activation → `AGENT_ACTIVATION.md` (v2.4)**
-- Context hierarchy → `CONTEXT_HIERARCHY.md`
+- Agents → `.claude/agents/`
+- **Agent system → `.claude/agents/README.md` (v2.7, consolidated)**
 
 ### v2.6 Features (CC 2.1.0)
 - **Native `/plan`** — Use CC built-in plan mode (framework /plan removed)

@@ -94,19 +94,19 @@ done
 echo -e "  ${GREEN}✓${NC} $SKILL_COUNT skills copied to .claude/skills/*/SKILL.md"
 
 # ─────────────────────────────────────────────────────────────
-# 4. Update agents (if exist)
+# 4. Copy agents to .claude/agents/ (v2.7)
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[4/9] Updating agents...${NC}"
+echo -e "${YELLOW}[4/9] Copying agents to .claude/agents/...${NC}"
 
+mkdir -p "$PROJECT_DIR/.claude/agents"
+cp "$FRAMEWORK_DIR/.claude/agents/"*.md "$PROJECT_DIR/.claude/agents/"
+
+AGENT_COUNT=$(ls -1 "$PROJECT_DIR/.claude/agents/"*.md 2>/dev/null | wc -l | tr -d ' ')
+echo -e "  ${GREEN}✓${NC} $AGENT_COUNT agents copied to .claude/agents/"
+
+# Remove legacy agents/ if exists
 if [ -d "$PROJECT_DIR/agents" ]; then
-    cp "$FRAMEWORK_DIR/agents/orchestrator.md" "$PROJECT_DIR/agents/"
-    cp "$FRAMEWORK_DIR/agents/tester.md" "$PROJECT_DIR/agents/"
-    cp "$FRAMEWORK_DIR/agents/planner.md" "$PROJECT_DIR/agents/"
-    echo -e "  ${GREEN}✓${NC} orchestrator.md updated"
-    echo -e "  ${GREEN}✓${NC} tester.md updated"
-    echo -e "  ${GREEN}✓${NC} planner.md updated"
-else
-    echo -e "  ${YELLOW}⚠${NC} agents/ directory not found, skipping"
+    echo -e "  ${YELLOW}⚠${NC} Legacy agents/ found - consider removing it"
 fi
 
 # ─────────────────────────────────────────────────────────────
@@ -127,7 +127,7 @@ echo -e "${YELLOW}[6/9] Copying documentation...${NC}"
 
 cp "$FRAMEWORK_DIR/core/HOOKS.md" "$PROJECT_DIR/HOOKS.md" 2>/dev/null && echo -e "  ${GREEN}✓${NC} HOOKS.md"
 cp "$FRAMEWORK_DIR/core/REASONING_MODES.md" "$PROJECT_DIR/REASONING_MODES.md" 2>/dev/null && echo -e "  ${GREEN}✓${NC} REASONING_MODES.md"
-cp "$FRAMEWORK_DIR/core/AGENT_ACTIVATION.md" "$PROJECT_DIR/AGENT_ACTIVATION.md" 2>/dev/null && echo -e "  ${GREEN}✓${NC} AGENT_ACTIVATION.md"
+# AGENT_ACTIVATION.md removed in v2.7 - consolidated to .claude/agents/README.md
 cp "$FRAMEWORK_DIR/VERIFICATION.md" "$PROJECT_DIR/VERIFICATION.md" 2>/dev/null && echo -e "  ${GREEN}✓${NC} VERIFICATION.md"
 
 # Copy scripts
@@ -263,7 +263,7 @@ echo ""
 echo -e "${YELLOW}Agent Activation:${NC}"
 echo "  Use /orchestrate, /review to activate agents"
 echo "  Use CC native /plan for plan mode (Shift+Tab twice)"
-echo "  See AGENT_ACTIVATION.md for details"
+echo "  See .claude/agents/README.md for details"
 echo ""
 echo -e "${YELLOW}Codex Integration:${NC}"
 echo "  /codex-review - Run Codex as secondary reviewer (context: fork)"

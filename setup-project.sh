@@ -50,31 +50,26 @@ fi
 # ─────────────────────────────────────────────────────────────
 # 1. Copy core files
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[1/10] Copying core files...${NC}"
+echo -e "${YELLOW}[1/9] Copying core files...${NC}"
 
 cp "$FRAMEWORK_DIR/core/PROJECT.md" "$PROJECT_DIR/PROJECT.md"
 cp "$FRAMEWORK_DIR/core/CLAUDE.md" "$PROJECT_DIR/CLAUDE.md"
 cp "$FRAMEWORK_DIR/core/SESSION_LOG.md" "$PROJECT_DIR/SESSION_LOG.md"
-cp "$FRAMEWORK_DIR/core/AGENT_PROTOCOL.md" "$PROJECT_DIR/AGENT_PROTOCOL.md"
-cp "$FRAMEWORK_DIR/core/CONTEXT_HIERARCHY.md" "$PROJECT_DIR/CONTEXT_HIERARCHY.md"
 # v2.4 files
 cp "$FRAMEWORK_DIR/core/HOOKS.md" "$PROJECT_DIR/HOOKS.md"
 cp "$FRAMEWORK_DIR/core/REASONING_MODES.md" "$PROJECT_DIR/REASONING_MODES.md"
-cp "$FRAMEWORK_DIR/core/AGENT_ACTIVATION.md" "$PROJECT_DIR/AGENT_ACTIVATION.md"
 cp "$FRAMEWORK_DIR/VERIFICATION.md" "$PROJECT_DIR/VERIFICATION.md"
 # v2.6 files
 cp "$FRAMEWORK_DIR/core/settings.template.json" "$PROJECT_DIR/core/settings.template.json" 2>/dev/null || true
 
 echo -e "  ${GREEN}✓${NC} PROJECT.md, CLAUDE.md, SESSION_LOG.md"
-echo -e "  ${GREEN}✓${NC} AGENT_PROTOCOL.md, CONTEXT_HIERARCHY.md"
-echo -e "  ${GREEN}✓${NC} HOOKS.md, REASONING_MODES.md"
-echo -e "  ${GREEN}✓${NC} AGENT_ACTIVATION.md, VERIFICATION.md"
+echo -e "  ${GREEN}✓${NC} HOOKS.md, REASONING_MODES.md, VERIFICATION.md"
 echo -e "  ${GREEN}✓${NC} settings.template.json"
 
 # ─────────────────────────────────────────────────────────────
 # 2. Copy .vscode settings
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[2/10] Setting up VS Code...${NC}"
+echo -e "${YELLOW}[2/9] Setting up VS Code...${NC}"
 
 mkdir -p "$PROJECT_DIR/.vscode"
 cp "$FRAMEWORK_DIR/core/.vscode/settings.json" "$PROJECT_DIR/.vscode/settings.json"
@@ -86,7 +81,7 @@ echo -e "  ${GREEN}✓${NC} .vscode/extensions.json"
 # ─────────────────────────────────────────────────────────────
 # 3. Copy agents (to .claude/agents/ for Claude Code native support)
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[3/10] Copying agents...${NC}"
+echo -e "${YELLOW}[3/9] Copying agents...${NC}"
 
 mkdir -p "$PROJECT_DIR/.claude/agents"
 cp "$FRAMEWORK_DIR/.claude/agents/"*.md "$PROJECT_DIR/.claude/agents/"
@@ -97,7 +92,7 @@ echo -e "  ${GREEN}✓${NC} $AGENT_COUNT agents copied to .claude/agents/"
 # ─────────────────────────────────────────────────────────────
 # 4. Copy slash commands
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[4/10] Setting up slash commands...${NC}"
+echo -e "${YELLOW}[4/9] Setting up slash commands...${NC}"
 
 mkdir -p "$PROJECT_DIR/.claude/commands"
 cp "$FRAMEWORK_DIR/.claude/commands/"*.md "$PROJECT_DIR/.claude/commands/"
@@ -108,7 +103,7 @@ echo -e "  ${GREEN}✓${NC} $COMMAND_COUNT commands copied to .claude/commands/"
 # ─────────────────────────────────────────────────────────────
 # 5. Copy skills (v2.6 - subdirectory format with context: fork)
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[5/10] Copying skills (v${VERSION} with context: fork)...${NC}"
+echo -e "${YELLOW}[5/9] Copying skills (v${VERSION})...${NC}"
 
 mkdir -p "$PROJECT_DIR/.claude/skills"
 
@@ -127,7 +122,7 @@ echo -e "  ${GREEN}✓${NC} $SKILL_COUNT skills copied to .claude/skills/*/SKILL
 # ─────────────────────────────────────────────────────────────
 # 6. Copy sprint templates (v2.1)
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[6/10] Copying sprint templates...${NC}"
+echo -e "${YELLOW}[6/9] Copying sprint templates...${NC}"
 
 mkdir -p "$PROJECT_DIR/core/sprint"
 cp "$FRAMEWORK_DIR/core/sprint/sprint.json.template" "$PROJECT_DIR/core/sprint/"
@@ -138,7 +133,7 @@ echo -e "  ${GREEN}✓${NC} Sprint templates copied"
 # ─────────────────────────────────────────────────────────────
 # 7. Copy hooks (v2.6 - includes once: true session-init)
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[7/10] Copying hooks (v${VERSION} with once: true)...${NC}"
+echo -e "${YELLOW}[7/9] Copying hooks...${NC}"
 
 mkdir -p "$PROJECT_DIR/hooks"
 cp "$FRAMEWORK_DIR/hooks/"*.js "$PROJECT_DIR/hooks/"
@@ -150,7 +145,7 @@ echo -e "  ${GREEN}✓${NC} session-init.js (once: true hook for CC 2.1.0)"
 # ─────────────────────────────────────────────────────────────
 # 8. Copy scripts (v2.4)
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[8/10] Copying scripts...${NC}"
+echo -e "${YELLOW}[8/9] Copying scripts...${NC}"
 
 mkdir -p "$PROJECT_DIR/scripts"
 cp "$FRAMEWORK_DIR/scripts/migrate-skills.sh" "$PROJECT_DIR/scripts/"
@@ -159,22 +154,15 @@ chmod +x "$PROJECT_DIR/scripts/migrate-skills.sh"
 echo -e "  ${GREEN}✓${NC} migrate-skills.sh copied to scripts/"
 
 # ─────────────────────────────────────────────────────────────
-# 9. Create .claude/settings.local.json from template (v2.6)
+# 9. Apply scale level and settings
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[9/10] Creating Claude Code settings (v${VERSION})...${NC}"
+echo -e "${YELLOW}[9/9] Applying scale level: $SCALE${NC}"
 
+# Copy settings template
 if [ -f "$FRAMEWORK_DIR/core/settings.template.json" ]; then
     cp "$FRAMEWORK_DIR/core/settings.template.json" "$PROJECT_DIR/.claude/settings.local.json"
-    echo -e "  ${GREEN}✓${NC} .claude/settings.local.json created from template"
-    echo -e "  ${GREEN}✓${NC} Wildcard permissions enabled: Bash(npm *), Bash(git *), etc."
-else
-    echo -e "  ${YELLOW}⚠${NC} settings.template.json not found, skipping"
+    echo -e "  ${GREEN}✓${NC} .claude/settings.local.json created"
 fi
-
-# ─────────────────────────────────────────────────────────────
-# 10. Apply scale level
-# ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[10/10] Applying scale level: $SCALE${NC}"
 
 # Append scale content to PROJECT.md
 echo "" >> "$PROJECT_DIR/PROJECT.md"
@@ -227,16 +215,13 @@ echo "  $PROJECT_DIR/"
 echo "  ├── PROJECT.md             # Single source of truth"
 echo "  ├── CLAUDE.md              # Claude rules"
 echo "  ├── SESSION_LOG.md         # Session history"
-echo "  ├── AGENT_PROTOCOL.md      # Agent communication"
-echo "  ├── CONTEXT_HIERARCHY.md   # Token optimization"
-echo "  ├── HOOKS.md               # Hook system"
+echo "  ├── HOOKS.md               # Hook system docs"
 echo "  ├── REASONING_MODES.md     # Thinking modes"
-echo "  ├── AGENT_ACTIVATION.md    # Agent activation"
 echo "  ├── VERIFICATION.md        # Testing guide"
 echo "  ├── .vscode/               # VS Code settings"
 echo "  ├── .claude/commands/      # Slash commands"
-echo "  ├── .claude/skills/*/      # Skills (subdirectory format)"
-echo "  ├── .claude/agents/        # Agent definitions (Claude Code native)"
+echo "  ├── .claude/skills/*/      # Skills (auto-activate)"
+echo "  ├── .claude/agents/        # Agent definitions + README.md"
 echo "  ├── hooks/                 # Hook scripts"
 echo "  ├── scripts/               # Utility scripts"
 echo "  └── core/sprint/           # Sprint templates"
