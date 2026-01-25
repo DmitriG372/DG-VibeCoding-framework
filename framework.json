@@ -1,0 +1,52 @@
+{
+  "version": "3.0.1",
+  "name": "DG-VibeCoding-Framework",
+  "description": "Universal Claude Code framework with Codex integration",
+
+  "core": {
+    "skills": [
+      "sub-agent",
+      "debugging",
+      "testing",
+      "git",
+      "vibecoding",
+      "codex"
+    ],
+    "commands": [
+      "feature",
+      "done",
+      "review",
+      "fix",
+      "orchestrate",
+      "codex-review",
+      "framework-update"
+    ],
+    "agents": [
+      "orchestrator",
+      "implementer",
+      "reviewer",
+      "tester",
+      "debugger"
+    ]
+  },
+
+  "paths": {
+    "skills": ".claude/skills/*/SKILL.md",
+    "commands": ".claude/commands/*.md",
+    "agents": ".claude/agents/*.md",
+    "hooks": "hooks/*.js"
+  },
+
+  "integrations": {
+    "codex": {
+      "cli": true,
+      "cloud": false,
+      "github_action": false
+    }
+  },
+
+  "update_sources": [
+    "https://docs.anthropic.com/en/docs/claude-code",
+    "https://developers.openai.com/codex/changelog/"
+  ]
+}

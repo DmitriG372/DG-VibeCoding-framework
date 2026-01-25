@@ -1,176 +1,100 @@
 #!/bin/bash
-# DG-VibeCoding-Framework - Project Setup Script
-# Usage: ./setup-project.sh /path/to/your/project [scale]
-# Scale options: mini, normal (default), max
-#
-# Version loaded from VERSION file
+# DG-VibeCoding-Framework v3.0.1 - Project Setup Script
+# Usage: ./setup-project.sh /path/to/your/project
 
 set -e
 
-# Colors for output
+# Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
 # Get script directory (framework location)
 FRAMEWORK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="${1:-.}"
-SCALE="${2:-normal}"
 
-# Read version from VERSION file
-VERSION=$(cat "$FRAMEWORK_DIR/VERSION" 2>/dev/null || echo "2.6")
+# Read version
+VERSION=$(cat "$FRAMEWORK_DIR/VERSION" 2>/dev/null || echo "3.0.1")
 
 echo -e "${BLUE}╔════════════════════════════════════════════════════╗${NC}"
 echo -e "${BLUE}║  DG-VibeCoding-Framework v${VERSION} - Project Setup      ║${NC}"
 echo -e "${BLUE}╚════════════════════════════════════════════════════╝${NC}"
 echo ""
 
-# Validate project directory
+# Validate/create project directory
 if [ ! -d "$PROJECT_DIR" ]; then
     echo -e "${YELLOW}Creating project directory: $PROJECT_DIR${NC}"
     mkdir -p "$PROJECT_DIR"
 fi
 
-# Convert to absolute path
 PROJECT_DIR="$(cd "$PROJECT_DIR" && pwd)"
 
 echo -e "${GREEN}Framework:${NC} $FRAMEWORK_DIR"
 echo -e "${GREEN}Project:${NC}   $PROJECT_DIR"
-echo -e "${GREEN}Scale:${NC}     $SCALE"
 echo ""
-
-# Validate scale
-if [[ ! "$SCALE" =~ ^(mini|normal|max)$ ]]; then
-    echo -e "${RED}Error: Invalid scale '$SCALE'. Use: mini, normal, or max${NC}"
-    exit 1
-fi
 
 # ─────────────────────────────────────────────────────────────
 # 1. Copy core files
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[1/9] Copying core files...${NC}"
+echo -e "${YELLOW}[1/5] Copying core files...${NC}"
 
-cp "$FRAMEWORK_DIR/core/PROJECT.md" "$PROJECT_DIR/PROJECT.md"
-cp "$FRAMEWORK_DIR/core/CLAUDE.md" "$PROJECT_DIR/CLAUDE.md"
-cp "$FRAMEWORK_DIR/core/SESSION_LOG.md" "$PROJECT_DIR/SESSION_LOG.md"
-# v2.4 files
-cp "$FRAMEWORK_DIR/core/HOOKS.md" "$PROJECT_DIR/HOOKS.md"
-cp "$FRAMEWORK_DIR/core/REASONING_MODES.md" "$PROJECT_DIR/REASONING_MODES.md"
-cp "$FRAMEWORK_DIR/VERIFICATION.md" "$PROJECT_DIR/VERIFICATION.md"
-# v2.6 files
-cp "$FRAMEWORK_DIR/core/settings.template.json" "$PROJECT_DIR/core/settings.template.json" 2>/dev/null || true
+cp "$FRAMEWORK_DIR/templates/project-init/PROJECT.md" "$PROJECT_DIR/PROJECT.md"
+cp "$FRAMEWORK_DIR/templates/project-init/CLAUDE.md" "$PROJECT_DIR/CLAUDE.md"
 
-echo -e "  ${GREEN}✓${NC} PROJECT.md, CLAUDE.md, SESSION_LOG.md"
-echo -e "  ${GREEN}✓${NC} HOOKS.md, REASONING_MODES.md, VERIFICATION.md"
-echo -e "  ${GREEN}✓${NC} settings.template.json"
+echo -e "  ${GREEN}✓${NC} PROJECT.md, CLAUDE.md"
 
 # ─────────────────────────────────────────────────────────────
-# 2. Copy .vscode settings
+# 2. Copy agents
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[2/9] Setting up VS Code...${NC}"
-
-mkdir -p "$PROJECT_DIR/.vscode"
-cp "$FRAMEWORK_DIR/core/.vscode/settings.json" "$PROJECT_DIR/.vscode/settings.json"
-cp "$FRAMEWORK_DIR/core/.vscode/extensions.json" "$PROJECT_DIR/.vscode/extensions.json"
-
-echo -e "  ${GREEN}✓${NC} .vscode/settings.json"
-echo -e "  ${GREEN}✓${NC} .vscode/extensions.json"
-
-# ─────────────────────────────────────────────────────────────
-# 3. Copy agents (to .claude/agents/ for Claude Code native support)
-# ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[3/9] Copying agents...${NC}"
+echo -e "${YELLOW}[2/5] Copying agents...${NC}"
 
 mkdir -p "$PROJECT_DIR/.claude/agents"
 cp "$FRAMEWORK_DIR/.claude/agents/"*.md "$PROJECT_DIR/.claude/agents/"
 
 AGENT_COUNT=$(ls -1 "$PROJECT_DIR/.claude/agents/"*.md 2>/dev/null | wc -l | tr -d ' ')
-echo -e "  ${GREEN}✓${NC} $AGENT_COUNT agents copied to .claude/agents/"
+echo -e "  ${GREEN}✓${NC} $AGENT_COUNT agents copied"
 
 # ─────────────────────────────────────────────────────────────
-# 4. Copy slash commands
+# 3. Copy commands
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[4/9] Setting up slash commands...${NC}"
+echo -e "${YELLOW}[3/5] Copying commands...${NC}"
 
 mkdir -p "$PROJECT_DIR/.claude/commands"
 cp "$FRAMEWORK_DIR/.claude/commands/"*.md "$PROJECT_DIR/.claude/commands/"
 
 COMMAND_COUNT=$(ls -1 "$PROJECT_DIR/.claude/commands/"*.md 2>/dev/null | wc -l | tr -d ' ')
-echo -e "  ${GREEN}✓${NC} $COMMAND_COUNT commands copied to .claude/commands/"
+echo -e "  ${GREEN}✓${NC} $COMMAND_COUNT commands copied"
 
 # ─────────────────────────────────────────────────────────────
-# 5. Copy skills (v2.6 - subdirectory format with context: fork)
+# 4. Copy skills
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[5/9] Copying skills (v${VERSION})...${NC}"
+echo -e "${YELLOW}[4/5] Copying skills...${NC}"
 
 mkdir -p "$PROJECT_DIR/.claude/skills"
 
-# Copy all skill subdirectories from framework
 SKILL_COUNT=0
 for skill_dir in "$FRAMEWORK_DIR/.claude/skills"/*/; do
     if [ -d "$skill_dir" ]; then
         skill_name=$(basename "$skill_dir")
         mkdir -p "$PROJECT_DIR/.claude/skills/$skill_name"
-        cp "$skill_dir"SKILL.md "$PROJECT_DIR/.claude/skills/$skill_name/" 2>/dev/null && ((SKILL_COUNT++))
+        cp "$skill_dir"SKILL.md "$PROJECT_DIR/.claude/skills/$skill_name/" 2>/dev/null && ((SKILL_COUNT++)) || true
     fi
 done
 
-echo -e "  ${GREEN}✓${NC} $SKILL_COUNT skills copied to .claude/skills/*/SKILL.md"
+echo -e "  ${GREEN}✓${NC} $SKILL_COUNT skills copied"
 
 # ─────────────────────────────────────────────────────────────
-# 6. Copy sprint templates (v2.1)
+# 5. Copy hooks
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[6/9] Copying sprint templates...${NC}"
-
-mkdir -p "$PROJECT_DIR/core/sprint"
-cp "$FRAMEWORK_DIR/core/sprint/sprint.json.template" "$PROJECT_DIR/core/sprint/"
-cp "$FRAMEWORK_DIR/core/sprint/progress.md.template" "$PROJECT_DIR/core/sprint/"
-
-echo -e "  ${GREEN}✓${NC} Sprint templates copied"
-
-# ─────────────────────────────────────────────────────────────
-# 7. Copy hooks (v2.6 - includes once: true session-init)
-# ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[7/9] Copying hooks...${NC}"
+echo -e "${YELLOW}[5/5] Copying hooks...${NC}"
 
 mkdir -p "$PROJECT_DIR/hooks"
-cp "$FRAMEWORK_DIR/hooks/"*.js "$PROJECT_DIR/hooks/"
+cp "$FRAMEWORK_DIR/hooks/"*.js "$PROJECT_DIR/hooks/" 2>/dev/null || true
 
 HOOK_COUNT=$(ls -1 "$PROJECT_DIR/hooks/"*.js 2>/dev/null | wc -l | tr -d ' ')
-echo -e "  ${GREEN}✓${NC} $HOOK_COUNT hooks copied to hooks/"
-echo -e "  ${GREEN}✓${NC} session-init.js (once: true hook for CC 2.1.0)"
-
-# ─────────────────────────────────────────────────────────────
-# 8. Copy scripts (v2.4)
-# ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[8/9] Copying scripts...${NC}"
-
-mkdir -p "$PROJECT_DIR/scripts"
-cp "$FRAMEWORK_DIR/scripts/migrate-skills.sh" "$PROJECT_DIR/scripts/"
-chmod +x "$PROJECT_DIR/scripts/migrate-skills.sh"
-
-echo -e "  ${GREEN}✓${NC} migrate-skills.sh copied to scripts/"
-
-# ─────────────────────────────────────────────────────────────
-# 9. Apply scale level and settings
-# ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[9/9] Applying scale level: $SCALE${NC}"
-
-# Copy settings template
-if [ -f "$FRAMEWORK_DIR/core/settings.template.json" ]; then
-    cp "$FRAMEWORK_DIR/core/settings.template.json" "$PROJECT_DIR/.claude/settings.local.json"
-    echo -e "  ${GREEN}✓${NC} .claude/settings.local.json created"
-fi
-
-# Append scale content to PROJECT.md
-echo "" >> "$PROJECT_DIR/PROJECT.md"
-echo "---" >> "$PROJECT_DIR/PROJECT.md"
-echo "" >> "$PROJECT_DIR/PROJECT.md"
-cat "$FRAMEWORK_DIR/scale/$SCALE.md" >> "$PROJECT_DIR/PROJECT.md"
-
-echo -e "  ${GREEN}✓${NC} Scale '$SCALE' applied to PROJECT.md"
+echo -e "  ${GREEN}✓${NC} $HOOK_COUNT hooks copied"
 
 # ─────────────────────────────────────────────────────────────
 # Summary
@@ -180,49 +104,27 @@ echo -e "${GREEN}╔════════════════════
 echo -e "${GREEN}║  Setup Complete!                                   ║${NC}"
 echo -e "${GREEN}╚════════════════════════════════════════════════════╝${NC}"
 echo ""
-echo -e "Project structure created at: ${BLUE}$PROJECT_DIR${NC}"
+echo -e "Project: ${BLUE}$PROJECT_DIR${NC}"
 echo ""
 echo -e "${YELLOW}Next steps:${NC}"
 echo "  1. Edit PROJECT.md with your project details"
-echo "  2. Run 'cd $PROJECT_DIR && claude' to start Claude Code"
-echo "  3. Use '/start-session' to begin"
+echo "  2. Run 'cd $PROJECT_DIR && claude' to start"
 echo ""
-echo -e "${YELLOW}Available commands:${NC}"
-echo "  /plan          - Plan implementation"
-echo "  /implement     - Execute plan"
-echo "  /review        - Code review"
-echo "  /fix           - Fix issues"
-echo "  /orchestrate   - Multi-agent workflow"
-echo "  /start-session - Start with context"
-echo "  /end-session   - Log and close"
+echo -e "${YELLOW}Core commands:${NC}"
+echo "  /feature         - Start new feature"
+echo "  /done            - Complete (test + commit)"
+echo "  /review          - Code review"
+echo "  /fix             - Fix issues"
+echo "  /orchestrate     - Multi-agent workflow"
+echo "  /codex-review    - Dual-AI review"
+echo "  /framework-update - Check updates"
 echo ""
-echo -e "${YELLOW}Sprint commands:${NC}"
-echo "  /sprint-init   - Initialize sprint from tasks"
-echo "  /feature       - Start next feature"
-echo "  /done          - Complete feature (test + commit)"
-echo "  /sprint-status - Show sprint progress"
-echo ""
-echo -e "${YELLOW}Skills:${NC}"
-echo "  Skills auto-activate from .claude/skills/*/SKILL.md"
-echo "  No manual loading required - Claude detects relevant skills."
-echo ""
-echo -e "${YELLOW}Hooks:${NC}"
-echo "  Configure in .claude/settings.local.json"
-echo "  See HOOKS.md for documentation"
-echo ""
-echo -e "${YELLOW}Structure created:${NC}"
+echo -e "${YELLOW}Structure:${NC}"
 echo "  $PROJECT_DIR/"
-echo "  ├── PROJECT.md             # Single source of truth"
-echo "  ├── CLAUDE.md              # Claude rules"
-echo "  ├── SESSION_LOG.md         # Session history"
-echo "  ├── HOOKS.md               # Hook system docs"
-echo "  ├── REASONING_MODES.md     # Thinking modes"
-echo "  ├── VERIFICATION.md        # Testing guide"
-echo "  ├── .vscode/               # VS Code settings"
-echo "  ├── .claude/commands/      # Slash commands"
-echo "  ├── .claude/skills/*/      # Skills (auto-activate)"
-echo "  ├── .claude/agents/        # Agent definitions + README.md"
-echo "  ├── hooks/                 # Hook scripts"
-echo "  ├── scripts/               # Utility scripts"
-echo "  └── core/sprint/           # Sprint templates"
+echo "  ├── PROJECT.md           # Project context"
+echo "  ├── CLAUDE.md            # Claude rules"
+echo "  ├── .claude/commands/    # Slash commands"
+echo "  ├── .claude/skills/      # Auto-activated skills"
+echo "  ├── .claude/agents/      # Agent definitions"
+echo "  └── hooks/               # Validation hooks"
 echo ""

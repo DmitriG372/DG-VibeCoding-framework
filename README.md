@@ -1,159 +1,44 @@
-# DG-VibeCoding-Framework v2.6
+# DG-VibeCoding-Framework v3.0.1
 
-> **Philosophy:** Start Simple, Scale Smart, Learn Continuously
+> **Philosophy:** Start Simple, Scale Smart
 
-Intelligent, self-learning AI development platform optimized for Claude Code + VS Code dual workflow.
+Universal Claude Code framework with Codex dual-AI integration.
 
-## What's New in v2.6
+## What's New in v3.0.1
 
-### Claude Code 2.1.0 Integration
-- **Native `/plan`** — Framework `/plan` removed, use CC built-in plan mode
-- **Wildcard Bash Permissions** — `Bash(npm *)`, `Bash(git *)`, etc. in settings
-- **`context: fork`** — Skills can run in isolated sub-agent context
-- **`agent` field** — Skills can specify model (haiku/sonnet/opus)
-- **`once: true` hooks** — Run hooks only once per session
-- **`Ctrl+B` backgrounding** — Background agents and commands
-- **YAML-style `allowed-tools`** — Cleaner skill frontmatter
+### Simplified Structure
+- **82 → ~35 files** — Removed obsolete components
+- **6 core skills** — sub-agent, debugging, testing, git, vibecoding, codex
+- **7 commands** — feature, done, review, fix, orchestrate, codex-review, framework-update
+- **5 starter agents** — orchestrator, implementer, reviewer, tester, debugger
 
-### New Files
-- `core/settings.template.json` — Wildcard permissions + hooks template
-- `hooks/session-init.js` — Session initialization hook (once: true)
+### New Features
+- `framework.json` — Central configuration (no hardcoded paths)
+- `/framework-update` — Check for Claude Code updates
+- `templates/` — Project initialization templates
+- `archive/` — Project-specific components preserved
 
-### Updated Skills (context: fork)
-- `.claude/skills/sub-agent/SKILL.md` — + context: fork, agent: haiku
-- `.claude/skills/database/SKILL.md` — + context: fork
-- `.claude/commands/codex-review.md` — + context: fork
-
-### Removed
-- `.claude/commands/plan.md` — Use CC native `/plan` instead
-
----
-
-## What's New in v2.5
-
-### Core Features
-- **QA Loop** — Automated test-fix-repeat cycle with `/qa-loop` command
-- **Spec Pipeline** — Multi-agent specification workflow with `/spec` command
-- **Worktree Isolation** — Safe experimentation with git worktrees
-- **Parallel Orchestration** — Enhanced `/orchestrate` with parallelization
-- **Codex Integration** — CC + Codex headless code review with `/codex-review`
-
-### New Files
-- `core/WORKTREE_ISOLATION.md` — Git worktree workflow documentation
-- `.claude/commands/qa-loop.md` — Auto-healing QA cycle (max 10 iterations)
-- `.claude/commands/spec.md` — Spec pipeline (SIMPLE/STANDARD/COMPLEX)
-- `.claude/commands/codex-review.md` — OpenAI Codex as secondary reviewer (headless)
-- `.claude/skills/codex/SKILL.md` — Codex integration skill
-- `integrations/mcp/codex.integration.md` — Codex integration guide
-
-### Improvements
-- **`/orchestrate`** — Added parallel execution section for concurrent tasks
-- **21 commands total** — Added `/qa-loop`, `/spec`, and `/codex-review`
-- **Inspired by Auto-Claude** — Adopted best patterns without UI complexity
-
-### v2.4 Features (retained)
-- **Hooks System** — Pre/post tool-use hooks for automated validation
-- **Reasoning Modes** — "Think", "Think more", "Ultrathink" for complex tasks
-- **Context Control** — Escape, Compact, Clear commands documented
-- **Agent Activation** — Documented how agents work via slash commands
-
-### v2.3 Features (retained)
-
-- **Anthropic Skills v2.0+** — Official Claude skill format with YAML frontmatter
-- **`.claude/skills/`** — Skills in standard location for auto-activation
-- **22 Migrated Skills** — All core-skills converted to official format
-- **VS Code Integration** — `@github` and terminal output in conversation
-
-## v2.2 Features (retained)
-
-- **Git-First Tracking** — Git history is the ultimate source of truth
-- **`/sprint-reconstruct`** — Rebuild sprint.json from git commits
-- **`/sync --verify`** — Verify documentation matches git reality
-- **`/sprint-validate`** — Validate sprint.json consistency
-- **Auto-sync** — All framework files update automatically after `/done`
-- **Disaster recovery** — Never lose progress, always rebuildable from git
-
-### v2.1 Features (retained)
-
-- **Sprint Workflow** — Anthropic's agentic workflow for long tasks
-- **`/sprint-init`** — Initialize sprint from PROJECT.md tasks
-- **`/feature`** — Start working on next feature
-- **`/done`** — Complete feature with mandatory testing + commit
-- **`/sprint-status`** — Show sprint progress and recovery
-- **Jätkamisvõime** — Resume work after context compaction
-
-### v2.0 Features (retained)
-- Multi-Agent System — 16 specialized agents
-- Meta-Programming — Framework learns automatically
-- Smart Orchestration — Intelligent agent coordination
-- MCP Integration — Context7, Memory, Playwright
-- Context Hierarchy — 5-level token optimization
-
-### v1.1 Features (retained)
-- Session Persistence with `SESSION_LOG.md`
-- Auto Skill Detection based on task keywords
-- Iteration Logging with `/iterate`
-- PR Automation with `/pr` command
+### Removed (Obsolete)
+- Session commands (start-session, end-session, iterate)
+- Sprint commands (sprint-init, sprint-status, etc.)
+- REASONING_MODES.md, SESSION_LOG.md, HOOKS.md
+- 11 specialist agents → archived
 
 ---
 
 ## Quick Start
 
-### 1. Copy Core Files to Your Project
+### New Project
 
 ```bash
-cp core/PROJECT.md your-project/PROJECT.md
-cp core/CLAUDE.md your-project/CLAUDE.md
-cp -r core/.vscode your-project/.vscode
+./setup-project.sh /path/to/your/project
 ```
 
-### 2. Choose Your Scale Level
+### Existing Project Migration
 
-| Level | When to Use | Add to PROJECT.md |
-|-------|-------------|-------------------|
-| **mini** | Prototypes, experiments | → `scale/mini.md` |
-| **normal** | Standard projects | → `scale/normal.md` |
-| **max** | Complex, long-term | → `scale/max.md` |
-
-### 3. Skills Auto-Activate (v2.4)
-
-Skills are in `.claude/skills/` using Anthropic's official format. Claude auto-activates relevant skills based on task context.
-
-**Official location:** `.claude/skills/[skill-name]/SKILL.md`
-
-**Format:**
-
-```markdown
----
-name: skill-name
-description: "Brief description for auto-activation"
----
-
-# Skill Content
-...
+```bash
+./migrate-project.sh /path/to/your/project
 ```
-
-**Important:** Skills must be in subdirectory format:
-```
-.claude/skills/
-├── react/
-│   └── SKILL.md     ✅ Correct
-├── testing/
-│   └── SKILL.md     ✅ Correct
-└── vue.md           ❌ Won't be detected
-```
-
-**Migration script:** `./scripts/migrate-skills.sh` converts flat files to subdirectory format.
-
-See `.claude/skills/` for all 22 skills (framework-philosophy, vue, react, database, etc.).
-
-### 4. Verify Installation
-
-See `VERIFICATION.md` for complete testing guide:
-- Skills visibility check
-- Slash command testing
-- Hook verification
-- Agent activation testing
 
 ---
 
@@ -161,485 +46,190 @@ See `VERIFICATION.md` for complete testing guide:
 
 ```
 DG-VibeCoding-framework/
-├── core/                   # Always needed
-│   ├── PROJECT.md          # Single source of truth
-│   ├── CLAUDE.md           # Claude Code rules + agent loading
-│   ├── SESSION_LOG.md      # Session history
-│   ├── AGENT_PROTOCOL.md   # Agent communication (v2.0)
-│   ├── CONTEXT_HIERARCHY.md # Token optimization (v2.0)
-│   ├── HOOKS.md            # Hook system docs (v2.4)
-│   ├── REASONING_MODES.md  # Thinking modes + context control (v2.4)
-│   ├── AGENT_ACTIVATION.md # How agents work (v2.4)
-│   ├── WORKTREE_ISOLATION.md # Git worktree workflow (v2.5)
-│   └── .vscode/            # VS Code settings (v2.0)
-├── hooks/                  # Hook scripts (v2.4)
-│   ├── block-env.js        # Block sensitive file access
-│   ├── type-check.js       # TypeScript error detection
-│   ├── auto-format.js      # Auto-format on edit
-│   └── usage-tracker.js    # Track skill/command/agent usage
-├── scripts/                # Utility scripts (v2.4)
-│   └── migrate-skills.sh   # Convert skills to subdirectory format
-├── agents/                 # Multi-agent system (v2.0)
-│   ├── orchestrator.md     # Main coordinator
-│   ├── planner.md          # Planning agent
-│   ├── architect.md        # Architecture agent
-│   ├── implementer.md      # Implementation agent
-│   ├── reviewer.md         # Code review agent
-│   ├── tester.md           # Testing agent
-│   ├── debugger.md         # Debugging agent
-│   └── *-specialist.md     # 9 specialist agents
-├── meta/                   # Meta-programming (v2.0)
-│   ├── skill-generator.md  # Auto-generate skills
-│   ├── pattern-detector.md # Detect patterns
-│   └── framework-optimizer.md # Self-optimization
-├── integrations/           # MCP integrations (v2.4)
-│   └── mcp/
-│       ├── context7.integration.md
-│       ├── memory.integration.md
-│       └── playwright.integration.md  # NEW in v2.4
-├── .claude/
-│   ├── commands/           # Slash commands (21 total)
-│   ├── skills/             # Official Anthropic v2.0+ skills (23 incl. codex)
-│   └── settings.local.json # Hook configuration (v2.4)
-├── scale/                  # Pick your level (mini/normal/max)
-├── devops/                 # CI/CD templates
-├── prompts/                # Reusable system prompts
-├── VERIFICATION.md         # Testing & verification guide (v2.4)
-└── MIGRATION.md            # Migration guide between versions
+├── README.md                    # This file
+├── VERSION                      # "3.0.1"
+├── CHANGELOG.md                 # Version history
+├── framework.json               # Central config
+│
+├── core/                        # Core files
+│   ├── CLAUDE.md                # Claude rules (~95 lines)
+│   ├── HOOKS.md                 # Hook documentation
+│   ├── PROJECT.md               # Project template
+│   └── settings.template.json   # Settings template
+│
+├── .claude/                     # Claude Code config
+│   ├── skills/                  # 6 core skills
+│   │   ├── sub-agent/SKILL.md
+│   │   ├── debugging/SKILL.md
+│   │   ├── testing/SKILL.md
+│   │   ├── git/SKILL.md
+│   │   ├── vibecoding/SKILL.md
+│   │   └── codex/SKILL.md
+│   │
+│   ├── commands/                # 7 commands
+│   │   ├── feature.md
+│   │   ├── done.md
+│   │   ├── review.md
+│   │   ├── fix.md
+│   │   ├── orchestrate.md
+│   │   ├── codex-review.md
+│   │   └── framework-update.md
+│   │
+│   └── agents/                  # 5 starter agents
+│       ├── README.md
+│       ├── orchestrator.md
+│       ├── implementer.md
+│       ├── reviewer.md
+│       ├── tester.md
+│       └── debugger.md
+│
+├── templates/                   # Project templates
+│   ├── project-init/            # New project starter
+│   ├── skill.template.md
+│   ├── command.template.md
+│   └── agent.template.md
+│
+├── archive/                     # Preserved components
+│   ├── skills/                  # 16 project-specific
+│   ├── agents/                  # 11 specialist agents
+│   ├── commands/                # 14 workflow commands
+│   └── hooks/                   # 4 additional hooks
+│
+├── hooks/
+│   └── block-env.js             # Essential hook
+│
+├── scripts/
+│   ├── init-project.sh
+│   └── migrate-skills.sh
+│
+├── setup-project.sh             # Project setup
+└── migrate-project.sh           # Project migration
 ```
 
 ---
 
-## Token Strategy
+## Commands
 
-**Rule:** Information lives in ONE place only.
-
-```
-PROJECT.md  ←── Single source of truth
-    ↑
-    ├── CLAUDE.md refs sections
-    ├── agents/ loaded on demand
-    └── skills/ ref when needed
-```
-
-### Context Hierarchy (v2.0)
-
-| Level | Tokens | Use Case |
-|-------|--------|----------|
-| 0: Minimal | 100-200 | Quick queries, status checks |
-| 1: Core | 500-800 | Standard tasks |
-| 2: Extended | 1500-2500 | Complex tasks |
-| 3: Comprehensive | 3500-5000 | Architecture decisions |
-| 4: Maximum | Unlimited | Deep research |
-
-**Why?**
-- 2000 tokens vs 10000+ tokens per task
-- Progressive loading based on complexity
-- Automatic escalation when needed
+| Command | Purpose |
+|---------|---------|
+| `/feature` | Start new feature |
+| `/done` | Complete feature (test + commit) |
+| `/review` | Code review |
+| `/fix` | Fix issues |
+| `/orchestrate` | Multi-agent workflow |
+| `/codex-review` | Dual-AI review with Codex |
+| `/framework-update` | Check for updates |
 
 ---
 
-## Workflow
+## Skills
 
-### Claude Code (Heavy Lifting)
+Skills auto-activate based on task context.
+
+| Skill | Purpose |
+|-------|---------|
+| `sub-agent` | Parallel processing with Haiku |
+| `debugging` | Bug finding and fixing |
+| `testing` | Test writing patterns |
+| `git` | Git workflow conventions |
+| `vibecoding` | Framework philosophy |
+| `codex` | Dual-AI review integration |
+
+---
+
+## Agents
+
+| Agent | Purpose |
+|-------|---------|
+| `orchestrator` | Coordinate complex tasks |
+| `implementer` | Execute implementation |
+| `reviewer` | Code review |
+| `tester` | Testing |
+| `debugger` | Debug issues |
+
+---
+
+## Codex Integration
+
+Dual-AI review: Claude Code builds, Codex critiques.
+
 ```bash
-claude --dangerously-skip-permissions
-# Queue tasks: "Add X", "Also Y", "And Z"
-# Let Claude batch execute with agents
+# Install Codex CLI
+npm install -g @openai/codex
+
+# Set API key
+export OPENAI_API_KEY=your-key
+
+# Run review
+/codex-review src/
 ```
 
-### VS Code (Quick Edits)
-- IntelliSense for small changes
-- Extensions for code quality
-- Terminal for Claude Code
-
-### Dual Workflow
-```
-Claude Code: Planning, complex features, multi-file changes, agent orchestration
-VS Code: Quick fixes, exploration, code review, debugging
-```
+**Modes:**
+- **CLI** (default) — Local headless review
+- **Cloud** — PR comment integration (setup required)
+- **GitHub Action** — CI/CD pipeline
 
 ---
 
-## Agent System (v2.0)
+## Configuration
 
-### Core Agents (7)
-| Agent | Role |
-|-------|------|
-| `orchestrator` | Coordinates all agents, routes tasks |
-| `planner` | Breaks down requirements into steps |
-| `architect` | Designs system architecture |
-| `implementer` | Writes and modifies code |
-| `reviewer` | Reviews code quality and patterns |
-| `tester` | Creates and runs tests |
-| `debugger` | Diagnoses and fixes issues |
-
-### Specialist Agents (9)
-| Agent | Focus |
-|-------|-------|
-| `refactorer` | Code refactoring |
-| `documenter` | Documentation |
-| `security-specialist` | Security review |
-| `performance-specialist` | Performance optimization |
-| `integration-specialist` | System integrations |
-| `database-specialist` | Database operations |
-| `frontend-specialist` | UI/UX implementation |
-| `backend-specialist` | API development |
-| `research-specialist` | Research and analysis |
-
-### How Agents Work (v2.4)
-
-**Important:** Framework agents are NOT separate processes. They are **role definitions** that Claude adopts when executing slash commands.
-
-```
-/orchestrate "Add auth"
-       │
-       ▼
-Read: agents/orchestrator.md
-       │
-       ▼
-Claude adopts orchestrator role
-       │
-       ▼
-Output: Orchestration Plan
-```
-
-**Activation methods:**
-1. **Slash commands** — `/orchestrate`, `/plan`, `/review`, `/done`
-2. **Direct request** — "Use the security-specialist agent"
-3. **Orchestrator routing** — Automatic for complex tasks
-
-See `core/AGENT_ACTIVATION.md` for complete guide.
-
-### Quick Reference
-
-| Command | Activates Agent | Use For |
-|---------|-----------------|---------|
-| `/orchestrate` | orchestrator | Complex multi-step tasks |
-| `/plan` | planner | Before implementing features |
-| `/review` | reviewer | Code review |
-| `/done` | tester | Complete feature with tests |
-| `/fix` | debugger | Bug investigation |
-
----
-
-## Files Reference
-
-| File | Purpose | Tokens |
-|------|---------|--------|
-| `core/PROJECT.md` | All project info | ~300 |
-| `core/CLAUDE.md` | Claude rules + agents | ~200 |
-| `core/SESSION_LOG.md` | Session history | ~100 |
-| `core/AGENT_PROTOCOL.md` | Agent communication | ~150 |
-| `core/CONTEXT_HIERARCHY.md` | Token optimization | ~100 |
-| `core/HOOKS.md` | Hook system documentation | ~200 |
-| `core/REASONING_MODES.md` | Thinking modes + control | ~150 |
-| `core/.vscode/` | VS Code settings | — |
-| `hooks/*.js` | Hook scripts | ~50 each |
-| `agents/*.md` | Agent definitions | ~100-200 each |
-| `meta/*.md` | Meta-programming | ~150 each |
-| `.claude/skills/*/SKILL.md` | Official skills (v2.4) | ~100-400 each |
-| `.claude/commands/*.md` | Slash commands | ~50-100 each |
-
----
-
-## Hooks System (v2.4)
-
-Hooks run commands before/after Claude executes tools.
-
-### Hook Types
-
-| Type | When | Can Block? |
-|------|------|------------|
-| Pre-tool use | Before execution | ✅ Yes (exit code 2) |
-| Post-tool use | After execution | ❌ No |
-
-### Configuration Locations
-
-```
-~/.claude/settings.json          # Global (all projects)
-.claude/settings.json            # Project (shared)
-.claude/settings.local.json      # Project local (personal)
-```
-
-### Example Configuration
+`framework.json` — Central configuration:
 
 ```json
 {
-  "hooks": {
-    "PreToolUse": [{
-      "matcher": "Read|Grep",
-      "hooks": [{ "type": "command", "command": "node ./hooks/block-env.js" }]
-    }],
-    "PostToolUse": [{
-      "matcher": "Edit",
-      "hooks": [{ "type": "command", "command": "node ./hooks/type-check.js" }]
-    }]
+  "version": "3.0.1",
+  "core": {
+    "skills": ["sub-agent", "debugging", "testing", "git", "vibecoding", "codex"],
+    "commands": ["feature", "done", "review", "fix", "orchestrate", "codex-review", "framework-update"],
+    "agents": ["orchestrator", "implementer", "reviewer", "tester", "debugger"]
+  },
+  "integrations": {
+    "codex": { "cli": true, "cloud": false, "github_action": false }
   }
 }
 ```
 
-### Included Hooks
+---
 
-| Hook | Purpose |
-|------|---------|
-| `block-env.js` | Block access to .env, credentials, secrets |
-| `type-check.js` | Run TypeScript checker after edits |
-| `auto-format.js` | Auto-format files with Prettier |
+## Archive
 
-See `core/HOOKS.md` for full documentation.
+Project-specific components preserved in `archive/`:
+
+**Skills (16):** vue, react, nextjs, supabase-migrations, melior-patterns, api, cli, database, lsp, openrouter, security, techstack, typescript, ui, framework-philosophy, vue-to-react
+
+**Agents (11):** architect, backend-specialist, database-specialist, documenter, frontend-specialist, integration-specialist, performance-specialist, planner, refactorer, research-specialist, security-specialist
+
+**Commands (14):** analyze-patterns, end-session, generate-skill, implement, iterate, pr, qa-loop, spec, sprint-init, sprint-reconstruct, sprint-status, sprint-validate, start-session, sync
+
+To use archived components, copy them to your project:
+```bash
+cp archive/skills/react .claude/skills/
+cp archive/agents/security-specialist.md .claude/agents/
+```
 
 ---
 
-## Reasoning Modes (v2.4)
+## Migration from v2.x
 
-Use thinking phrases for complex tasks:
-
-| Phrase | Level | Use Case |
-|--------|-------|----------|
-| `"Think"` | Basic | Simple logic |
-| `"Think more"` | Extended | Multi-step problems |
-| `"Think a lot"` | Comprehensive | Complex architecture |
-| `"Think longer"` | Extended time | Deep debugging |
-| `"Ultrathink"` | Maximum | Critical decisions |
-
-### Usage
-
-```
-"Ultrathink about the best way to implement real-time sync"
-/orchestrate "Think a lot: Design OAuth2 implementation"
-```
-
-### Plan Mode vs Thinking Mode
-
-| Mode | Activation | Focus |
-|------|------------|-------|
-| Plan Mode | `Shift+Tab` twice | Breadth (research more files) |
-| Thinking Mode | Phrase in prompt | Depth (more reasoning) |
-
-### Context Control
-
-| Action | Shortcut | Purpose |
-|--------|----------|---------|
-| Stop | `Escape` | Stop mid-response |
-| Rewind | `Escape` twice | Jump back in conversation |
-| Summarize | `/compact` | Summarize, preserve knowledge |
-| Fresh start | `/clear` | Delete conversation |
-
-See `core/REASONING_MODES.md` for full documentation.
-
----
-
-## Session Workflow
-
-```
-/start-session → Work → /iterate (as needed) → /end-session
-```
-
-### Start Session
 ```bash
-/start-session my-feature
-```
-Loads last session context, shows pending tasks, activates relevant agents.
-
-### During Session
-```bash
-/iterate "Added validation but errors don't show"
-```
-Logs attempt with result and learnings.
-
-### End Session
-```bash
-/end-session
-```
-Captures completed work, decisions, triggers pattern detection.
-
-### Orchestrate (v2.0)
-```bash
-/orchestrate "Implement user dashboard"
-```
-Activates multi-agent workflow for complex tasks.
-
----
-
-## Commands Reference
-
-### Core Commands
-| Command | Description |
-|---------|-------------|
-| `/plan` | Plan implementation |
-| `/implement` | Execute plan |
-| `/review` | Code review |
-| `/fix` | Fix issues |
-
-### Session Commands
-| Command | Description |
-|---------|-------------|
-| `/start-session` | Start with context |
-| `/end-session` | Log and close |
-| `/iterate` | Log attempt |
-| `/pr` | Create PR |
-
-### v2.0 Commands
-| Command | Description |
-|---------|-------------|
-| `/orchestrate` | Multi-agent workflow |
-| `/generate-skill` | Create new skill |
-| `/analyze-patterns` | Detect patterns |
-
-### v2.1 Sprint Commands
-| Command | Description |
-|---------|-------------|
-| `/sprint-init` | Initialize sprint from tasks |
-| `/feature` | Start next feature |
-| `/done` | Complete feature (test + commit) |
-| `/sprint-status` | Show sprint progress |
-
-### v2.2 Git-First Commands
-
-| Command | Description |
-|---------|-------------|
-| `/sprint-reconstruct` | Rebuild sprint.json from git history |
-| `/sync` | Synchronize all framework files |
-| `/sync --verify` | Verify git matches sprint.json |
-| `/sprint-validate` | Validate sprint.json consistency |
-
-### v2.5 QA, Spec & Codex Commands
-
-| Command | Description |
-|---------|-------------|
-| `/qa-loop` | Automated test-fix cycle (max 10 iterations) |
-| `/spec` | Multi-agent specification pipeline |
-| `/codex-review` | OpenAI Codex as secondary code reviewer (headless) |
-
----
-
-## MCP Servers (v2.4)
-
-Three MCP servers are integrated:
-
-| Server | Purpose | Install |
-|--------|---------|---------|
-| Context7 | Library documentation | `claude mcp add context7 -- npx -y @upstash/context7-mcp` |
-| Memory | Persistent knowledge graph | `claude mcp add memory -- npx @anthropic-ai/mcp-memory` |
-| Playwright | Browser automation | `claude mcp add playwright -- npx @anthropic-ai/mcp-playwright` |
-
-### Playwright Quick Start
-
-**1. Install:**
-```bash
-claude mcp add playwright -- npx @anthropic-ai/mcp-playwright
+./migrate-project.sh /path/to/project
 ```
 
-**2. Basic workflow:**
-```
-# Open page
-browser_navigate → "http://localhost:3000"
-
-# Get element references (ALWAYS DO THIS FIRST!)
-browser_snapshot → returns accessibility tree with refs
-
-# Interact using refs
-browser_click → element="Button", ref="btn-1"
-browser_type → element="Input", ref="input-2", text="hello"
-
-# Verify result
-browser_snapshot → check changes
-```
-
-**3. Common tools:**
-
-| Tool | Use |
-|------|-----|
-| `browser_navigate` | Go to URL |
-| `browser_snapshot` | Get elements (preferred over screenshot) |
-| `browser_take_screenshot` | Visual capture |
-| `browser_click` | Click element |
-| `browser_type` | Type text |
-| `browser_fill_form` | Fill multiple fields |
-| `browser_console_messages` | Debug errors |
-
-**4. UI Development Loop:**
-```
-1. browser_navigate → localhost:3000
-2. browser_snapshot → see current state
-3. Edit code
-4. browser_navigate → refresh
-5. browser_snapshot → verify changes
-6. Repeat until done
-```
-
-See `integrations/mcp/playwright.integration.md` for full documentation.
-
----
-
-## Sprint Workflow (v2.1)
-
-Based on Anthropic's recommended agentic workflow for long tasks.
-
-### Why Sprint Workflow?
-
-Problems with long tasks:
-1. **Context loss** — After compaction, Claude forgets progress
-2. **Untested code** — Features marked done without validation
-3. **Messy git history** — No clear feature-to-commit mapping
-
-Sprint workflow solves these:
-- **`sprint.json`** — Machine-readable progress (survives compaction)
-- **Mandatory testing** — Cannot `/done` without passing tests
-- **One commit per feature** — Clean, traceable history
-
-### Sprint Cycle
-
-```
-/sprint-init → /feature → [work] → /done → /feature → ... → complete
-```
-
-### Quick Start
-
-1. Add tasks to `PROJECT.md#Current Sprint`
-2. Run `/sprint-init` to create `sprint/sprint.json`
-3. Run `/feature` to start first feature
-4. Implement the feature
-5. Run `/done` to test, commit, and complete
-6. Repeat until sprint complete
-
-### Recovery After Context Loss
-
-If Claude loses context (compaction), run:
-```
-/sprint-status
-```
-Shows current state and what to resume.
+The script will:
+1. Backup existing `.claude/` directory
+2. Remove obsolete files
+3. Install new commands, skills, agents
+4. Keep only essential hook (block-env.js)
 
 ---
 
 ## Links
 
-- [PROJECT.md Template](core/PROJECT.md)
-- [Skills Directory](.claude/skills/) (Anthropic v2.0+ format)
-- [Agent Protocol](core/AGENT_PROTOCOL.md)
-- [Context Hierarchy](core/CONTEXT_HIERARCHY.md)
-- [Worktree Isolation](core/WORKTREE_ISOLATION.md) (v2.5)
-- [Hooks Documentation](core/HOOKS.md) (v2.4)
-- [Reasoning Modes](core/REASONING_MODES.md) (v2.4)
-- [Playwright Integration](integrations/mcp/playwright.integration.md) (v2.4)
-- [Scale Levels](scale/)
-- [Slash Commands](.claude/commands/)
+- [CHANGELOG.md](CHANGELOG.md) — Version history
+- [core/CLAUDE.md](core/CLAUDE.md) — Claude rules
+- [templates/](templates/) — Project templates
+- [archive/](archive/) — Preserved components
 
 ---
 
-## Migration
-
-See [MIGRATION.md](MIGRATION.md) for upgrade guides:
-
-- **v2.5 → v2.6** — CC 2.1.0 integration, wildcard permissions, context: fork, native /plan
-- **v2.4 → v2.5** — QA Loop, Spec Pipeline, Worktree Isolation, Parallel Orchestration
-- **v2.3 → v2.4** — Hooks, Thinking Modes, Playwright MCP
-- **v2.2 → v2.3** — Anthropic Skills v2.0+ format migration
-- **v2.1 → v2.2** — Git-First Tracking upgrade
-- **v1.1 → v2.0** — Multi-agent system upgrade
-
----
-
-*v2.6 — CC 2.1.0 Integration + Wildcard Permissions + context: fork + once: true hooks + Ctrl+B backgrounding*
+*v3.0.1 — Simplified, Universal, Codex-Ready*
