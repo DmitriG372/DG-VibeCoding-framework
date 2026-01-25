@@ -1,4 +1,4 @@
-# Claude Code Rules (v3.0.1)
+# Claude Code Rules (v3.1.0)
 
 > Project details → `PROJECT.md` | Agents → `.claude/agents/` | Skills → `.claude/skills/`
 
@@ -40,6 +40,7 @@ description: "Brief description"
 - `git` — Git workflow conventions
 - `vibecoding` — Framework philosophy
 - `codex` — Dual-AI review with OpenAI Codex
+- `spec-factory` — Claude+Codex tandem workflow for large implementations
 
 ---
 
@@ -73,6 +74,7 @@ Available in `.claude/commands/`:
 | `/orchestrate` | Multi-agent workflow |
 | `/codex-review` | Dual-AI review with Codex |
 | `/framework-update` | Check framework updates |
+| `/spec [--execute]` | Generate spec for Codex (auto-execute option) |
 
 ---
 

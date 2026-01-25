@@ -1,7 +1,7 @@
 {
-  "version": "3.0.1",
+  "version": "3.1.0",
   "name": "DG-VibeCoding-Framework",
-  "description": "Universal Claude Code framework with Codex integration",
+  "description": "Universal Claude Code framework with Codex integration and Spec-Factory workflow",
 
   "core": {
     "skills": [
@@ -10,7 +10,8 @@
       "testing",
       "git",
       "vibecoding",
-      "codex"
+      "codex",
+      "spec-factory"
     ],
     "commands": [
       "feature",
@@ -19,7 +20,8 @@
       "fix",
       "orchestrate",
       "codex-review",
-      "framework-update"
+      "framework-update",
+      "spec"
     ],
     "agents": [
       "orchestrator",

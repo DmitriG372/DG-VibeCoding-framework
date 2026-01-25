@@ -1,28 +1,48 @@
-# DG-VibeCoding-Framework v3.0.1
+# DG-VibeCoding-Framework v3.1.0
 
 > **Philosophy:** Start Simple, Scale Smart
 
-Universal Claude Code framework with Codex dual-AI integration.
+Universal Claude Code framework with Codex dual-AI integration and Spec-Factory workflow.
 
-## What's New in v3.0.1
+## What's New in v3.1.0
+
+### Spec-Factory Model
+Claude + Codex tandem workflow for large implementations:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  SPEC-FACTORY MODEL                                         │
+├─────────────────────────────────────────────────────────────┤
+│  Claude (Architect)          Codex (Executor)               │
+│  ┌─────────────────┐         ┌─────────────────┐           │
+│  │ • Ambiguity     │         │ • Clear spec    │           │
+│  │ • Design        │  ──────>│ • Large volume  │           │
+│  │ • Edge cases    │  Spec   │ • Autonomy      │           │
+│  │ • Reasoning     │         │ • Execution     │           │
+│  └─────────────────┘         └─────────────────┘           │
+└─────────────────────────────────────────────────────────────┘
+```
+
+- `/spec` command — Generate structured implementation specs for Codex
+- `spec-factory` skill — Workflow guidance for Claude-Codex collaboration
+- Complexity Router — Automatic task routing (LOW → direct, HIGH → spec)
+
+### Current Stats
+- **7 core skills** — sub-agent, debugging, testing, git, vibecoding, codex, spec-factory
+- **8 commands** — feature, done, review, fix, orchestrate, codex-review, framework-update, spec
+- **5 starter agents** — orchestrator, implementer, reviewer, tester, debugger
+- **4 templates** — project-init, skill, command, agent, codex-spec
+
+---
+
+## Previous: v3.0.1
 
 ### Simplified Structure
 - **82 → ~35 files** — Removed obsolete components
-- **6 core skills** — sub-agent, debugging, testing, git, vibecoding, codex
-- **7 commands** — feature, done, review, fix, orchestrate, codex-review, framework-update
-- **5 starter agents** — orchestrator, implementer, reviewer, tester, debugger
-
-### New Features
 - `framework.json` — Central configuration (no hardcoded paths)
 - `/framework-update` — Check for Claude Code updates
 - `templates/` — Project initialization templates
 - `archive/` — Project-specific components preserved
-
-### Removed (Obsolete)
-- Session commands (start-session, end-session, iterate)
-- Sprint commands (sprint-init, sprint-status, etc.)
-- REASONING_MODES.md, SESSION_LOG.md, HOOKS.md
-- 11 specialist agents → archived
 
 ---
 
@@ -58,22 +78,24 @@ DG-VibeCoding-framework/
 │   └── settings.template.json   # Settings template
 │
 ├── .claude/                     # Claude Code config
-│   ├── skills/                  # 6 core skills
+│   ├── skills/                  # 7 core skills
 │   │   ├── sub-agent/SKILL.md
 │   │   ├── debugging/SKILL.md
 │   │   ├── testing/SKILL.md
 │   │   ├── git/SKILL.md
 │   │   ├── vibecoding/SKILL.md
-│   │   └── codex/SKILL.md
+│   │   ├── codex/SKILL.md
+│   │   └── spec-factory/SKILL.md  # NEW: Spec-Factory
 │   │
-│   ├── commands/                # 7 commands
+│   ├── commands/                # 8 commands
 │   │   ├── feature.md
 │   │   ├── done.md
 │   │   ├── review.md
 │   │   ├── fix.md
 │   │   ├── orchestrate.md
 │   │   ├── codex-review.md
-│   │   └── framework-update.md
+│   │   ├── framework-update.md
+│   │   └── spec.md              # NEW: Generate specs for Codex
 │   │
 │   └── agents/                  # 5 starter agents
 │       ├── README.md
@@ -87,7 +109,8 @@ DG-VibeCoding-framework/
 │   ├── project-init/            # New project starter
 │   ├── skill.template.md
 │   ├── command.template.md
-│   └── agent.template.md
+│   ├── agent.template.md
+│   └── codex-spec.template.md   # NEW: Codex spec template
 │
 ├── archive/                     # Preserved components
 │   ├── skills/                  # 16 project-specific
@@ -119,6 +142,7 @@ DG-VibeCoding-framework/
 | `/orchestrate` | Multi-agent workflow |
 | `/codex-review` | Dual-AI review with Codex |
 | `/framework-update` | Check for updates |
+| `/spec [--execute]` | **NEW:** Generate spec for Codex (with auto-execute option) |
 
 ---
 
@@ -134,6 +158,7 @@ Skills auto-activate based on task context.
 | `git` | Git workflow conventions |
 | `vibecoding` | Framework philosophy |
 | `codex` | Dual-AI review integration |
+| `spec-factory` | **NEW:** Claude+Codex tandem workflow |
 
 ---
 
@@ -146,6 +171,33 @@ Skills auto-activate based on task context.
 | `reviewer` | Code review |
 | `tester` | Testing |
 | `debugger` | Debug issues |
+
+---
+
+## Spec-Factory Workflow
+
+Claude creates specs, Codex executes them — manually or automatically.
+
+```bash
+# Manual mode: Generate spec, copy to Codex yourself
+/spec "Implement user authentication with JWT"
+
+# Auto-execute mode: Claude runs Codex headlessly
+/spec --execute "Add dark mode support"
+/spec -x "Create REST API for products"
+```
+
+**Auto-Execute Pipeline:**
+```
+Claude generates spec → codex exec --full-auto → Parse results → Auto /codex-review
+```
+
+**Complexity Router:**
+| Complexity | Files | Approach |
+|------------|-------|----------|
+| LOW | 1-2 | Send directly to Codex |
+| MEDIUM | 3-5 | Brief spec + Codex |
+| HIGH | 6+ | Full `/spec` workflow |
 
 ---
 
@@ -177,7 +229,7 @@ export OPENAI_API_KEY=your-key
 
 ```json
 {
-  "version": "3.0.1",
+  "version": "3.1.0",
   "core": {
     "skills": ["sub-agent", "debugging", "testing", "git", "vibecoding", "codex"],
     "commands": ["feature", "done", "review", "fix", "orchestrate", "codex-review", "framework-update"],
@@ -232,4 +284,4 @@ The script will:
 
 ---
 
-*v3.0.1 — Simplified, Universal, Codex-Ready*
+*v3.1.0 — Simplified, Universal, Spec-Factory Ready*

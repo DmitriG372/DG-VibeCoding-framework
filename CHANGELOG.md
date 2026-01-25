@@ -2,6 +2,34 @@
 
 All notable changes to DG-VibeCoding-Framework.
 
+## [3.1.0] - 2025-01-25
+
+### Added
+- **Spec-Factory Model** — Claude + Codex tandem workflow for large implementations
+- `/spec` command — Generate structured implementation specs for Codex
+- `/spec --execute` — Auto-execute specs via Codex headlessly (no manual copy-paste!)
+- `spec-factory` skill — Workflow guidance for Claude-Codex collaboration
+- `templates/codex-spec.template.md` — Spec structure template
+
+### Headless Claude-Codex Communication
+```bash
+# Claude can now invoke Codex automatically:
+codex exec --json --sandbox workspace-write --full-auto "spec"
+```
+
+### Philosophy
+- Claude as **Architect**: Handles ambiguity, design, edge cases, reasoning
+- Codex as **Executor**: Receives clear spec, handles large volume, autonomous execution
+
+### Complexity Router
+| Complexity | Files | Approach |
+|------------|-------|----------|
+| LOW | 1-2 | Direct to Codex |
+| MEDIUM | 3-5 | Brief spec + Codex |
+| HIGH | 6+ | Full `/spec` workflow |
+
+---
+
 ## [3.0.1] - 2025-01-25
 
 ### Changed
