@@ -47,6 +47,11 @@
     "cx": { "config": "AGENTS.md", "branch_prefix": "cx/" }
   },
 
+  "review": {
+    "tool": "claude",
+    "mode": "quick"
+  },
+
   "integrations": {
     "codex": {
       "cli": true,

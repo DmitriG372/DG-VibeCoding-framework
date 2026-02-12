@@ -5,6 +5,7 @@ allowed-tools:
   - Bash
   - Read
   - Glob
+  - Edit
 ---
 
 # /peer-review
@@ -20,11 +21,20 @@ Peer code review between CC and CX. Either partner can review the other's work.
 /peer-review cx/add-auth-api          # CC reviews CX's branch
 /peer-review --full cx/refactor-db    # Full audit (35 points)
 /peer-review src/services/            # Review specific directory
+/peer-review --headless                    # Headless review uncommitted changes
+/peer-review --headless feat/auth          # Headless review branch
+/peer-review --headless --full src/        # Headless full audit
+/peer-review --headless --tool codex       # Use Codex instead of Claude
 ```
 
 ## Your Task
 
 ### Step 1: Determine Review Mode
+
+If `$ARGUMENTS` contains `--headless`:
+- **Headless mode** — invoke external review agent
+- Parse additional flags: `--tool`, `--full`, `--branch`
+- Proceed to **Step 7** (Headless Review)
 
 If `$ARGUMENTS` contains a `cx/` branch prefix:
 - **CC is reviewing CX's work** — interactive mode
@@ -145,25 +155,43 @@ If reviewing a CX branch with task in board.md:
 - If PASS → Move task to "Completed", note review score
 - If NEEDS_CHANGES → Keep in "In Review", add review notes
 
-### Step 7: CX as Reviewer (Headless)
+### Step 7: Headless Review
 
-To have CX review CC's work:
+When `--headless` flag is present:
 
-```bash
-cd ../<project>-wt-cx-<review-branch>/
-codex exec --json "You are a strict code reviewer. Review the diff between main and feat/<branch>:
+1. **Determine target:**
+   - Branch argument → `--branch <name>`
+   - File/directory argument → pass as target
+   - No argument → uncommitted changes (default)
 
-## Checklist
-[Same 17/35-point checklist]
+2. **Read tool preference from framework.json:**
+   ```bash
+   # Read review.tool from framework.json (default: claude)
+   TOOL=$(python3 -c "import json; print(json.load(open('framework.json')).get('review',{}).get('tool','claude'))")
+   ```
+   Override with `--tool claude|codex` in arguments.
 
-## Output Format
-### Issues Found
-#### CRITICAL | MAJOR | MINOR
-### Verdict: PASS | NEEDS_CHANGES | FAIL
-### Score: X/17"
-```
+3. **Execute headless review:**
+   ```bash
+   ./scripts/headless-review.sh \
+     --tool $TOOL \
+     --mode quick \
+     --branch $BRANCH \
+     --output /tmp/review-report.json
+   ```
+   Use `--mode full` if `--full` flag was provided.
+   Use `--staged` if reviewing staged changes.
+   Pass file/directory path as positional target.
 
-Parse JSON output and display results.
+4. **Read and display results:**
+   Read `/tmp/review-report.json` and display:
+   - Verdict + score
+   - Issues grouped by severity (CRITICAL → MAJOR → MINOR)
+   - Summary
+
+5. **Offer auto-fix:**
+   "Do you want me to fix these issues? [Y/n]"
+   If yes → fix each issue using the Edit tool, then re-run headless review to verify.
 
 ## Rules
 

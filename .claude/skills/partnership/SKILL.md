@@ -85,9 +85,37 @@ Use `/handoff` command for automated workflow.
 Either agent can review the other's work:
 
 - **CC reviews CX:** `/peer-review cx/<branch>` — interactive review with user
-- **CX reviews CC:** `codex exec --json "Review code on branch feat/..."` — headless
+- **CX reviews CC:** `/peer-review --headless` — automated headless review
 
 Review uses the same 17/35-point checklist regardless of reviewer.
+
+## Headless Review Pattern
+
+CC can invoke headless review within the same session:
+
+### Quick Review (same session)
+```
+/peer-review --headless
+```
+- Runs `claude -p` or `codex exec` (configured in framework.json `review.tool`)
+- Returns JSON report with score + issues
+- CC offers to auto-fix
+
+### Deep Review (worktree)
+```
+/handoff "Review feat/auth branch"
+```
+- CX gets full worktree access
+- More thorough, can run tests
+- Async workflow
+
+### When to Use Which
+| Scenario | Approach |
+|----------|----------|
+| Quick sanity check | `--headless` |
+| Thorough audit | `--headless --full` |
+| Need tests run | `/handoff` (worktree) |
+| Different model perspective | `--headless --tool codex` |
 
 ## CX Background Launch
 
