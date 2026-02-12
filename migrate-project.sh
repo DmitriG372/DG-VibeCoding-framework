@@ -1,7 +1,7 @@
 #!/bin/bash
-# DG-VibeCoding-Framework v3.0.1 - Project Migration Script
+# DG-VibeCoding-Framework v4.0.0 - Project Migration Script
 # Usage: ./migrate-project.sh /path/to/your/project
-# Migrates existing v2.x project to v3.0.1
+# Migrates existing v2.x/v3.x project to v4.0.0
 
 set -e
 
@@ -14,7 +14,7 @@ NC='\033[0m'
 
 FRAMEWORK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="${1:-.}"
-VERSION=$(cat "$FRAMEWORK_DIR/VERSION" 2>/dev/null || echo "3.0.1")
+VERSION=$(cat "$FRAMEWORK_DIR/VERSION" 2>/dev/null || echo "4.0.0")
 
 echo -e "${BLUE}╔════════════════════════════════════════════════════╗${NC}"
 echo -e "${BLUE}║  DG-VibeCoding-Framework v${VERSION} - Migration          ║${NC}"
@@ -36,7 +36,7 @@ echo ""
 # ─────────────────────────────────────────────────────────────
 # 1. Backup old config
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[1/6] Creating backup...${NC}"
+echo -e "${YELLOW}[1/9] Creating backup...${NC}"
 
 BACKUP_DIR="$PROJECT_DIR/.claude-backup-$(date +%Y%m%d-%H%M%S)"
 mkdir -p "$BACKUP_DIR"
@@ -48,9 +48,9 @@ if [ -d "$PROJECT_DIR/.claude" ]; then
 fi
 
 # ─────────────────────────────────────────────────────────────
-# 2. Clean obsolete files
+# 2. Clean obsolete files (v2.x)
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[2/6] Cleaning obsolete files...${NC}"
+echo -e "${YELLOW}[2/9] Cleaning v2.x obsolete files...${NC}"
 
 # Remove v2.x specific files if they exist
 for file in SESSION_LOG.md REASONING_MODES.md HOOKS.md VERIFICATION.md WORKTREE_ISOLATION.md; do
@@ -66,8 +66,8 @@ if [ -d "$PROJECT_DIR/core/sprint" ]; then
     echo -e "  ${GREEN}✓${NC} Removed core/sprint/"
 fi
 
-# Remove legacy commands
-for cmd in sprint-init sprint-status sprint-reconstruct sprint-validate start-session end-session iterate sync analyze-patterns generate-skill implement pr qa-loop spec; do
+# Remove legacy v2.x commands
+for cmd in sprint-init sprint-status sprint-reconstruct sprint-validate start-session end-session iterate sync analyze-patterns generate-skill implement pr qa-loop; do
     if [ -f "$PROJECT_DIR/.claude/commands/$cmd.md" ]; then
         rm -f "$PROJECT_DIR/.claude/commands/$cmd.md"
         echo -e "  ${GREEN}✓${NC} Removed obsolete command: $cmd"
@@ -75,9 +75,30 @@ for cmd in sprint-init sprint-status sprint-reconstruct sprint-validate start-se
 done
 
 # ─────────────────────────────────────────────────────────────
-# 3. Update commands
+# 3. Clean v3.x files (spec-factory → partnership)
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[3/6] Updating commands...${NC}"
+echo -e "${YELLOW}[3/9] Cleaning v3.x spec-factory files...${NC}"
+
+# Remove v3.x commands
+for cmd in spec codex-review; do
+    if [ -f "$PROJECT_DIR/.claude/commands/$cmd.md" ]; then
+        rm -f "$PROJECT_DIR/.claude/commands/$cmd.md"
+        echo -e "  ${GREEN}✓${NC} Removed v3.x command: $cmd"
+    fi
+done
+
+# Remove v3.x skills
+for skill in codex spec-factory; do
+    if [ -d "$PROJECT_DIR/.claude/skills/$skill" ]; then
+        rm -rf "$PROJECT_DIR/.claude/skills/$skill"
+        echo -e "  ${GREEN}✓${NC} Removed v3.x skill: $skill"
+    fi
+done
+
+# ─────────────────────────────────────────────────────────────
+# 4. Update commands
+# ─────────────────────────────────────────────────────────────
+echo -e "${YELLOW}[4/9] Updating commands...${NC}"
 
 mkdir -p "$PROJECT_DIR/.claude/commands"
 cp "$FRAMEWORK_DIR/.claude/commands/"*.md "$PROJECT_DIR/.claude/commands/"
@@ -86,9 +107,9 @@ COMMAND_COUNT=$(ls -1 "$PROJECT_DIR/.claude/commands/"*.md 2>/dev/null | wc -l |
 echo -e "  ${GREEN}✓${NC} $COMMAND_COUNT commands updated"
 
 # ─────────────────────────────────────────────────────────────
-# 4. Update skills (keep only core 6)
+# 5. Update skills (6 core: sub-agent, debugging, testing, git, vibecoding, partnership)
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[4/6] Updating skills...${NC}"
+echo -e "${YELLOW}[5/9] Updating skills...${NC}"
 
 # Remove old skills
 if [ -d "$PROJECT_DIR/.claude/skills" ]; then
@@ -108,11 +129,10 @@ done
 echo -e "  ${GREEN}✓${NC} $SKILL_COUNT core skills installed"
 
 # ─────────────────────────────────────────────────────────────
-# 5. Update agents (keep only 5 starters)
+# 6. Update agents (keep only 5 starters)
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[5/6] Updating agents...${NC}"
+echo -e "${YELLOW}[6/9] Updating agents...${NC}"
 
-# Remove old agents
 if [ -d "$PROJECT_DIR/.claude/agents" ]; then
     rm -rf "$PROJECT_DIR/.claude/agents"
 fi
@@ -123,9 +143,9 @@ AGENT_COUNT=$(ls -1 "$PROJECT_DIR/.claude/agents/"*.md 2>/dev/null | wc -l | tr 
 echo -e "  ${GREEN}✓${NC} $AGENT_COUNT starter agents installed"
 
 # ─────────────────────────────────────────────────────────────
-# 6. Update hooks
+# 7. Update hooks
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[6/6] Updating hooks...${NC}"
+echo -e "${YELLOW}[7/9] Updating hooks...${NC}"
 
 mkdir -p "$PROJECT_DIR/hooks"
 
@@ -136,8 +156,54 @@ for hook in auto-format.js session-init.js type-check.js usage-tracker.js; do
     fi
 done
 
-cp "$FRAMEWORK_DIR/hooks/block-env.js" "$PROJECT_DIR/hooks/" 2>/dev/null || true
-echo -e "  ${GREEN}✓${NC} Essential hook (block-env.js) installed"
+cp "$FRAMEWORK_DIR/hooks/"*.js "$PROJECT_DIR/hooks/" 2>/dev/null || true
+
+HOOK_COUNT=$(ls -1 "$PROJECT_DIR/hooks/"*.js 2>/dev/null | wc -l | tr -d ' ')
+echo -e "  ${GREEN}✓${NC} $HOOK_COUNT hooks installed (block-env.js, git-context.js)"
+
+# ─────────────────────────────────────────────────────────────
+# 7b. Archive CHANGELOG.md and remove old session-init hook
+# ─────────────────────────────────────────────────────────────
+if [ -f "$PROJECT_DIR/CHANGELOG.md" ]; then
+    mv "$PROJECT_DIR/CHANGELOG.md" "$BACKUP_DIR/"
+    echo -e "  ${GREEN}✓${NC} Archived CHANGELOG.md (replaced by git log hook)"
+fi
+
+if [ -f "$PROJECT_DIR/hooks/session-init.js" ]; then
+    rm -f "$PROJECT_DIR/hooks/session-init.js"
+    echo -e "  ${GREEN}✓${NC} Removed session-init.js (replaced by git-context.js)"
+fi
+
+# ─────────────────────────────────────────────────────────────
+# 8. Install AGENTS.md and .tasks/board.md
+# ─────────────────────────────────────────────────────────────
+echo -e "${YELLOW}[8/9] Installing partnership files...${NC}"
+
+# AGENTS.md (CX entry point)
+cp "$FRAMEWORK_DIR/templates/project-init/AGENTS.md" "$PROJECT_DIR/AGENTS.md"
+echo -e "  ${GREEN}✓${NC} AGENTS.md (CX entry point)"
+
+# .tasks/board.md
+mkdir -p "$PROJECT_DIR/.tasks"
+if [ ! -f "$PROJECT_DIR/.tasks/board.md" ]; then
+    cp "$FRAMEWORK_DIR/templates/tasks-board.template.md" "$PROJECT_DIR/.tasks/board.md"
+    echo -e "  ${GREEN}✓${NC} .tasks/board.md (new)"
+else
+    echo -e "  ${YELLOW}⚠${NC} .tasks/board.md already exists — keeping existing"
+fi
+
+# ─────────────────────────────────────────────────────────────
+# 9. Install worktree scripts
+# ─────────────────────────────────────────────────────────────
+echo -e "${YELLOW}[9/9] Installing worktree scripts...${NC}"
+
+mkdir -p "$PROJECT_DIR/scripts"
+cp "$FRAMEWORK_DIR/scripts/worktree-setup.sh" "$PROJECT_DIR/scripts/"
+cp "$FRAMEWORK_DIR/scripts/worktree-cleanup.sh" "$PROJECT_DIR/scripts/"
+chmod +x "$PROJECT_DIR/scripts/worktree-setup.sh"
+chmod +x "$PROJECT_DIR/scripts/worktree-cleanup.sh"
+
+echo -e "  ${GREEN}✓${NC} worktree-setup.sh, worktree-cleanup.sh"
 
 # ─────────────────────────────────────────────────────────────
 # Summary
@@ -150,22 +216,28 @@ echo ""
 echo -e "Project: ${BLUE}$PROJECT_DIR${NC}"
 echo -e "Backup:  ${BLUE}$BACKUP_DIR${NC}"
 echo ""
-echo -e "${YELLOW}v3.0.1 Changes:${NC}"
-echo "  - 6 core skills: sub-agent, debugging, testing, git, vibecoding, codex"
-echo "  - 7 commands: feature, done, review, fix, orchestrate, codex-review, framework-update"
+echo -e "${YELLOW}v4.0.0 Changes:${NC}"
+echo "  - Partnership model: CC + CX as equal partners"
+echo "  - 6 core skills: sub-agent, debugging, testing, git, vibecoding, partnership"
+echo "  - 9 commands: feature, done, review, fix, orchestrate, peer-review, handoff, sync-tasks, framework-update"
 echo "  - 5 starter agents: orchestrator, implementer, reviewer, tester, debugger"
-echo "  - 1 essential hook: block-env.js"
+echo "  - AGENTS.md: CX entry point"
+echo "  - .tasks/board.md: Shared task board"
+echo "  - Worktree scripts for parallel work"
 echo ""
 echo -e "${YELLOW}New commands:${NC}"
-echo "  /framework-update - Check for Claude Code updates"
-echo "  /codex-review     - Dual-AI review with OpenAI Codex"
+echo "  /handoff          - Hand off task to CX partner"
+echo "  /peer-review      - Peer code review (CC or CX)"
+echo "  /sync-tasks       - Task board and branch status"
 echo ""
-echo -e "${YELLOW}Removed (obsolete):${NC}"
-echo "  - Sprint commands (/sprint-init, /sprint-status, etc.)"
-echo "  - Session commands (/start-session, /end-session)"
-echo "  - REASONING_MODES.md, SESSION_LOG.md, HOOKS.md"
+echo -e "${YELLOW}Removed (replaced):${NC}"
+echo "  - /spec           → /handoff"
+echo "  - /codex-review   → /peer-review"
+echo "  - codex skill     → partnership skill"
+echo "  - spec-factory    → partnership skill"
 echo ""
 echo -e "${YELLOW}Next steps:${NC}"
 echo "  1. Review PROJECT.md and update if needed"
-echo "  2. Test with 'claude' to verify"
+echo "  2. Edit AGENTS.md if CX needs project-specific rules"
+echo "  3. Test with 'claude' to verify"
 echo ""

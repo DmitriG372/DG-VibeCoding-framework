@@ -20,15 +20,17 @@ Coordinate complex tasks that require multiple specialist agents.
 
 3. **Select agent team based on task type:**
 
-   | Task Type | Primary | Support |
-   |-----------|---------|---------|
-   | New feature | planner | architect, implementer, tester |
-   | Bug fix | debugger | implementer, tester |
-   | Refactor | refactorer | reviewer, tester |
-   | Performance | performance-specialist | implementer |
-   | Security | security-specialist | reviewer |
-   | UI work | frontend-specialist | implementer |
-   | API work | backend-specialist | database-specialist |
+   | Task Type | Primary | Support | Notes |
+   |-----------|---------|---------|-------|
+   | New feature | planner | architect, implementer, tester | |
+   | Bug fix | debugger | implementer, tester | |
+   | Refactor | refactorer | reviewer, tester | |
+   | Performance | performance-specialist | implementer | |
+   | Security | security-specialist | reviewer | |
+   | UI work | frontend-specialist | implementer | |
+   | API work | backend-specialist | database-specialist | |
+   | Large volume implementation | CX (Codex) | worktree | Parallel via /handoff |
+   | Background refactor | CX (Codex) | worktree | /handoff |
 
 4. **Create execution plan:**
    - List phases in order
@@ -243,5 +245,5 @@ TaskOutput: <task_id>
 
 ---
 
-*Part of DG-VibeCoding-Framework v2.6*
+*Part of DG-VibeCoding-Framework v4.0.0*
 *Parallel execution + Ctrl+B backgrounding from CC 2.1.0*

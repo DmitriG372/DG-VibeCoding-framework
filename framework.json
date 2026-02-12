@@ -1,7 +1,7 @@
 {
-  "version": "3.1.0",
+  "version": "4.0.0",
   "name": "DG-VibeCoding-Framework",
-  "description": "Universal Claude Code framework with Codex integration and Spec-Factory workflow",
+  "description": "Universal framework for CC + CX equal partnership development",
 
   "core": {
     "skills": [
@@ -10,8 +10,7 @@
       "testing",
       "git",
       "vibecoding",
-      "codex",
-      "spec-factory"
+      "partnership"
     ],
     "commands": [
       "feature",
@@ -19,9 +18,10 @@
       "review",
       "fix",
       "orchestrate",
-      "codex-review",
-      "framework-update",
-      "spec"
+      "peer-review",
+      "handoff",
+      "sync-tasks",
+      "framework-update"
     ],
     "agents": [
       "orchestrator",
@@ -36,14 +36,21 @@
     "skills": ".claude/skills/*/SKILL.md",
     "commands": ".claude/commands/*.md",
     "agents": ".claude/agents/*.md",
-    "hooks": "hooks/*.js"
+    "hooks": "hooks/*.js",
+    "hooks_session": "hooks/git-context.js",
+    "tasks": ".tasks/board.md",
+    "codex_config": "AGENTS.md"
+  },
+
+  "agents": {
+    "cc": { "config": "CLAUDE.md", "branch_prefix": "feat/" },
+    "cx": { "config": "AGENTS.md", "branch_prefix": "cx/" }
   },
 
   "integrations": {
     "codex": {
       "cli": true,
-      "cloud": false,
-      "github_action": false
+      "equal_partner": true
     }
   },
 

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "description": "Claude Code settings template for DG-VibeCoding-Framework v2.6",
+  "description": "Claude Code settings template for DG-VibeCoding-Framework v4.0.0",
 
   "permissions": {
     "allow": [
@@ -75,7 +75,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ./hooks/session-init.js",
+            "command": "node ./hooks/git-context.js",
             "once": true
           }
         ]

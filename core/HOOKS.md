@@ -321,6 +321,40 @@ project/
 
 ---
 
+### 5. Git Context on Session Start
+
+Auto-loads recent git history when Claude starts a session.
+
+**`hooks/git-context.js`** — Shows branch, uncommitted files, last 20 commits.
+
+**Config:** (already in settings.template.json)
+```json
+"SessionStart": [{
+  "hooks": [{
+    "type": "command",
+    "command": "node ./hooks/git-context.js",
+    "once": true
+  }]
+}]
+```
+
+**Timeout:** 5 seconds per git command (exits gracefully if exceeded).
+**Failure modes:** Silently exits 0 if git commands fail or repo is missing (non-blocking).
+
+**Output (to stderr → Claude):**
+```
+=== Git Context ===
+Branch: feat/user-auth
+Uncommitted: 2 files
+
+Recent commits:
+[a1b2c3d] 2026-02-12 feat(auth): add login form
+[d4e5f6a] 2026-02-11 fix(api): handle null response
+=================
+```
+
+---
+
 ### 4. Usage Tracker (Post-tool)
 
 Track when skills, slash commands, and agents are used. Helps verify framework components work.
@@ -409,7 +443,7 @@ New in CC 2.1.0: hooks can run only once per session.
     "SessionStart": [{
       "hooks": [{
         "type": "command",
-        "command": "node ./hooks/session-init.js",
+        "command": "node ./hooks/git-context.js",
         "once": true
       }]
     }]

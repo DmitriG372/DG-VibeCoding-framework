@@ -1,48 +1,48 @@
-# DG-VibeCoding-Framework v3.1.0
+# DG-VibeCoding-Framework v4.0.0
 
-> **Philosophy:** Start Simple, Scale Smart
+> **Philosophy:** Start Simple, Scale Smart — Equal Partnership
 
-Universal Claude Code framework with Codex dual-AI integration and Spec-Factory workflow.
+Universal Claude Code + Codex framework with equal partnership model.
 
-## What's New in v3.1.0
+## What's New in v4.0.0
 
-### Spec-Factory Model
-Claude + Codex tandem workflow for large implementations:
+### Equal Partnership Model
+
+CC (Claude Code) and CX (Codex) are **equal partners**, not architect/executor.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  SPEC-FACTORY MODEL                                         │
+│  EQUAL PARTNERSHIP MODEL                                     │
 ├─────────────────────────────────────────────────────────────┤
-│  Claude (Architect)          Codex (Executor)               │
-│  ┌─────────────────┐         ┌─────────────────┐           │
-│  │ • Ambiguity     │         │ • Clear spec    │           │
-│  │ • Design        │  ──────>│ • Large volume  │           │
-│  │ • Edge cases    │  Spec   │ • Autonomy      │           │
-│  │ • Reasoning     │         │ • Execution     │           │
-│  └─────────────────┘         └─────────────────┘           │
+│  CC (Claude Code)              CX (Codex)                    │
+│  ┌─────────────────┐          ┌─────────────────┐           │
+│  │ • Interactive    │          │ • Headless        │           │
+│  │ • Reasoning      │ <─────> │ • Volume           │           │
+│  │ • Design         │ .tasks/ │ • Autonomous       │           │
+│  │ • Exploration    │  board  │ • Parallel          │           │
+│  └─────────────────┘          └─────────────────┘           │
+│                                                              │
+│  Shared context: PROJECT.md + .tasks/board.md                │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-- `/spec` command — Generate structured implementation specs for Codex
-- `spec-factory` skill — Workflow guidance for Claude-Codex collaboration
-- Complexity Router — Automatic task routing (LOW → direct, HIGH → spec)
+- `/handoff` command — Give tasks to CX with automatic worktree setup
+- `/peer-review` — Either agent reviews the other's work
+- `/sync-tasks` — Task board and branch status overview
+- `partnership` skill — Coordination guidance
 
 ### Current Stats
-- **7 core skills** — sub-agent, debugging, testing, git, vibecoding, codex, spec-factory
-- **8 commands** — feature, done, review, fix, orchestrate, codex-review, framework-update, spec
+- **6 core skills** — sub-agent, debugging, testing, git, vibecoding, partnership
+- **9 commands** — feature, done, review, fix, orchestrate, peer-review, handoff, sync-tasks, framework-update
 - **5 starter agents** — orchestrator, implementer, reviewer, tester, debugger
-- **4 templates** — project-init, skill, command, agent, codex-spec
+- **3 templates** — project-init, tasks-board, skill/command/agent
 
 ---
 
-## Previous: v3.0.1
+## Previous: v3.1.0 → v3.0.1
 
-### Simplified Structure
-- **82 → ~35 files** — Removed obsolete components
-- `framework.json` — Central configuration (no hardcoded paths)
-- `/framework-update` — Check for Claude Code updates
-- `templates/` — Project initialization templates
-- `archive/` — Project-specific components preserved
+- **v3.1.0** — Spec-Factory model (Claude as Architect, Codex as Executor)
+- **v3.0.1** — Simplified from 82 to ~35 files, `framework.json` config
 
 ---
 
@@ -67,35 +67,36 @@ Claude + Codex tandem workflow for large implementations:
 ```
 DG-VibeCoding-framework/
 ├── README.md                    # This file
-├── VERSION                      # "3.0.1"
-├── CHANGELOG.md                 # Version history
+├── VERSION                      # "4.0.0"
+├── hooks/                       # Hook scripts
 ├── framework.json               # Central config
 │
 ├── core/                        # Core files
-│   ├── CLAUDE.md                # Claude rules (~95 lines)
-│   ├── HOOKS.md                 # Hook documentation
+│   ├── CLAUDE.md                # CC rules
+│   ├── AGENTS.md                # CX rules
 │   ├── PROJECT.md               # Project template
+│   ├── HOOKS.md                 # Hook documentation
 │   └── settings.template.json   # Settings template
 │
 ├── .claude/                     # Claude Code config
-│   ├── skills/                  # 7 core skills
+│   ├── skills/                  # 6 core skills
 │   │   ├── sub-agent/SKILL.md
 │   │   ├── debugging/SKILL.md
 │   │   ├── testing/SKILL.md
 │   │   ├── git/SKILL.md
 │   │   ├── vibecoding/SKILL.md
-│   │   ├── codex/SKILL.md
-│   │   └── spec-factory/SKILL.md  # NEW: Spec-Factory
+│   │   └── partnership/SKILL.md  # CC + CX coordination
 │   │
-│   ├── commands/                # 8 commands
+│   ├── commands/                # 9 commands
 │   │   ├── feature.md
 │   │   ├── done.md
 │   │   ├── review.md
 │   │   ├── fix.md
 │   │   ├── orchestrate.md
-│   │   ├── codex-review.md
-│   │   ├── framework-update.md
-│   │   └── spec.md              # NEW: Generate specs for Codex
+│   │   ├── peer-review.md       # Peer code review
+│   │   ├── handoff.md           # Hand off task to CX
+│   │   ├── sync-tasks.md        # Task board status
+│   │   └── framework-update.md
 │   │
 │   └── agents/                  # 5 starter agents
 │       ├── README.md
@@ -107,26 +108,32 @@ DG-VibeCoding-framework/
 │
 ├── templates/                   # Project templates
 │   ├── project-init/            # New project starter
+│   │   ├── PROJECT.md
+│   │   ├── CLAUDE.md
+│   │   └── AGENTS.md
+│   ├── tasks-board.template.md  # Task board template
 │   ├── skill.template.md
 │   ├── command.template.md
-│   ├── agent.template.md
-│   └── codex-spec.template.md   # NEW: Codex spec template
+│   └── agent.template.md
 │
-├── archive/                     # Preserved components
-│   ├── skills/                  # 16 project-specific
-│   ├── agents/                  # 11 specialist agents
-│   ├── commands/                # 14 workflow commands
-│   └── hooks/                   # 4 additional hooks
-│
-├── hooks/
-│   └── block-env.js             # Essential hook
-│
-├── scripts/
+├── scripts/                     # Utility scripts
+│   ├── worktree-setup.sh        # Create worktree for CX
+│   ├── worktree-cleanup.sh      # Remove worktree after merge
 │   ├── init-project.sh
 │   └── migrate-skills.sh
 │
-├── setup-project.sh             # Project setup
-└── migrate-project.sh           # Project migration
+├── archive/                     # Preserved components
+│   ├── skills/                  # codex, spec-factory, + 16 others
+│   ├── agents/                  # 11 specialist agents
+│   ├── commands/                # spec, codex-review, + 14 others
+│   └── hooks/                   # 4 additional hooks
+│
+├── hooks/
+│   ├── block-env.js             # Block sensitive file access
+│   └── git-context.js           # SessionStart git context hook
+│
+├── setup-project.sh             # Project setup (8 steps)
+└── migrate-project.sh           # Project migration (9 steps)
 ```
 
 ---
@@ -140,9 +147,10 @@ DG-VibeCoding-framework/
 | `/review` | Code review |
 | `/fix` | Fix issues |
 | `/orchestrate` | Multi-agent workflow |
-| `/codex-review` | Dual-AI review with Codex |
+| `/peer-review` | Peer code review (CC or CX) |
+| `/handoff` | Hand off task to CX partner |
+| `/sync-tasks` | Task board and branch status |
 | `/framework-update` | Check for updates |
-| `/spec [--execute]` | **NEW:** Generate spec for Codex (with auto-execute option) |
 
 ---
 
@@ -157,8 +165,7 @@ Skills auto-activate based on task context.
 | `testing` | Test writing patterns |
 | `git` | Git workflow conventions |
 | `vibecoding` | Framework philosophy |
-| `codex` | Dual-AI review integration |
-| `spec-factory` | **NEW:** Claude+Codex tandem workflow |
+| `partnership` | CC + CX equal partnership coordination |
 
 ---
 
@@ -174,52 +181,49 @@ Skills auto-activate based on task context.
 
 ---
 
-## Spec-Factory Workflow
+## Partnership Workflow
 
-Claude creates specs, Codex executes them — manually or automatically.
+CC and CX coordinate through a shared task board:
 
 ```bash
-# Manual mode: Generate spec, copy to Codex yourself
-/spec "Implement user authentication with JWT"
+# 1. Hand off task to CX
+/handoff "Implement CRUD endpoints for products API"
 
-# Auto-execute mode: Claude runs Codex headlessly
-/spec --execute "Add dark mode support"
-/spec -x "Create REST API for products"
+# 2. CX works autonomously in worktree
+cd ../project-wt-cx-add-products/ && codex --full-auto
+
+# 3. Check status
+/sync-tasks
+
+# 4. Review CX's work
+/peer-review cx/add-products
+
+# 5. Merge and cleanup
+git merge cx/add-products
+scripts/worktree-cleanup.sh cx/add-products
 ```
 
-**Auto-Execute Pipeline:**
-```
-Claude generates spec → codex exec --full-auto → Parse results → Auto /codex-review
-```
+### When to Use Which Partner
 
-**Complexity Router:**
-| Complexity | Files | Approach |
-|------------|-------|----------|
-| LOW | 1-2 | Send directly to Codex |
-| MEDIUM | 3-5 | Brief spec + Codex |
-| HIGH | 6+ | Full `/spec` workflow |
+| Task | Best Partner | Why |
+|------|-------------|-----|
+| Interactive design | CC | User dialogue needed |
+| Large refactor | CX | Volume, autonomous |
+| Bug investigation | CC | Reasoning, tools |
+| Bulk implementation | CX | Parallel, headless |
+| Architecture | CC | Trade-offs, ambiguity |
+| Test generation | CX | Repetitive, pattern-based |
 
 ---
 
-## Codex Integration
+## Session Context
 
-Dual-AI review: Claude Code builds, Codex critiques.
+The framework uses a `SessionStart` hook instead of manual CHANGELOG.md:
 
-```bash
-# Install Codex CLI
-npm install -g @openai/codex
-
-# Set API key
-export OPENAI_API_KEY=your-key
-
-# Run review
-/codex-review src/
-```
-
-**Modes:**
-- **CLI** (default) — Local headless review
-- **Cloud** — PR comment integration (setup required)
-- **GitHub Action** — CI/CD pipeline
+- **`hooks/git-context.js`** runs automatically on session start
+- Outputs last 20 commits + branch + status to Claude
+- ~100 tokens vs ~1000+ for manual changelog
+- Zero maintenance — git is the source of truth
 
 ---
 
@@ -229,14 +233,13 @@ export OPENAI_API_KEY=your-key
 
 ```json
 {
-  "version": "3.1.0",
-  "core": {
-    "skills": ["sub-agent", "debugging", "testing", "git", "vibecoding", "codex"],
-    "commands": ["feature", "done", "review", "fix", "orchestrate", "codex-review", "framework-update"],
-    "agents": ["orchestrator", "implementer", "reviewer", "tester", "debugger"]
+  "version": "4.0.0",
+  "agents": {
+    "cc": { "config": "CLAUDE.md", "branch_prefix": "feat/" },
+    "cx": { "config": "AGENTS.md", "branch_prefix": "cx/" }
   },
   "integrations": {
-    "codex": { "cli": true, "cloud": false, "github_action": false }
+    "codex": { "cli": true, "equal_partner": true }
   }
 }
 ```
@@ -245,13 +248,13 @@ export OPENAI_API_KEY=your-key
 
 ## Archive
 
-Project-specific components preserved in `archive/`:
+Project-specific and deprecated components preserved in `archive/`:
 
-**Skills (16):** vue, react, nextjs, supabase-migrations, melior-patterns, api, cli, database, lsp, openrouter, security, techstack, typescript, ui, framework-philosophy, vue-to-react
+**Skills:** codex, spec-factory, vue, react, nextjs, supabase-migrations, melior-patterns, api, cli, database, lsp, openrouter, security, techstack, typescript, ui, framework-philosophy, vue-to-react
 
 **Agents (11):** architect, backend-specialist, database-specialist, documenter, frontend-specialist, integration-specialist, performance-specialist, planner, refactorer, research-specialist, security-specialist
 
-**Commands (14):** analyze-patterns, end-session, generate-skill, implement, iterate, pr, qa-loop, spec, sprint-init, sprint-reconstruct, sprint-status, sprint-validate, start-session, sync
+**Commands:** spec, codex-review, codex-spec.template, analyze-patterns, end-session, generate-skill, implement, iterate, pr, qa-loop, sprint-init, sprint-reconstruct, sprint-status, sprint-validate, start-session, sync
 
 To use archived components, copy them to your project:
 ```bash
@@ -261,27 +264,30 @@ cp archive/agents/security-specialist.md .claude/agents/
 
 ---
 
-## Migration from v2.x
+## Migration
 
+### From v3.x
 ```bash
 ./migrate-project.sh /path/to/project
 ```
 
-The script will:
-1. Backup existing `.claude/` directory
-2. Remove obsolete files
-3. Install new commands, skills, agents
-4. Keep only essential hook (block-env.js)
+### From v2.x
+```bash
+./migrate-project.sh /path/to/project
+```
+
+The script handles both migration paths automatically.
 
 ---
 
 ## Links
 
-- [CHANGELOG.md](CHANGELOG.md) — Version history
-- [core/CLAUDE.md](core/CLAUDE.md) — Claude rules
+- Version history → `git log` or `archive/docs/CHANGELOG.md`
+- [core/CLAUDE.md](core/CLAUDE.md) — CC rules
+- [core/AGENTS.md](core/AGENTS.md) — CX rules
 - [templates/](templates/) — Project templates
 - [archive/](archive/) — Preserved components
 
 ---
 
-*v3.1.0 — Simplified, Universal, Spec-Factory Ready*
+*v4.0.0 — Equal Partnership, Shared Task Board, Worktree Isolation*

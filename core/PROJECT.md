@@ -139,6 +139,15 @@ Types: feat, fix, refactor, docs, test, chore
 
 ---
 
+## Agent Coordination
+
+Task board: `.tasks/board.md`
+- CC works in main worktree (interactive)
+- CX works in `../<project>-wt-cx-<branch>/` (background/headless)
+- Both read PROJECT.md for context
+
+---
+
 ## Skills (Auto-Activated)
 
 Skills in `.claude/skills/*/SKILL.md` auto-activate based on task context:
@@ -151,38 +160,6 @@ Skills in `.claude/skills/*/SKILL.md` auto-activate based on task context:
 → See `.claude/skills/` for all 22 skills
 → Claude auto-activates relevant skills based on task keywords
 → v2.4 requires subdirectory format: `.claude/skills/<name>/SKILL.md`
-
----
-
-## Session Log
-
-→ See `SESSION_LOG.md` for detailed session history
-
-### Quick Status
-**Last session:** [date]
-**Focus:** [topic]
-**Next priority:** [task]
-
----
-
-## Iteration Log
-
-Track significant attempts and learnings. Use `/iterate` to add entries.
-
-### Recent Iterations
-
-#### Attempt 1 — [date]
-**Request:** [what was asked]
-**Result:** [what happened]
-**Feedback:** [what to improve]
-**Learned:** [pattern for future]
-
-<details>
-<summary>Older iterations</summary>
-
-[Previous iterations moved here after 5+ entries]
-
-</details>
 
 ---
 

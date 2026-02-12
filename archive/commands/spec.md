@@ -1,246 +1,328 @@
 ---
-description: Create detailed specification through multi-agent pipeline
+description: Generate Strict Implementation Guide for Codex (Spec-Factory workflow)
+context: fork
+allowed-tools:
+  - Bash
+  - Read
+  - Glob
+  - Write
+  - Edit
 ---
 
 # /spec
 
-Loo detailne tehniline spetsifikatsioon läbi mitme-agendi pipeline'i.
+Generate a comprehensive implementation specification for Codex to execute autonomously.
 
-Inspireeritud: Auto-Claude Spec Pipeline (Gatherer → Researcher → Writer → Critic).
+> **Philosophy:** Claude doesn't write code — Claude creates a *perfect specification* for Codex.
 
-## Parameetrid
+## Usage
 
 ```
-/spec [feature_name] [complexity]
+/spec [task description]                    # Generate spec only (manual copy-paste)
+/spec --execute [task description]          # Generate spec AND auto-execute via Codex
+/spec -x [task description]                 # Short form of --execute
+
+# Examples
+/spec "Implement user authentication with JWT"
+/spec --execute "Add dark mode support"
+/spec -x "Create REST API for products"
 ```
 
-- `feature_name` - funktsionaalsuse nimi
-- `complexity` - SIMPLE | STANDARD | COMPLEX (vaikimisi: STANDARD)
+## Modes
 
-## Pipeline Phases
+### Manual Mode (default)
+Generate spec → User copies to Codex → User runs `/codex-review`
 
-### SIMPLE (3 faasi) - Väikesed muudatused
+### Auto-Execute Mode (`--execute` or `-x`)
+Generate spec → Claude runs Codex headlessly → Claude shows results → Auto `/codex-review`
+
 ```
-Discovery → Quick Spec → Validate
-```
-
-### STANDARD (5 faasi) - Tavaline feature
-```
-Discovery → Requirements → Context → Spec Creation → Validate
-```
-
-### COMPLEX (7 faasi) - Suuremad süsteemid
-```
-Discovery → Requirements → Research → Context → Spec Creation → Self-Critique → Validate
-```
-
-## Instructions
-
-1. **Determine complexity:**
-   - SIMPLE: < 3 files, clear requirements
-   - STANDARD: 3-10 files, some unknowns
-   - COMPLEX: > 10 files, architectural decisions
-
-2. **Run appropriate pipeline:**
-
-### Phase 1: Discovery (all)
-```yaml
-Agent: planner
-Action: Understand user intent
-Output:
-  - Core problem statement
-  - Initial scope estimate
-  - Key questions to ask
+┌─────────────────────────────────────────────────────────────┐
+│  AUTO-EXECUTE PIPELINE                                      │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Claude                      Codex                          │
+│  ┌─────────────────┐         ┌─────────────────┐           │
+│  │ 1. Generate     │         │                 │           │
+│  │    spec         │         │                 │           │
+│  │                 │         │                 │           │
+│  │ 2. codex exec   │ ──────> │ 3. Implement    │           │
+│  │    --json       │  Spec   │    autonomously │           │
+│  │    --full-auto  │         │                 │           │
+│  │                 │         │                 │           │
+│  │ 4. Parse JSON   │ <────── │    JSON output  │           │
+│  │    results      │         │                 │           │
+│  │                 │         │                 │           │
+│  │ 5. Show results │         │                 │           │
+│  │ 6. Auto-review  │         │                 │           │
+│  └─────────────────┘         └─────────────────┘           │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### Phase 2: Requirements Gathering (STANDARD+)
-```yaml
-Agent: planner
-Action: Collect detailed requirements
-Questions:
-  - What is the expected behavior?
-  - What are the edge cases?
-  - What are the constraints?
-  - Who are the users?
-Output:
-  - Functional requirements list
-  - Non-functional requirements
-  - Acceptance criteria
+## Your Task
+
+### Step 1: Parse Arguments
+
+Check if `$ARGUMENTS` contains `--execute` or `-x` flag:
+- If YES: Set `AUTO_EXECUTE=true`, remove flag from task description
+- If NO: Set `AUTO_EXECUTE=false`
+
+### Step 2: Analyze Complexity
+
+Evaluate the task using the Complexity Router:
+
+| Indicator | LOW | MEDIUM | HIGH |
+|-----------|-----|--------|------|
+| Files affected | 1-2 | 3-5 | 6+ |
+| New logic | None | Some | Complex |
+| Edge cases | 0 | 1-3 | 4+ |
+| Database | No | Query only | Schema change |
+| External APIs | No | Read | Write/Auth |
+
+**If LOW complexity:**
+```
+This task is straightforward (LOW complexity).
+You can send it directly to Codex without a detailed spec:
+"[simplified task description]"
 ```
 
-### Phase 3: Research (COMPLEX only)
-```yaml
-Agent: research-specialist
-Action: Investigate existing solutions
-Tasks:
-  - Search codebase for patterns
-  - Check external documentation
-  - Identify reusable components
-Output:
-  - Existing pattern analysis
-  - Recommended approach
-  - Risk assessment
+**If MEDIUM or HIGH complexity:** Continue to Step 3.
+
+### Step 3: Gather Context
+
+Read `PROJECT.md` and relevant files to understand:
+- Tech stack and framework
+- Existing code patterns
+- Naming conventions
+- Directory structure
+
+### Step 4: Ask Clarifying Questions
+
+Before generating the spec, ask the user critical questions to eliminate ambiguity:
+
+```markdown
+## Clarification Needed
+
+Before I generate the spec, please clarify:
+
+1. **[Question about scope]**
+   - Option A: [description]
+   - Option B: [description]
+
+2. **[Question about implementation approach]**
+   - Option A: [description]
+   - Option B: [description]
 ```
 
-### Phase 4: Context Analysis (STANDARD+)
-```yaml
-Agent: architect
-Action: Analyze project context
-Read:
-  - PROJECT.md
-  - Relevant existing code
-  - Related tests
-Output:
-  - Integration points
-  - Affected components
-  - Dependencies
-```
+Wait for user answers before proceeding.
 
-### Phase 5: Spec Creation (all)
-```yaml
-Agent: documenter
-Action: Write detailed specification
-Format:
-  ## [Feature Name] Specification
+### Step 5: Generate Specification
 
-  ### Overview
-  [What this feature does]
+Create a complete spec. Save it to `/tmp/codex-spec-{timestamp}.md` for reference.
 
-  ### Requirements
-  #### Functional
-  - FR1: [requirement]
-  - FR2: [requirement]
+```markdown
+# CODEX IMPLEMENTATION SPEC
 
-  #### Non-Functional
-  - NFR1: [performance, security, etc.]
-
-  ### Technical Design
-  #### Architecture
-  [How it fits into the system]
-
-  #### Data Model
-  [New/modified data structures]
-
-  #### API/Interface
-  [New endpoints or interfaces]
-
-  #### Components
-  | Component | Purpose | New/Modified |
-  |-----------|---------|--------------|
-  | X | Y | New |
-
-  ### Implementation Plan
-  1. [Step 1]
-  2. [Step 2]
-
-  ### Testing Strategy
-  - Unit tests: [what to test]
-  - Integration tests: [what to test]
-  - Edge cases: [list]
-
-  ### Acceptance Criteria
-  - [ ] AC1: [criterion]
-  - [ ] AC2: [criterion]
-
-  ### Risks & Mitigations
-  | Risk | Impact | Mitigation |
-  |------|--------|------------|
-  | X | HIGH | Y |
-
-  ### Open Questions
-  - [Any unresolved items]
-```
-
-### Phase 6: Self-Critique (COMPLEX only)
-```yaml
-Agent: reviewer
-Action: Challenge the specification
-Checks:
-  - Is scope creep happening?
-  - Are there simpler alternatives?
-  - What's missing?
-  - Is it testable?
-Output:
-  - Critique report
-  - Suggested improvements
-  - Final recommendations
-```
-
-### Phase 7: Validate (all)
-```yaml
-Agent: planner
-Action: Final validation
-Checks:
-  - Does spec match original request?
-  - Is it complete enough to implement?
-  - Are acceptance criteria measurable?
-Output:
-  - Validation status
-  - Spec file location
-```
-
-3. **Save specification:**
-   ```
-   Location: specs/{feature_name}_spec.md
-   ```
-
-4. **Output summary:**
-
-```yaml
-## Spec Pipeline Complete
-
-**Feature:** [name]
-**Complexity:** SIMPLE | STANDARD | COMPLEX
-**Phases Completed:** X / Y
-
-### Specification Summary
-- Requirements: X functional, Y non-functional
-- Components: X new, Y modified
-- Estimated scope: [files/LOC estimate]
-
-### Deliverables
-- Spec file: `specs/{feature_name}_spec.md`
-- Implementation plan: X steps
-
-### Next Steps
-1. Review spec with stakeholders (if needed)
-2. Run `/sprint-init` to begin implementation
-3. Or `/implement specs/{feature_name}_spec.md`
-```
-
-## Example
-
-Input: `/spec user-authentication COMPLEX`
-
-Output:
-```yaml
-## Spec Pipeline Complete
-
-**Feature:** user-authentication
-**Complexity:** COMPLEX
-**Phases Completed:** 7 / 7
-
-### Specification Summary
-- Requirements: 8 functional, 5 non-functional
-- Components: 4 new, 2 modified
-- Estimated scope: 12 files, ~800 LOC
-
-### Deliverables
-- Spec file: `specs/user-authentication_spec.md`
-- Implementation plan: 6 steps
-
-### Next Steps
-1. Review spec for security considerations
-2. Run `/sprint-init specs/user-authentication_spec.md`
-```
-
-## Integration
-
-- Works with `/sprint-init` for implementation
-- Specs can be used with `/implement [spec_file]`
-- `/review` can validate specs before implementation
+## Task ID: TASK-[XXX]
+## Complexity: [LOW | MEDIUM | HIGH]
 
 ---
 
-*Part of DG-VibeCoding-Framework v2.6*
-*Inspired by Auto-Claude Spec Pipeline pattern*
+## Context
+
+### Project
+- **Name:** [From PROJECT.md]
+- **Tech Stack:** [Framework, language, key libraries]
+- **Directory:** [Working directory]
+
+### Relevant Files
+- `path/to/file1.ts` — [Purpose]
+- `path/to/file2.ts` — [Purpose]
+
+### Conventions
+- [From PROJECT.md or observed patterns]
+
+---
+
+## Requirements (MUST)
+
+- [ ] [Specific, measurable requirement]
+- [ ] [Specific, measurable requirement]
+
+---
+
+## Constraints (MUST NOT)
+
+- [ ] DO NOT modify files outside `[scope]/`
+- [ ] DO NOT add new dependencies without approval
+- [ ] DO NOT change existing public APIs
+
+---
+
+## Implementation Steps
+
+### Step 1: [Action]
+- **File:** `exact/path/to/file.ts`
+- **Action:** [Create | Modify | Delete]
+- **Details:** [Code structure hint]
+
+### Step 2: [Action]
+[Continue for all steps]
+
+---
+
+## Edge Cases
+
+| Case | Expected Behavior | Handling |
+|------|-------------------|----------|
+| [Case] | [Expected] | [Handling] |
+
+---
+
+## Verification
+
+- [ ] `[test command]` — [Expected outcome]
+
+---
+
+## Notes for Codex
+
+### Files to Read First
+1. `path/to/reference.ts` — [Why]
+
+### Do Not Touch
+- `[sensitive paths]`
+```
+
+### Step 6: Execute or Output
+
+#### If AUTO_EXECUTE=false (Manual Mode)
+
+Output the spec and provide instructions:
+
+```markdown
+---
+
+## Next Steps
+
+1. **Copy** the spec above
+2. **Open** a new Codex session
+3. **Paste** the spec as your first message
+4. **Wait** for Codex to complete
+5. **Return** here and run `/codex-review` on the result
+
+**Or re-run with:** `/spec --execute` to auto-execute
+```
+
+#### If AUTO_EXECUTE=true (Auto-Execute Mode)
+
+Execute Codex headlessly:
+
+```bash
+# Save spec to temp file
+SPEC_FILE="/tmp/codex-spec-$(date +%s).md"
+cat > "$SPEC_FILE" << 'SPEC_EOF'
+[Generated spec content]
+SPEC_EOF
+
+# Execute Codex headlessly
+cd [PROJECT_DIRECTORY]
+codex exec \
+  --json \
+  --sandbox workspace-write \
+  --full-auto \
+  -o /tmp/codex-result.md \
+  "$(cat $SPEC_FILE)"
+```
+
+Parse the JSON output:
+```bash
+# Extract final message
+cat /tmp/codex-result.md
+
+# Or parse JSON for detailed events
+codex exec --json ... | jq -r '
+  select(.type == "item.completed") |
+  if .item.type == "agent_message" then "✓ \(.item.text)"
+  elif .item.type == "command_execution" then "$ \(.item.command)"
+  else empty end
+'
+```
+
+### Step 7: Show Results (Auto-Execute Only)
+
+Display Codex execution results:
+
+```markdown
+## Codex Execution Complete
+
+**Spec:** [SPEC_FILE path]
+**Status:** [Success | Partial | Failed]
+
+### Actions Taken
+- [List of commands/file operations Codex performed]
+
+### Files Modified
+- `path/to/file1.ts` — [Created | Modified]
+- `path/to/file2.ts` — [Created | Modified]
+
+### Codex Summary
+[Final agent message]
+
+---
+
+Running automatic code review...
+```
+
+Then automatically run `/codex-review` on the affected files.
+
+## Rules
+
+- ALWAYS read PROJECT.md first for context
+- ALWAYS ask clarifying questions for MEDIUM/HIGH complexity
+- NEVER write actual implementation code — only structure hints
+- NEVER skip edge case analysis
+- ALWAYS include verification steps
+- For `--execute`: ALWAYS use `--sandbox workspace-write` (not `danger-full-access`)
+- For `--execute`: ALWAYS run `/codex-review` after completion
+
+## Error Handling
+
+### Codex Not Installed
+```
+Codex CLI not found. Install with:
+npm install -g @openai/codex
+export OPENAI_API_KEY=your-key
+```
+
+### Codex Execution Failed
+```
+Codex execution failed. Check:
+1. OPENAI_API_KEY is set
+2. Working directory is a git repo
+3. Codex has write permissions
+
+Spec saved to: [SPEC_FILE]
+You can manually run: codex exec "$(cat [SPEC_FILE])"
+```
+
+### Timeout
+```
+Codex execution timed out after 10 minutes.
+Partial results may be available.
+Check: /tmp/codex-result.md
+```
+
+## Input
+
+$ARGUMENTS — Task description, optionally prefixed with `--execute` or `-x`
+
+## Output
+
+- **Manual mode:** Structured spec ready for copy-paste
+- **Auto-execute mode:** Spec + Codex execution + automatic review
+
+---
+
+*Part of DG-VibeCoding-Framework v3.1.0 — Spec-Factory Workflow*
