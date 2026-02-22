@@ -1,4 +1,4 @@
-# Claude Code Rules (v4.0.0)
+# Claude Code Rules (v4.1.0)
 
 > Project details → `PROJECT.md` | Agents → `.claude/agents/` | Skills → `.claude/skills/` | Tasks → `.tasks/board.md`
 
@@ -11,13 +11,27 @@
 
 ---
 
-## Context Loading
+## Context Loading (MANDATORY)
 
-1. Always read `PROJECT.md` first
-2. Check `.tasks/board.md` for active tasks
-3. Review git context (auto-loaded via SessionStart hook)
-4. Skills auto-activate based on task context
-5. Load agents as needed for complex tasks
+> **CRITICAL:** These steps are MANDATORY. Execute them at every session start,
+> including after context compaction. Skipping these steps leads to rule violations.
+
+### Step 1: Load Rules
+Read `PROJECT.md` — SINGLE SOURCE OF TRUTH for all rules, patterns, stack, and conventions.
+
+### Step 2: Load Task State
+Read `.tasks/board.md` — task assignments and status ONLY (never rules).
+
+### Step 3: Review Git Context
+Auto-loaded via SessionStart hook. After compaction, also recovered via `context-reload.js`.
+
+### Step 4: Skills & Agents
+Skills auto-activate based on task context. Load agents as needed for complex tasks.
+
+> **Separation Principle:**
+> - `PROJECT.md` = Rules, patterns, stack, conventions (IMMUTABLE reference)
+> - `.tasks/board.md` = Task status (MUTABLE state)
+> - Never put rules in board.md. Never put task state in PROJECT.md.
 
 > **No CHANGELOG.md** — git log is the source of truth for project history.
 > The SessionStart hook automatically shows recent commits.
@@ -78,6 +92,8 @@ Available in `.claude/commands/`:
 | `/peer-review` | Peer code review (CC or CX as reviewer) |
 | `/handoff` | Hand off task to CX partner |
 | `/sync-tasks` | Show task board and branch status |
+| `/context-refresh` | Manually reload project context |
+| `/sync-notebook` | Sync project to NotebookLM |
 | `/framework-update` | Check framework updates |
 
 ---
@@ -130,6 +146,9 @@ CC and CX are **equal partners**, not architect/executor.
 Hooks in `/hooks`:
 - `block-env.js` — Block sensitive file access
 - `git-context.js` — Auto-load git history on SessionStart
+- `pre-compact.js` — Save context snapshot before compaction
+- `context-reload.js` — Recover context after compaction
+- `validate-board.js` — Validate board.md structure on edit
 
 ---
 

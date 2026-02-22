@@ -120,6 +120,21 @@ Complete the current feature with mandatory testing and git commit.
    - Show updated file count
    - Confirm consistency
 
+### Step 7.5: NotebookLM Sync Reminder
+
+If `.claude/notebook.json` exists:
+1. Read `last_sync_commit`
+2. Count commits since last sync:
+   ```bash
+   git rev-list --count <last_sync_commit>..HEAD 2>/dev/null || echo 0
+   ```
+3. If > 5 commits behind:
+   ```
+   NotebookLM pole sünkroniseeritud (X commiti taga).
+   Kasuta /sync-notebook uuendamiseks.
+   ```
+4. If 5 or fewer: skip silently
+
 ## Output Format
 
 ### Success
