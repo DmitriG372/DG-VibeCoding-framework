@@ -33,7 +33,7 @@ CC (Claude Code) and CX (Codex) are **equal partners**, not architect/executor.
 
 ### Current Stats
 - **6 core skills** — sub-agent, debugging, testing, git, vibecoding, partnership
-- **9 commands** — feature, done, review, fix, orchestrate, peer-review, handoff, sync-tasks, framework-update
+- **12 commands** — sprint-init, feature, done, review, fix, orchestrate, peer-review, handoff, sync-tasks, context-refresh, sync-notebook, framework-update
 - **5 starter agents** — orchestrator, implementer, reviewer, tester, debugger
 - **3 templates** — project-init, tasks-board, skill/command/agent
 
@@ -88,6 +88,7 @@ DG-VibeCoding-framework/
 │   │   └── partnership/SKILL.md  # CC + CX coordination
 │   │
 │   ├── commands/                # 9 commands
+│   │   ├── sprint-init.md
 │   │   ├── feature.md
 │   │   ├── done.md
 │   │   ├── review.md
@@ -142,6 +143,7 @@ DG-VibeCoding-framework/
 
 | Command | Purpose |
 |---------|---------|
+| `/sprint-init` | Initialize sprint from plan |
 | `/feature` | Start new feature |
 | `/done` | Complete feature (test + commit) |
 | `/review` | Code review |
@@ -150,6 +152,8 @@ DG-VibeCoding-framework/
 | `/peer-review` | Peer code review (CC or CX) |
 | `/handoff` | Hand off task to CX partner |
 | `/sync-tasks` | Task board and branch status |
+| `/context-refresh` | Manually reload project context |
+| `/sync-notebook` | Sync project to NotebookLM |
 | `/framework-update` | Check for updates |
 
 ---
@@ -290,4 +294,4 @@ The script handles both migration paths automatically.
 
 ---
 
-*v4.0.0 — Equal Partnership, Shared Task Board, Worktree Isolation*
+*v4.1.0 — Equal Partnership, Context Robustness, Sprint Init*

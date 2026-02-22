@@ -57,6 +57,8 @@ Output: Orchestration Plan
 
 | Command | Activates | When to Use |
 |---------|-----------|-------------|
+| `/sprint-init` | — (direct) | Initialize sprint from plan |
+| `/feature` | planner/implementer | Start next feature |
 | `/orchestrate` | orchestrator | Complex multi-agent tasks |
 | `/review` | reviewer | After code changes |
 | `/done` | tester | Complete feature with tests |
@@ -143,6 +145,8 @@ Agents load context at appropriate levels:
 │ AGENT ACTIVATION CHEAT SHEET                                   │
 ├────────────────────────────────────────────────────────────────┤
 │                                                                │
+│ New sprint?       → /sprint-init "plan or features"            │
+│ Start feature?    → /feature [F001]                            │
 │ Complex task?     → /orchestrate "task description"            │
 │ Review code?      → /review path/to/file.ts                    │
 │ Done with feature → /done                                      │
@@ -155,4 +159,4 @@ Agents load context at appropriate levels:
 
 ---
 
-*Part of DG-VibeCoding-Framework v2.7*
+*Part of DG-VibeCoding-Framework v4.1.0*

@@ -84,6 +84,7 @@ Available in `.claude/commands/`:
 
 | Command | Purpose |
 |---------|---------|
+| `/sprint-init` | Initialize sprint from plan |
 | `/feature` | Start new feature |
 | `/done` | Complete feature (test + commit) |
 | `/review` | Review code |

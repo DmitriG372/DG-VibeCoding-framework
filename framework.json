@@ -13,6 +13,7 @@
       "partnership"
     ],
     "commands": [
+      "sprint-init",
       "feature",
       "done",
       "review",

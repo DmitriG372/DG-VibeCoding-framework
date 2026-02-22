@@ -23,7 +23,7 @@ CC (Claude Code)                    CX (Codex)
 | Komponent | Arv | Kirjeldus |
 |-----------|-----|-----------|
 | Skills | 6 | sub-agent, debugging, testing, git, vibecoding, partnership |
-| Commands | 9 | /feature, /done, /review, /fix, /orchestrate, /peer-review, /handoff, /sync-tasks, /framework-update |
+| Commands | 12 | /sprint-init, /feature, /done, /review, /fix, /orchestrate, /peer-review, /handoff, /sync-tasks, /context-refresh, /sync-notebook, /framework-update |
 | Agents | 5 | orchestrator, implementer, reviewer, tester, debugger |
 | Hooks | 3 | git-context, block-env, type-check |
 | Scripts | 5 | worktree-setup, worktree-cleanup, headless-review, init-project, migrate-skills |
@@ -433,10 +433,13 @@ CC teeb automaatselt:
 #### Sprindi algus
 
 ```bash
-# 1. Kontrolli task board'i seisu
+# 1. Initsialiseeri sprint plaanist
+/sprint-init Vaja: registreerimine, login API, JWT, rollid, login UI
+
+# 2. Kontrolli task board'i seisu
 /sync-tasks
 
-# 2. Vali feature
+# 3. Vali feature
 /feature F001              # konkreetne feature
 /feature                   # esimene pending feature
 
@@ -563,6 +566,7 @@ git push
 | "Kiire review" | `/peer-review --headless` | Automaatne JSON raport 30 sekundiga |
 | "Suur töö CX-ile" | `/handoff "kirjeldus"` | Branch + worktree + task automaatselt |
 | "Viga!" | `/fix "kirjeldus"` | Debugger agent uurib süsteemselt |
+| "Uus sprint" | `/sprint-init` | Loob sprint.json plaanist automaatselt |
 | "Kuidas edasi?" | `/feature` | Võtab järgmise pending feature |
 
 ### Review tööriista valimine
@@ -690,5 +694,5 @@ fi
 
 ---
 
-*DG-VibeCoding-Framework v4.0.0 — Equal Partnership Model*
-*Kasutusjuhend v1.0 — 2026-02-12*
+*DG-VibeCoding-Framework v4.1.0 — Equal Partnership Model*
+*Kasutusjuhend v1.1 — 2026-02-22*
