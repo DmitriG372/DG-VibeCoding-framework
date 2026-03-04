@@ -29,6 +29,20 @@ If `.tasks/board.md` doesn't exist:
 No task board found. Create one with /handoff or manually at .tasks/board.md
 ```
 
+### Step 1.5: Reload Project Rules
+
+```
+Read: PROJECT.md
+```
+
+Internalize patterns and rules to ensure they are in working memory.
+This guarantees context is fresh even after session compaction.
+
+If `PROJECT.md` doesn't exist:
+```
+⚠️ No PROJECT.md found. Rules may be stale.
+```
+
 ### Step 2: Check Git State
 
 ```bash
@@ -108,4 +122,4 @@ No arguments needed.
 
 ---
 
-*DG-VibeCoding-Framework v4.0.0 — Equal Partnership*
+*DG-VibeCoding-Framework v4.1.0 — Equal Partnership*

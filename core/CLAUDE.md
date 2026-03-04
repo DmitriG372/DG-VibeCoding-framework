@@ -52,7 +52,6 @@ description: "Brief description"
 ```
 
 **Core skills:**
-- `sub-agent` — Parallel processing with Haiku
 - `debugging` — Bug finding and fixing
 - `testing` — Test writing patterns
 - `git` — Git workflow conventions

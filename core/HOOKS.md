@@ -1,4 +1,4 @@
-# Claude Code Hooks (v2.5)
+# Claude Code Hooks (v2.6)
 
 > **Hooks** = commands that run before/after Claude executes tools
 
@@ -419,6 +419,96 @@ process.stdin.on('end', () => {
 ```bash
 cat .claude/usage.log
 ```
+
+---
+
+### 6. Context Preservation on Compact (PreCompact)
+
+Saves critical project state before session compaction so it can be recovered.
+
+**`hooks/pre-compact.js`** — Triggered automatically before context compaction.
+
+**What it saves (to `.claude/context-snapshot.json`):**
+- PROJECT.md sections: Rules, Patterns, Stack, Commands, Tech Stack, Current Sprint
+- `.tasks/board.md`: Full task board content
+- Git state: branch, uncommitted count, last 5 commits
+- Sprint state: `sprint/sprint.json` (if exists)
+
+**Config:**
+```json
+"PreCompact": [{
+  "hooks": [{
+    "type": "command",
+    "command": "node ./hooks/pre-compact.js",
+    "statusMessage": "Saving context snapshot..."
+  }]
+}]
+```
+
+**Failure mode:** Fail-open (exit 0). Logs error to stderr but never blocks compaction.
+
+**Output:** Creates `.claude/context-snapshot.json` with timestamped snapshot.
+
+---
+
+### 7. Context Recovery After Compact (SessionStart)
+
+Recovers project context after session compaction using the saved snapshot.
+
+**`hooks/context-reload.js`** — Triggered by SessionStart with `matcher: "compact"`.
+
+**What it recovers:**
+- PROJECT.md rules and patterns
+- Task board state
+- Git branch and recent commits
+- Sprint state
+
+**Config:**
+```json
+"SessionStart": [{
+  "matcher": "compact",
+  "hooks": [{
+    "type": "command",
+    "command": "node ./hooks/context-reload.js",
+    "statusMessage": "Recovering project context..."
+  }]
+}]
+```
+
+**Output:** JSON to stdout with `additionalContext` that gets injected into Claude's context.
+
+**Fallback:** If no snapshot exists, provides basic git context and instructs Claude to read PROJECT.md manually.
+
+**Testing:**
+```bash
+echo '{"session_id":"test","source":"compact"}' | node hooks/context-reload.js
+```
+
+---
+
+### 8. Board Validation (PostToolUse)
+
+Validates `.tasks/board.md` structure after every Edit/Write operation.
+
+**`hooks/validate-board.js`** — Checks board.md integrity.
+
+**Validations:**
+1. **Required sections** exist: Backlog, Assigned to: CC, Assigned to: CX, In Review, Completed
+2. **No rules contamination**: Detects `## Rules`, `## Patterns`, `## Tech Stack`, `## Commands`, `## Stack` in board.md (these belong in PROJECT.md)
+3. **TASK-ID format**: Warns if tasks lack `TASK-XXX` identifiers
+
+**Config:** (added to existing Edit|Write PostToolUse chain)
+```json
+{
+  "type": "command",
+  "command": "node ./hooks/validate-board.js",
+  "statusMessage": "Validating board.md..."
+}
+```
+
+**Exit code:** Always 0 (warnings via stderr, never blocks).
+
+**Scope:** Only activates for files matching `.tasks/**/board.md`. Ignores all other files.
 
 ---
 

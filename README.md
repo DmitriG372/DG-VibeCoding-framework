@@ -32,7 +32,7 @@ CC (Claude Code) and CX (Codex) are **equal partners**, not architect/executor.
 - `partnership` skill — Coordination guidance
 
 ### Current Stats
-- **6 core skills** — sub-agent, debugging, testing, git, vibecoding, partnership
+- **5 core skills** — debugging, testing, git, vibecoding, partnership
 - **12 commands** — sprint-init, feature, done, review, fix, orchestrate, peer-review, handoff, sync-tasks, context-refresh, sync-notebook, framework-update
 - **5 starter agents** — orchestrator, implementer, reviewer, tester, debugger
 - **3 templates** — project-init, tasks-board, skill/command/agent
@@ -79,8 +79,7 @@ DG-VibeCoding-framework/
 │   └── settings.template.json   # Settings template
 │
 ├── .claude/                     # Claude Code config
-│   ├── skills/                  # 6 core skills
-│   │   ├── sub-agent/SKILL.md
+│   ├── skills/                  # 5 core skills
 │   │   ├── debugging/SKILL.md
 │   │   ├── testing/SKILL.md
 │   │   ├── git/SKILL.md
@@ -164,7 +163,6 @@ Skills auto-activate based on task context.
 
 | Skill | Purpose |
 |-------|---------|
-| `sub-agent` | Parallel processing with Haiku |
 | `debugging` | Bug finding and fixing |
 | `testing` | Test writing patterns |
 | `git` | Git workflow conventions |

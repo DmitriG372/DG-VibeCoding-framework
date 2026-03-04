@@ -22,7 +22,7 @@ CC (Claude Code)                    CX (Codex)
 
 | Komponent | Arv | Kirjeldus |
 |-----------|-----|-----------|
-| Skills | 6 | sub-agent, debugging, testing, git, vibecoding, partnership |
+| Skills | 5 | debugging, testing, git, vibecoding, partnership |
 | Commands | 12 | /sprint-init, /feature, /done, /review, /fix, /orchestrate, /peer-review, /handoff, /sync-tasks, /context-refresh, /sync-notebook, /framework-update |
 | Agents | 5 | orchestrator, implementer, reviewer, tester, debugger |
 | Hooks | 3 | git-context, block-env, type-check |
