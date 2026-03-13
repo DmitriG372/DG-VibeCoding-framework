@@ -1,6 +1,6 @@
-# Codex Rules (v4.0.0)
+# Codex Rules (v5.0.0)
 
-> Project details → `PROJECT.md` | Task board → `.tasks/board.md`
+> Project details → `PROJECT.md` | Sprint state → `sprint/sprint.json`
 
 ---
 
@@ -14,9 +14,15 @@
 ## Context Loading
 
 1. Always read `PROJECT.md` first — single source of truth
-2. Read `.tasks/board.md` for assigned tasks
-3. Work only on tasks assigned to CX
+2. Read `sprint/sprint.json` for assigned features
+3. Work only on features with `assigned_to: "cx"`
 4. Follow patterns and rules from PROJECT.md
+
+---
+
+## Agent Identity
+
+CX identity is detected automatically from the `AGENTS.md` entry point. Branch prefix is `cx/` — e.g., `cx/F001-auth-api`.
 
 ---
 
@@ -24,44 +30,46 @@
 
 ### Before Coding
 1. Read `PROJECT.md` for context, stack, patterns
-2. Read `.tasks/board.md` — find your task (Assigned to: CX)
+2. Read `sprint/sprint.json` — find features assigned to CX
 3. Understand the codebase via relevant file reads
 
 ### During Coding
 - Follow patterns → `PROJECT.md#Patterns`
 - Respect rules → `PROJECT.md#Rules`
-- Stay within task scope — do not expand beyond assigned work
+- Stay within feature scope — do not expand beyond assigned work
 - Commit frequently with clear messages
 
 ### After Coding
 - Run tests before marking complete
 - Follow git conventions from PROJECT.md
-- Update `.tasks/board.md`: move task to "In Review"
-- Commit the board.md update
+- Use `/done` command to complete the feature (updates sprint.json status to `in_review`)
+- Commit all changes including updated sprint state
 
 ---
 
-## Task Board Protocol
+## Sprint Protocol
 
-**File:** `.tasks/board.md`
+**File:** `sprint/sprint.json`
 
 ### What CX Can Do
-- Move tasks from "Assigned to: CX" → "In Review" when done
-- Add notes to tasks (prefix with `[CX]`)
-- Create sub-tasks under assigned task
+- Work on features with `assigned_to: "cx"`
+- Update feature status to `in_review` when done (via `/done` command)
+- Add notes to features (prefix with `[CX]`)
+- Create sub-tasks under assigned feature
 
 ### What CX Cannot Do
-- Assign tasks to itself (CC or user assigns)
-- Move tasks to "Completed" (CC reviews first)
-- Delete or modify CC's tasks
-- Change task priorities
+- Assign features to itself (CC or user assigns)
+- Move features to `completed` (CC reviews first)
+- Delete or modify CC's features
+- Change feature priorities
 
 ---
 
 ## Git Conventions
 
 ### Branch Naming
-- CX branches: `cx/<task-slug>` (e.g., `cx/add-auth-api`)
+- CX branches: `cx/FXXX-<slug>` (e.g., `cx/F003-add-auth-api`)
+- Feature ID from sprint.json (F001, F002, etc.)
 - Never work on `main` or `dev` directly
 
 ### Commits
@@ -72,8 +80,9 @@ Types: feat, fix, refactor, docs, test, chore
 ```
 
 ### Worktree
-- CX works in: `../<project>-wt-cx-<branch>/`
-- Do not modify files in the main worktree
+- Worktree usage is optional — determined by `branch_strategy` in sprint.json
+- When using worktree: `../<project>-wt-cx-<branch>/`
+- When not using worktree: work on CX branch directly
 
 ---
 
@@ -81,18 +90,18 @@ Types: feat, fix, refactor, docs, test, chore
 
 ### Always
 - Read PROJECT.md before starting
-- Run tests before marking task complete
+- Run tests before marking feature complete
 - Commit to CX branch only
-- Update board.md when task status changes
+- Use `/done` command when feature is complete
 - Handle errors explicitly
 
 ### Never
 - Push to main/dev directly
-- Modify files outside task scope
+- Modify files outside feature scope
 - Skip tests
-- Add dependencies without noting in board.md
+- Add dependencies without noting in sprint.json feature notes
 - Touch `.env*` files or secrets
 
 ---
 
-*DG-VibeCoding-Framework v4.0.0 — CX Entry Point*
+*DG-VibeCoding-Framework v5.0.0 — CX Entry Point*

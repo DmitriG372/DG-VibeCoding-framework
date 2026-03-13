@@ -430,7 +430,6 @@ Saves critical project state before session compaction so it can be recovered.
 
 **What it saves (to `.claude/context-snapshot.json`):**
 - PROJECT.md sections: Rules, Patterns, Stack, Commands, Tech Stack, Current Sprint
-- `.tasks/board.md`: Full task board content
 - Git state: branch, uncommitted count, last 5 commits
 - Sprint state: `sprint/sprint.json` (if exists)
 
@@ -459,9 +458,8 @@ Recovers project context after session compaction using the saved snapshot.
 
 **What it recovers:**
 - PROJECT.md rules and patterns
-- Task board state
 - Git branch and recent commits
-- Sprint state
+- Sprint state (sprint_id, current_feature, progress, branch_strategy)
 
 **Config:**
 ```json
@@ -486,29 +484,58 @@ echo '{"session_id":"test","source":"compact"}' | node hooks/context-reload.js
 
 ---
 
-### 8. Board Validation (PostToolUse)
+### 8. Sprint Sync (PostToolUse)
 
-Validates `.tasks/board.md` structure after every Edit/Write operation.
+Regenerates `sprint/sprint.md` after every Edit/Write to `sprint/sprint.json`.
 
-**`hooks/validate-board.js`** — Checks board.md integrity.
+**`hooks/sprint-sync.js`** — Generates human-readable sprint overview.
 
-**Validations:**
-1. **Required sections** exist: Backlog, Assigned to: CC, Assigned to: CX, In Review, Completed
-2. **No rules contamination**: Detects `## Rules`, `## Patterns`, `## Tech Stack`, `## Commands`, `## Stack` in board.md (these belong in PROJECT.md)
-3. **TASK-ID format**: Warns if tasks lack `TASK-XXX` identifiers
+**What it does:**
+1. Reads `sprint/sprint.json` after modification
+2. Generates `sprint/sprint.md` with progress bar, feature table, activity log
+3. Writes the markdown file to the same directory
 
 **Config:** (added to existing Edit|Write PostToolUse chain)
 ```json
 {
   "type": "command",
-  "command": "node ./hooks/validate-board.js",
-  "statusMessage": "Validating board.md..."
+  "command": "node ./hooks/sprint-sync.js",
+  "statusMessage": "Syncing sprint.md..."
 }
 ```
 
 **Exit code:** Always 0 (warnings via stderr, never blocks).
 
-**Scope:** Only activates for files matching `.tasks/**/board.md`. Ignores all other files.
+**Scope:** Only activates for files matching `sprint/**/sprint.json`. Ignores all other files.
+
+---
+
+### 9. Plan-to-Sprint (PostToolUse)
+
+Automatically triggers `/sprint-init` when Plan Mode is exited (plan approved).
+
+**`hooks/plan-to-sprint.js`** — Bridges Plan Mode and sprint workflow.
+
+**What it does:**
+1. Detects `ExitPlanMode` tool call
+2. Checks if a sprint is already active (skips if features are in_progress)
+3. Injects `additionalContext` prompting Claude to parse the approved plan into sprint.json
+
+**Config:**
+```json
+{
+  "matcher": "ExitPlanMode",
+  "hooks": [{
+    "type": "command",
+    "command": "node ./hooks/plan-to-sprint.js",
+    "statusMessage": "Converting plan to sprint..."
+  }]
+}
+```
+
+**Exit code:** Always 0 (never blocks).
+
+**Safety:** If a sprint with in_progress features exists, the hook warns but does not trigger auto-init.
 
 ---
 

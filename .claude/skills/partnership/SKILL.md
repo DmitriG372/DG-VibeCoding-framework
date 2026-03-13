@@ -1,6 +1,6 @@
 ---
 name: partnership
-description: "CC + CX equal partnership coordination. Activates when mentioning Codex, CX, partnership, handoff, worktree, dual-agent, peer review, or task board."
+description: "CC + CX equal partnership coordination. Activates when mentioning Codex, CX, partnership, handoff, worktree, dual-agent, peer review, or sprint."
 ---
 
 # Partnership Skill
@@ -9,22 +9,30 @@ description: "CC + CX equal partnership coordination. Activates when mentioning 
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  EQUAL PARTNERSHIP MODEL (v4.0.0)                           │
+│  EQUAL PARTNERSHIP MODEL (v5.0.0)                           │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
 │  CC (Claude Code)              CX (Codex)                   │
 │  ┌─────────────────┐          ┌─────────────────┐          │
 │  │ • Interactive    │          │ • Headless       │          │
 │  │ • Reasoning      │ <─────> │ • Volume          │          │
-│  │ • Design         │ .tasks/ │ • Autonomous      │          │
-│  │ • Exploration    │  board  │ • Parallel         │          │
+│  │ • Design         │ sprint  │ • Autonomous      │          │
+│  │ • Exploration    │  .json  │ • Parallel         │          │
 │  └─────────────────┘          └─────────────────┘          │
 │                                                             │
 │  Both are EQUAL partners. Neither is subordinate.           │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-> **Core Principle:** Two agents, different strengths, shared context via PROJECT.md and .tasks/board.md
+> **Core Principle:** Two agents, different strengths, shared context via PROJECT.md and sprint/sprint.json
+
+## Agent Identity Detection
+
+Identity is determined by the entry point file loaded at session start:
+- `CLAUDE.md` → agent is **CC**, branch prefix `cc/`
+- `AGENTS.md` → agent is **CX**, branch prefix `cx/`
+
+No manual configuration needed. Branch naming is symmetric: `cc/FXXX-slug` and `cx/FXXX-slug`.
 
 ## When to Use Which Partner
 
@@ -33,7 +41,7 @@ description: "CC + CX equal partnership coordination. Activates when mentioning 
 | Interactive UI design | CC | Needs user dialogue, iteration |
 | Large refactor (10+ files) | CX | Volume, autonomous execution |
 | Bug investigation | CC | Reasoning, exploration, tools |
-| Bulk implementation | CX | Headless, parallel in worktree |
+| Bulk implementation | CX | Headless, parallel execution |
 | Architecture decisions | CC | Ambiguity, trade-offs, user input |
 | Test generation | CX | Repetitive, pattern-based |
 | Code review | Either | `/peer-review` works both ways |
@@ -43,8 +51,9 @@ description: "CC + CX equal partnership coordination. Activates when mentioning 
 
 ## Worktree Pattern
 
-CX works in a separate git worktree to avoid conflicts:
+Worktree usage is **optional** — determined by `branch_strategy` in sprint.json.
 
+### When using worktrees
 ```
 project/                          ← CC works here (main worktree)
 ../project-wt-cx-<branch>/       ← CX works here (separate worktree)
@@ -53,38 +62,41 @@ project/                          ← CC works here (main worktree)
 ### Setup
 ```bash
 # From project root:
-scripts/worktree-setup.sh cx/<task-slug>
+scripts/worktree-setup.sh cx/FXXX-<slug>
 ```
 
 ### Cleanup
 ```bash
 # After merge:
-scripts/worktree-cleanup.sh cx/<task-slug>
+scripts/worktree-cleanup.sh cx/FXXX-<slug>
 ```
+
+### When NOT using worktrees
+Both agents work on separate branches in the same repo. Branch strategy is defined per-sprint in sprint.json.
 
 ## Handoff Protocol
 
-### CC → CX (giving task to CX)
+### CC → CX (giving feature to CX)
 
-1. Define task clearly in `.tasks/board.md`
-2. Assign to CX section
-3. Create branch and worktree: `scripts/worktree-setup.sh cx/<slug>`
-4. Start CX: `cd ../<project>-wt-cx-<slug>/ && codex --full-auto`
+1. Define feature in `sprint/sprint.json` via `/sprint-init`
+2. Assign feature to CX (`assigned_to: "cx"`)
+3. Optionally create worktree: `scripts/worktree-setup.sh cx/FXXX-<slug>`
+4. Start CX: `codex --full-auto` (CX reads sprint.json for its assignments)
 
 Use `/handoff` command for automated workflow.
 
 ### CX → CC (returning work)
 
-1. CX moves task to "In Review" in board.md
-2. CX commits all changes to `cx/<slug>` branch
-3. CC reviews: `/peer-review cx/<slug>`
+1. CX uses `/done` command — updates feature status to `in_review` in sprint.json
+2. CX commits all changes to `cx/FXXX-<slug>` branch
+3. CC reviews: `/peer-review cx/FXXX-<slug>`
 4. CC merges or requests changes
 
 ## Peer Review
 
 Either agent can review the other's work:
 
-- **CC reviews CX:** `/peer-review cx/<branch>` — interactive review with user
+- **CC reviews CX:** `/peer-review cx/FXXX-<branch>` — interactive review with user
 - **CX reviews CC:** `/peer-review --headless` — automated headless review
 
 Review uses the same 17/35-point checklist regardless of reviewer.
@@ -124,41 +136,38 @@ CC can invoke headless review within the same session:
 cd ../<project>-wt-cx-<branch>/
 codex --full-auto
 
-# With specific task from board
-codex exec --full-auto "Read .tasks/board.md, complete task assigned to CX"
+# With specific feature from sprint
+codex exec --full-auto "Read sprint/sprint.json, complete features assigned to CX"
 ```
 
-## Task Board Coordination
+## Sprint Coordination
 
-**File:** `.tasks/board.md`
+**File:** `sprint/sprint.json`
 
-### Sections
-- **Backlog** — Unassigned tasks
-- **Assigned to: CC** — CC's current work
-- **Assigned to: CX** — CX's current work
-- **In Review** — Completed, awaiting peer review
-- **Completed** — Done and merged
-
-### Task Flow
+### Feature States
 ```
-Backlog → Assigned (CC or CX) → In Review → Completed
+todo → in_progress → in_review → completed
 ```
+
+### Assignment
+- Features have `assigned_to: "cc"` or `assigned_to: "cx"`
+- CC controls feature assignment (user decides routing)
+- One active feature per agent recommended (focus)
 
 ### Rules
-- One task per agent at a time (focus)
-- Always update board.md when status changes
-- Include TASK-ID in commits: `feat(TASK-001): description`
-- CC controls task assignment (user decides routing)
+- Always use `/done` command to update feature status
+- Include feature ID in commits: `feat(F001): description`
+- sprint.md is auto-generated — never edit directly
 
 ## Integration with Commands
 
 | Command | Purpose |
 |---------|---------|
-| `/handoff` | Assign task to CX, setup worktree |
+| `/handoff` | Assign feature to CX, optionally setup worktree |
 | `/peer-review` | Review partner's work |
-| `/sync-tasks` | Show board status and branches |
+| `/sprint-status` | Show sprint state and branches |
 | `/orchestrate` | Multi-agent routing (includes CX) |
 
 ---
 
-*DG-VibeCoding-Framework v4.0.0 — Equal Partnership Model*
+*DG-VibeCoding-Framework v5.0.0 — Equal Partnership Model*

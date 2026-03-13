@@ -29,8 +29,8 @@ Coordinate complex tasks that require multiple specialist agents.
    | Security | security-specialist | reviewer | |
    | UI work | frontend-specialist | implementer | |
    | API work | backend-specialist | database-specialist | |
-   | Large volume implementation | CX (Codex) | worktree | Parallel via /handoff |
-   | Background refactor | CX (Codex) | worktree | /handoff |
+   | Large volume | Either | assign via /feature or /handoff | |
+   | Background refactor | Either | /handoff | |
 
 4. **Create execution plan:**
    - List phases in order
@@ -245,5 +245,5 @@ TaskOutput: <task_id>
 
 ---
 
-*Part of DG-VibeCoding-Framework v4.0.0*
+*Part of DG-VibeCoding-Framework v5.0.0*
 *Parallel execution + Ctrl+B backgrounding from CC 2.1.0*

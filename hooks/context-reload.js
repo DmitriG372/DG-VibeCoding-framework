@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// DG-VibeCoding-Framework v4.1.0 — Context Reload Hook
+// DG-VibeCoding-Framework v5.0.0 — Context Reload Hook
 // Recovers project context after session compaction.
 // Triggered by SessionStart with matcher "compact".
 // Outputs JSON to stdout with additionalContext for Claude.
@@ -47,12 +47,6 @@ process.stdin.on('end', () => {
         }
       }
 
-      // --- Task board ---
-      if (snapshot.board) {
-        context += '--- TASK BOARD (.tasks/board.md) ---\n';
-        context += snapshot.board + '\n\n';
-      }
-
       // --- Git state ---
       if (snapshot.git) {
         context += '--- GIT STATE ---\n';
@@ -69,17 +63,37 @@ process.stdin.on('end', () => {
       // --- Sprint state ---
       if (snapshot.sprint) {
         context += '--- SPRINT STATE ---\n';
+        if (snapshot.sprint.sprint_id) {
+          context += `Sprint: ${snapshot.sprint.sprint_id}\n`;
+        }
         if (snapshot.sprint.current_feature) {
           context += `Current feature: ${snapshot.sprint.current_feature}\n`;
         }
+        if (snapshot.sprint.branch_strategy) {
+          context += `Branch strategy: ${snapshot.sprint.branch_strategy}\n`;
+        }
         if (snapshot.sprint.stats) {
-          context += `Stats: ${JSON.stringify(snapshot.sprint.stats)}\n`;
+          const s = snapshot.sprint.stats;
+          context += `Progress: ${s.completed || 0}/${s.total || 0} completed`;
+          if (s.in_progress > 0) context += `, ${s.in_progress} in progress`;
+          if (s.in_review > 0) context += `, ${s.in_review} in review`;
+          context += '\n';
+        }
+        // Show current feature details
+        if (snapshot.sprint.current_feature && snapshot.sprint.features) {
+          const cf = snapshot.sprint.features.find(f => f.id === snapshot.sprint.current_feature);
+          if (cf) {
+            context += `Feature ${cf.id}: ${cf.name} (${cf.status})`;
+            if (cf.assigned_to) context += ` [assigned: ${cf.assigned_to}]`;
+            if (cf.branch) context += ` [branch: ${cf.branch}]`;
+            context += '\n';
+          }
         }
         context += '\n';
       }
 
       context += '=== END RECOVERY ===\n\n';
-      context += 'MANDATORY: Read PROJECT.md and .tasks/board.md NOW to refresh full context.\n';
+      context += 'MANDATORY: Read PROJECT.md and sprint/sprint.json NOW to refresh full context.\n';
 
       process.stderr.write('🔄 Context recovered from pre-compaction snapshot\n');
     } else {
@@ -99,7 +113,7 @@ process.stdin.on('end', () => {
         context += `Recent commits:\n${log}\n`;
       }
       context += '\n=== END RECOVERY ===\n\n';
-      context += 'MANDATORY: Read PROJECT.md and .tasks/board.md NOW to refresh full context.\n';
+      context += 'MANDATORY: Read PROJECT.md and sprint/sprint.json NOW to refresh full context.\n';
       context += '(No pre-compaction snapshot was found — context may be incomplete.)\n';
 
       process.stderr.write('⚠️ No snapshot found, providing basic git context\n');
@@ -120,7 +134,7 @@ process.stdin.on('end', () => {
     const fallback = {
       hookSpecificOutput: {
         hookEventName: 'SessionStart',
-        additionalContext: 'Context recovery failed. MANDATORY: Read PROJECT.md and .tasks/board.md NOW.',
+        additionalContext: 'Context recovery failed. MANDATORY: Read PROJECT.md and sprint/sprint.json NOW.',
       },
     };
     process.stdout.write(JSON.stringify(fallback));

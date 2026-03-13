@@ -1,5 +1,5 @@
 #!/bin/bash
-# DG-VibeCoding-Framework v4.0.0 - Project Setup Script
+# DG-VibeCoding-Framework v5.0.0 - Project Setup Script
 # Usage: ./setup-project.sh /path/to/your/project
 
 set -e
@@ -16,7 +16,7 @@ FRAMEWORK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="${1:-.}"
 
 # Read version
-VERSION=$(cat "$FRAMEWORK_DIR/VERSION" 2>/dev/null || echo "4.0.0")
+VERSION=$(cat "$FRAMEWORK_DIR/VERSION" 2>/dev/null || echo "5.0.0")
 
 echo -e "${BLUE}╔════════════════════════════════════════════════════╗${NC}"
 echo -e "${BLUE}║  DG-VibeCoding-Framework v${VERSION} - Project Setup      ║${NC}"
@@ -106,14 +106,14 @@ cp "$FRAMEWORK_DIR/templates/project-init/AGENTS.md" "$PROJECT_DIR/AGENTS.md"
 echo -e "  ${GREEN}✓${NC} AGENTS.md"
 
 # ─────────────────────────────────────────────────────────────
-# 7. Create .tasks/board.md
+# 7. Create sprint directory with template
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[7/8] Creating task board...${NC}"
+echo -e "${YELLOW}[7/8] Creating sprint directory...${NC}"
 
-mkdir -p "$PROJECT_DIR/.tasks"
-cp "$FRAMEWORK_DIR/templates/tasks-board.template.md" "$PROJECT_DIR/.tasks/board.md"
+mkdir -p "$PROJECT_DIR/sprint"
+cp "$FRAMEWORK_DIR/templates/sprint.template.json" "$PROJECT_DIR/sprint/sprint.json"
 
-echo -e "  ${GREEN}✓${NC} .tasks/board.md"
+echo -e "  ${GREEN}✓${NC} sprint/sprint.json (template — run /sprint-init to populate)"
 
 # ─────────────────────────────────────────────────────────────
 # 8. Copy worktree scripts
@@ -141,27 +141,29 @@ echo ""
 echo -e "${YELLOW}Next steps:${NC}"
 echo "  1. Edit PROJECT.md with your project details"
 echo "  2. Run 'cd $PROJECT_DIR && claude' to start"
+echo "  3. Use Plan Mode to create a plan → auto-triggers /sprint-init"
 echo ""
 echo -e "${YELLOW}Core commands:${NC}"
-echo "  /feature         - Start new feature"
-echo "  /done            - Complete (test + commit)"
-echo "  /review          - Code review"
-echo "  /fix             - Fix issues"
-echo "  /orchestrate     - Multi-agent workflow"
-echo "  /handoff         - Hand off task to CX"
-echo "  /peer-review     - Peer code review"
-echo "  /sync-tasks      - Task board status"
+echo "  /sprint-init      - Initialize sprint from plan"
+echo "  /feature          - Start new feature"
+echo "  /done             - Complete (test + commit)"
+echo "  /review           - Code review"
+echo "  /fix              - Fix issues"
+echo "  /orchestrate      - Multi-agent workflow"
+echo "  /handoff          - Hand off task to partner"
+echo "  /peer-review      - Peer code review"
+echo "  /sprint-status    - Sprint state and branches"
 echo "  /framework-update - Check updates"
 echo ""
 echo -e "${YELLOW}Structure:${NC}"
 echo "  $PROJECT_DIR/"
-echo "  ├── PROJECT.md           # Project context"
-echo "  ├── CLAUDE.md            # CC rules"
-echo "  ├── AGENTS.md            # CX rules"
-echo "  ├── .tasks/board.md      # Shared task board"
+echo "  ├── PROJECT.md           # Project context (single source of truth)"
+echo "  ├── CLAUDE.md            # CC entry point"
+echo "  ├── AGENTS.md            # CX entry point"
+echo "  ├── sprint/sprint.json   # Sprint state (shared CC + CX)"
 echo "  ├── .claude/commands/    # Slash commands"
 echo "  ├── .claude/skills/      # Auto-activated skills"
 echo "  ├── .claude/agents/      # Agent definitions"
 echo "  ├── scripts/             # Worktree scripts"
-echo "  └── hooks/               # Validation hooks"
+echo "  └── hooks/               # Automation hooks"
 echo ""

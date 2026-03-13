@@ -1,5 +1,5 @@
 ---
-description: Manually refresh project context (rules, tasks, git state)
+description: Manually refresh project context (rules, sprint, git state)
 allowed-tools:
   - Read
   - Bash
@@ -34,17 +34,17 @@ If `PROJECT.md` doesn't exist:
 ⚠️ No PROJECT.md found. This project may not use DG-VibeCoding-Framework.
 ```
 
-### Step 2: Load Task Board
+### Step 2: Load Sprint State
 
 ```
-Read: .tasks/board.md
+Read: sprint/sprint.json
 ```
 
-Note active tasks, assignments (CC/CX), and review status.
+Note active features, assignments, current feature, and sprint progress.
 
-If `.tasks/board.md` doesn't exist:
+If `sprint/sprint.json` doesn't exist:
 ```
-ℹ️ No task board found. Skipping task state.
+ℹ️ No sprint found. Skipping sprint state.
 ```
 
 ### Step 3: Review Git State
@@ -74,11 +74,11 @@ If missing, note that no pre-compaction snapshot is available.
 - Key rules: [list top 3-5 rules]
 - Patterns: [list active patterns]
 
-### Task State
-- Board: .tasks/board.md ✅ / ❌
-- Active CC tasks: [count]
-- Active CX tasks: [count]
-- In review: [count]
+### Sprint State
+- Sprint: sprint/sprint.json ✅ / ❌
+- Current feature: [feature or none]
+- Progress: X/Y completed
+- In progress: [count]
 
 ### Git State
 - Branch: [current branch]
@@ -97,7 +97,7 @@ If missing, note that no pre-compaction snapshot is available.
 
 - **Read-only** — does not modify any files
 - Always read PROJECT.md first (single source of truth)
-- Board.md contains ONLY task state, never rules
+- sprint/sprint.json contains ONLY sprint state, never rules
 - Report what was loaded and what was missing
 
 ## Output
@@ -108,4 +108,4 @@ If missing, note that no pre-compaction snapshot is available.
 
 ---
 
-*DG-VibeCoding-Framework v4.1.0 — Context Robustness*
+*DG-VibeCoding-Framework v5.0.0 — Context Robustness*

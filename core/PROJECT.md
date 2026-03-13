@@ -141,10 +141,10 @@ Types: feat, fix, refactor, docs, test, chore
 
 ## Agent Coordination
 
-Task board: `.tasks/board.md`
-- CC works in main worktree (interactive)
-- CX works in `../<project>-wt-cx-<branch>/` (background/headless)
+Sprint state: `sprint/sprint.json` (detailed state managed by /sprint-init)
+- CC and CX are equal partners, branch strategy is per-sprint
 - Both read PROJECT.md for context
+- Agent identity: CLAUDE.md → cc, AGENTS.md → cx
 
 ---
 

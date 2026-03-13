@@ -1,5 +1,5 @@
 ---
-description: Hand off a task to CX (Codex) partner
+description: Hand off a feature to the partner agent
 context: fork
 allowed-tools:
   - Bash
@@ -11,138 +11,191 @@ allowed-tools:
 
 # /handoff
 
-Hand off a task to CX (Codex) for autonomous implementation in a separate worktree.
+Hand off a feature to the partner agent for implementation. Either agent can hand off to the other.
 
-> **Philosophy:** CC and CX are equal partners. Use `/handoff` to delegate tasks that suit CX's strengths (volume, repetitive, autonomous).
+> **Philosophy:** CC and CX are equal partners. Use `/handoff` to delegate features that suit the partner's strengths.
 
 ## Usage
 
 ```
-/handoff <task description>
+/handoff <F-ID or feature description>
+/handoff F003
 /handoff "Implement CRUD endpoints for products API"
 /handoff "Add unit tests for all service files"
-/handoff "Migrate CSS modules to Tailwind"
 ```
 
-## Your Task
+## Instructions
+
+### Step 0: Detect Agent Identity
+
+Determine which agent you are:
+- If context loaded from CLAUDE.md → agent = "cc"
+- If context loaded from AGENTS.md → agent = "cx"
+- Fallback: ask user
+
+Store as `$AGENT_ID`. Determine target agent:
+- If `$AGENT_ID == "cc"` → `$TARGET_AGENT = "cx"`
+- If `$AGENT_ID == "cx"` → `$TARGET_AGENT = "cc"`
 
 ### Step 1: Read Context
 
 ```
 Read: PROJECT.md
-Read: .tasks/board.md (create if missing)
+Read: sprint/sprint.json
 ```
 
-### Step 2: Analyze Task
+If `sprint/sprint.json` doesn't exist, prompt: "Run /sprint-init first."
 
-Determine if the task is suitable for CX:
+### Step 2: Analyze and Validate
 
-| Good for CX | Not for CX |
-|-------------|-----------|
+Determine if the task is suitable for the target agent:
+
+| Good for partner | Not for partner |
+|-----------------|----------------|
 | Bulk implementation | Interactive design |
 | Test generation | Architecture decisions |
 | Migration/refactor | Ambiguous requirements |
 | Documentation | Debugging unknown issues |
 | Pattern-based coding | User-facing prototyping |
 
-If NOT suitable for CX, explain why and suggest keeping it for CC.
+If NOT suitable, explain why and suggest keeping it for the current agent.
 
-### Step 3: Generate Task Entry
+### Step 3: Feature Selection
 
-Create a TASK-ID (increment from last in board.md):
+Interpret `$ARGUMENTS`:
 
-```markdown
-- [ ] [TASK-XXX] $ARGUMENTS — assigned: CX — branch: cx/<slug>
-```
+**Case A: F-ID provided** (e.g., `F003`)
+- Find the feature in sprint.json
+- Verify it is `pending` or reassignable (not `done`)
 
-### Step 4: Update Task Board
+**Case B: Description provided** (e.g., `"Add unit tests for all service files"`)
+- Create a NEW feature entry in sprint.json
+- Auto-generate the next sequential F-ID
+- Parse description into feature fields:
+  - `name`: Short English slug
+  - `description`: Full description from arguments
+  - `acceptance_criteria`: Generate 2-4 testable criteria based on description
+  - `complexity`: Estimate from description scope
+  - `status`: `"pending"`
+- Add the new feature to the `features` array
+- Update `stats.total` and `stats.pending`
 
-Add the task to `.tasks/board.md` under "Assigned to: CX" section.
+### Step 4: Assign to Target Agent
 
-If `.tasks/board.md` doesn't exist, create it from template:
+Update the feature in sprint.json:
+- Set `assigned_to: "$TARGET_AGENT"`
+- Generate branch name: `$TARGET_AGENT/<feature-id>-<slug>` (e.g., `cx/F003-crud-endpoints`)
+- Set `feature.branch: "<branch-name>"`
+- Set `last_updated_by: "$AGENT_ID"`
+- Set `last_updated` to current ISO timestamp
+- Update stats
 
-```markdown
-# Task Board
+### Step 5: Branch/Worktree Setup
 
-> Shared between CC (Claude Code) and CX (Codex). Update after completing tasks.
+Read `branch_strategy` from sprint.json:
 
-## Backlog
-
-## Assigned to: CC
-
-## Assigned to: CX
-- [ ] [TASK-001] $ARGUMENTS — branch: cx/<slug>
-
-## In Review
-
-## Completed
-```
-
-### Step 5: Create Branch and Worktree
-
-Generate a slug from the task description (lowercase, hyphens, max 30 chars):
-
+**If `branch_strategy == "main"`:**
 ```bash
-# Create worktree
-PROJECT_NAME=$(basename "$(pwd)")
-BRANCH="cx/<slug>"
-scripts/worktree-setup.sh "$BRANCH"
+BRANCH="$TARGET_AGENT/<feature-id>-<slug>"
+git branch "$BRANCH" 2>/dev/null || true
 ```
+Create the branch but do NOT switch to it (the target agent will check it out).
 
-If `scripts/worktree-setup.sh` doesn't exist, run manually:
-
+**If `branch_strategy == "worktree"`:**
 ```bash
-BRANCH="cx/<slug>"
 PROJECT_NAME=$(basename "$(pwd)")
-WT_DIR="../${PROJECT_NAME}-wt-${BRANCH}"
+BRANCH="$TARGET_AGENT/<feature-id>-<slug>"
+WT_DIR="../${PROJECT_NAME}-wt-${BRANCH//\//-}"
 git worktree add "$WT_DIR" -b "$BRANCH" 2>/dev/null || git worktree add "$WT_DIR" "$BRANCH"
 ```
 
-### Step 6: Output Summary
+### Step 6: Update sprint.json
 
-```markdown
-## Handoff Complete
+Write the updated sprint.json with all changes from Steps 3-5.
 
-**Task:** [TASK-XXX] $ARGUMENTS
-**Branch:** cx/<slug>
-**Worktree:** ../<project>-wt-cx-<slug>/
+### Step 7: Show Handoff Summary
 
-### Start CX
+Display the handoff result and launch instructions for the target agent.
 
-```bash
-cd ../<project>-wt-cx-<slug>/
+## Output Format
+
+```
+╔══════════════════════════════════════════════════╗
+║  Handoff: F003 -> $TARGET_AGENT                  ║
+╚══════════════════════════════════════════════════╝
+
+From: $AGENT_ID
+To:   $TARGET_AGENT
+
+Feature: F003 - CRUD endpoints
+Branch:  cx/F003-crud-endpoints
+Strategy: main
+
+Acceptance Criteria:
+  - GET /products returns paginated list
+  - POST /products creates new product
+  - PUT /products/:id updates product
+  - DELETE /products/:id removes product
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Start $TARGET_AGENT:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+### Launch Instructions by Strategy
+
+**main strategy:**
+```
+# If target is CX:
+cd <project-root>
 codex --full-auto
+
+# If target is CC:
+cd <project-root>
+claude
 ```
 
-### After CX Completes
-
-```bash
-# Review CX's work
-/peer-review cx/<slug>
-
-# Check task status
-/sync-tasks
+**worktree strategy:**
 ```
+# If target is CX:
+cd ../<project>-wt-cx-F003-crud-endpoints/
+codex --full-auto
+
+# If target is CC:
+cd ../<project>-wt-cc-F003-feature-name/
+claude
+```
+
+### After Partner Completes
+
+```
+# Review partner's work
+/peer-review $TARGET_AGENT/<feature-id>-<slug>
+
+# Check sprint status
+cat sprint/sprint.json
 ```
 
 ## Rules
 
 - ALWAYS read PROJECT.md first
-- ALWAYS update .tasks/board.md
-- NEVER assign ambiguous tasks to CX — clarify first
+- ALWAYS update sprint.json with the handoff
+- NEVER assign ambiguous tasks -- clarify first
 - NEVER hand off tasks that require user interaction
-- ALWAYS create a separate branch for CX
+- ALWAYS create a branch for the target agent
+- Feature descriptions can create NEW features dynamically
+- Agent identity is symmetric: either agent can hand off to the other
 
 ## Input
 
-$ARGUMENTS — Task description for CX
+$ARGUMENTS -- Feature ID (e.g., F003) or feature description for the target agent
 
 ## Output
 
-- Updated .tasks/board.md
-- New branch and worktree
-- CX launch instructions
+- Updated sprint/sprint.json
+- New branch (and worktree if applicable)
+- Target agent launch instructions
 
 ---
 
-*DG-VibeCoding-Framework v4.0.0 — Equal Partnership*
+*Part of DG-VibeCoding-Framework v5.0.0 -- Equal Partnership*

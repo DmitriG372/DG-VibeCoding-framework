@@ -1,4 +1,4 @@
-# DG-VibeCoding-Framework v4.0.0 — Kasutusjuhend
+# DG-VibeCoding-Framework v5.0.0 — Kasutusjuhend
 
 > Equal Partnership Model — CC + CX kui võrdsed partnerid
 
@@ -13,28 +13,30 @@ CC (Claude Code)                    CX (Codex)
 ┌──────────────────┐              ┌──────────────────┐
 │ Interaktiivne    │  PROJECT.md  │ Headless          │
 │ Disain, UX       │◄───────────►│ Masstöö           │
-│ Arhitektuur      │  .tasks/     │ Autonoomne        │
-│ Kasutajadialoog  │  board.md    │ Paralleelne       │
+│ Arhitektuur      │  sprint/    │ Autonoomne        │
+│ Kasutajadialoog  │  sprint.json│ Paralleelne       │
 └──────────────────┘              └──────────────────┘
 ```
 
 **Koosseisus:**
 
-| Komponent | Arv | Kirjeldus |
-|-----------|-----|-----------|
-| Skills | 5 | debugging, testing, git, vibecoding, partnership |
-| Commands | 12 | /sprint-init, /feature, /done, /review, /fix, /orchestrate, /peer-review, /handoff, /sync-tasks, /context-refresh, /sync-notebook, /framework-update |
-| Agents | 5 | orchestrator, implementer, reviewer, tester, debugger |
-| Hooks | 3 | git-context, block-env, type-check |
-| Scripts | 5 | worktree-setup, worktree-cleanup, headless-review, init-project, migrate-skills |
+| Komponent | Arv | Kirjeldus                                                                                                                                                |
+| --------- | --- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Skills    | 5   | debugging, testing, git, vibecoding, partnership                                                                                                         |
+| Commands  | 12  | /sprint-init, /feature, /done, /review, /fix, /orchestrate, /peer-review, /handoff, /sprint-status, /context-refresh, /sync-notebook, /framework-update |
+| Agents    | 5   | orchestrator, implementer, reviewer, tester, debugger                                                                                                    |
+| Hooks     | 3   | git-context, block-env, type-check                                                                                                                       |
+| Scripts   | 5   | worktree-setup, worktree-cleanup, headless-review, init-project, migrate-skills                                                                          |
 
 **Kolm võtmefaili igas projektis:**
 
-| Fail | Roll |
-|------|------|
+| Fail           | Roll                                              |
+| -------------- | ------------------------------------------------- |
 | `PROJECT.md` | Single source of truth — stack, mustrid, reeglid |
-| `CLAUDE.md` | CC (Claude Code) sisenemispunkt ja reeglid |
-| `AGENTS.md` | CX (Codex) sisenemispunkt ja reeglid |
+| `CLAUDE.md`  | CC (Claude Code) sisenemispunkt ja reeglid        |
+| `AGENTS.md`  | CX (Codex) sisenemispunkt ja reeglid              |
+
+Sprint state hoitakse `sprint/sprint.json` failis.
 
 ---
 
@@ -42,15 +44,15 @@ CC (Claude Code)                    CX (Codex)
 
 ### 2.1 Millal kasutada CC-d, millal CX-i?
 
-| Ülesanne | Partner | Miks | Reaalne näide |
-|----------|---------|------|---------------|
-| Interaktiivne disain | **CC** | Vajab kasutajadialoogi | melior-plus-mvp: Vue 3 komponentide prototüüpimine kasutajaga |
-| Suur refaktoreerimine (10+ faili) | **CX** | Maht, autonoomne täitmine | lightning-wizard: NestJS moodulite migreerimine |
-| Vea uurimine | **CC** | Arutlus, uurimine, tööriistade kasutus | project-aiks: miks skoorimismootor andis vale tulemuse |
-| Massiline implementeerimine | **CX** | Headless, paralleelne worktree's | melior-plus-mvp: CRUD endpointide genereerimine |
-| Arhitektuuriotsused | **CC** | Mitmeti tõlgendatav, vajab kaalutlust | project-aiks: "LLM as Extractor" vs "LLM as Judge" otsus |
-| Testide genereerimine | **CX** | Korduv, mustripõhine | tktk-asistant: Pandoc integratsioonitestide kirjutamine |
-| Koodi review | **Mõlemad** | /peer-review töötab mõlemat pidi | CC reviewb CX tööd ja vastupidi |
+| Ülesanne                         | Partner            | Miks                                     | Reaalne näide                                                  |
+| --------------------------------- | ------------------ | ---------------------------------------- | --------------------------------------------------------------- |
+| Interaktiivne disain              | **CC**       | Vajab kasutajadialoogi                   | melior-plus-mvp: Vue 3 komponentide prototüüpimine kasutajaga |
+| Suur refaktoreerimine (10+ faili) | **CX**       | Maht, autonoomne täitmine               | lightning-wizard: NestJS moodulite migreerimine                 |
+| Vea uurimine                      | **CC**       | Arutlus, uurimine, tööriistade kasutus | project-aiks: miks skoorimismootor andis vale tulemuse          |
+| Massiline implementeerimine       | **CX**       | Headless, paralleelne worktree's         | melior-plus-mvp: CRUD endpointide genereerimine                 |
+| Arhitektuuriotsused               | **CC**       | Mitmeti tõlgendatav, vajab kaalutlust   | project-aiks: "LLM as Extractor" vs "LLM as Judge" otsus        |
+| Testide genereerimine             | **CX**       | Korduv, mustripõhine                    | tktk-asistant: Pandoc integratsioonitestide kirjutamine         |
+| Koodi review                      | **Mõlemad** | /peer-review töötab mõlemat pidi      | CC reviewb CX tööd ja vastupidi                               |
 
 ### 2.2 Töövoog: Solo (ainult CC)
 
@@ -73,6 +75,7 @@ CC loeb PROJECT.md
 ```
 
 **Reaalne näide (melior-plus-mvp):**
+
 ```
 /feature F012              ← "Lisa RLS policy tabelile projects"
 CC loeb PROJECT.md → leiab Vue 3 + Supabase stack
@@ -89,33 +92,32 @@ Kui ülesanne on suur ja jagatav.
 ```
 CC: /handoff "Implementeeri 8 API endpointi"
     ↓
-CX saab worktree + branch cx/add-api-endpoints
+CX saab branch cx/F003-add-api-endpoints
     ↓
 CC: [töötab paralleelselt teisel ülesandel]
-CX: [autonoomne implementeerimine worktree's]
+CX: [autonoomne implementeerimine]
     ↓
-CX: liigutab taski "In Review"
+CX: märgib feature "done" sprint.json's
     ↓
-CC: /peer-review cx/add-api-endpoints
+CC: /peer-review cx/F003-add-api-endpoints
     ↓
 CC: merge või tagasiside
 ```
 
 **Reaalne näide (project-aiks):**
+
 ```
 CC: /handoff "Genereeri unit testid kõigile src/scoring/ failidele"
 
-→ Luuakse: cx/add-scoring-tests branch
-→ Luuakse: ../project-aiks-wt-cx-add-scoring-tests/ worktree
-→ board.md uuendatakse
+→ Luuakse: cx/F005-add-scoring-tests branch
+→ sprint.json uuendatakse
 
 CX käivitatakse:
-  cd ../project-aiks-wt-cx-add-scoring-tests/
   codex --full-auto
 
-CX kirjutab 109 testi, liigutab taski "In Review"
+CX kirjutab 109 testi, märgib feature "done"
 
-CC: /peer-review cx/add-scoring-tests
+CC: /peer-review cx/F005-add-scoring-tests
 → Skoor: 16/17 (PASS)
 → Merge main'i
 ```
@@ -132,6 +134,7 @@ CC: /peer-review --headless --tool codex    ← Codex'iga
 ```
 
 **Reaalne näide (melior-plus-mvp):**
+
 ```
 CC: /peer-review --headless --full src/composables/
 
@@ -181,6 +184,7 @@ Debugger agent:
 ### 3a. Kuidas alustada uut projekti
 
 **Eeltingimused:**
+
 - Framework kloonitud: `git clone https://github.com/DmitriG372/DG-VibeCoding-framework.git`
 - Claude Code installitud
 - (Valikuline) Codex installitud
@@ -199,6 +203,7 @@ git init
 ```
 
 See loob:
+
 ```
 my-new-project/
 ├── PROJECT.md          ← Täida oma projekti infoga!
@@ -256,7 +261,7 @@ Lisa projekti-spetsiifilised reeglid CC jaoks. Näiteks:
 ## Session Start
 1. Read PROJECT.md
 2. Run `pnpm typecheck` to verify state
-3. Check .tasks/board.md for active tasks
+3. Check sprint/sprint.json for active features
 
 ## Project Rules
 - Use Zod schemas for ALL user input
@@ -265,7 +270,7 @@ Lisa projekti-spetsiifilised reeglid CC jaoks. Näiteks:
 
 #### Samm 4: Kohanda AGENTS.md
 
-AGENTS.md on juba v4.0.0 formaadis (init-project kopeerib template'i). Lisa ainult projekti-spetsiifilised reeglid.
+AGENTS.md on juba v5.0.0 formaadis (init-project kopeerib template'i). Lisa ainult projekti-spetsiifilised reeglid.
 
 #### Samm 5: Seadista hookid (valikuline)
 
@@ -278,6 +283,7 @@ cp /path/to/framework/hooks/block-env.js hooks/
 ```
 
 Lisa `.claude/settings.json`:
+
 ```json
 {
   "hooks": {
@@ -287,31 +293,20 @@ Lisa `.claude/settings.json`:
 }
 ```
 
-#### Samm 6: Loo task board
+#### Samm 6: Initsialiseeri sprint
 
 ```bash
-mkdir -p .tasks
+# Kasuta /sprint-init käsku, et luua sprint/sprint.json
+/sprint-init Vaja: registreerimine, login API, JWT, rollid, login UI
 ```
 
-`.tasks/board.md`:
-```markdown
-# Task Board
-
-## Backlog
-- [ ] [TASK-001] Seadista projekt ja CI pipeline
-- [ ] [TASK-002] Implementeeri autentimine
-
-## Assigned to: CC
-## Assigned to: CX
-## In Review
-## Completed
-```
+See loob `sprint/sprint.json` faili automaatselt koos feature'ide ja aktsepteerimiskriteeriumidega.
 
 #### Samm 7: Esimene commit
 
 ```bash
 git add .
-git commit -m "feat: initialize project with DG-VibeCoding-Framework v4.0.0"
+git commit -m "feat: initialize project with DG-VibeCoding-Framework v5.0.0"
 ```
 
 **Valmis!** Ava Claude Code ja alusta tööd: `claude`
@@ -320,7 +315,7 @@ git commit -m "feat: initialize project with DG-VibeCoding-Framework v4.0.0"
 
 ### 3b. Kuidas migreerida olemasolev projekt
 
-**Näide: melior-plus-mvp v2.5 → v4.0.0 migratsioon**
+**Näide: melior-plus-mvp v4.x → v5.0.0 migratsioon**
 
 #### Samm 1: Varunda
 
@@ -331,47 +326,58 @@ git stash  # või commit uncommitted muudatused
 
 #### Samm 2: Uuenda AGENTS.md
 
-Asenda vana fail v4.0.0 struktuuriga. Põhimõte:
+Asenda vana fail v5.0.0 struktuuriga. Põhimõte:
 
-**Vana (v2.5 — CX kui alluv):**
-```markdown
-# Codex Code Review Agent
-> Roll: Range Code Auditor - kontrolli enne merge'i!
-```
+**Vana (v4.x — board.md põhine):**
 
-**Uus (v4.0.0 — CX kui partner):**
 ```markdown
-# Codex Rules — My Project (v4.0.0)
+# Codex Rules
 > Project details → PROJECT.md | Task board → .tasks/board.md
 
 ## Context Loading
 1. Read PROJECT.md first
 2. Read .tasks/board.md for tasks
 3. Work only on tasks assigned to CX
+```
 
-## Workflow (Before → During → After)
-## Task Board Protocol
-## Git Conventions (cx/ branch prefix)
-## Project-Specific Rules (SÄILITA VANA SISU!)
-## Rules (Always / Never)
+**Uus (v5.0.0 — sprint.json põhine):**
+
+```markdown
+# Codex Rules
+> Project details → PROJECT.md | Sprint → sprint/sprint.json
+
+## Context Loading
+1. Read PROJECT.md first
+2. Read sprint/sprint.json for assigned features
+3. Work only on features with assigned_to: "cx"
+
+## Workflow
+1. Read PROJECT.md for context
+2. Find your assigned features in sprint/sprint.json
+3. Implement on cx/FXXX-<slug> branch
+4. Run tests before marking complete
+5. Use /done to complete feature
 ```
 
 **Oluline:** Säilita kõik projekti-spetsiifilised reeglid (RLS, Composition API, jne). Muuda ainult struktuur ja rollimudel.
 
-#### Samm 3: Loo/uuenda .tasks/board.md
+#### Samm 3: Migreeeri .tasks/board.md → sprint/sprint.json
 
-Kui puudub, loo:
+Kui projektil on olemasolev `.tasks/board.md`, migreeeri see sprint.json formaati:
+
 ```bash
-mkdir -p .tasks
+mkdir -p sprint
+# Kasuta /sprint-init et luua uus sprint.json olemasolevate taskide põhjal
 ```
 
 #### Samm 4: Kontrolli CLAUDE.md
 
-Lisa SESSION START sektsioon mis loeb PROJECT.md.
+Lisa SESSION START sektsioon mis loeb PROJECT.md ja sprint/sprint.json.
 
 #### Samm 5: Uuenda framework.json (kui on)
 
 Lisa `review` blokk:
+
 ```json
 {
   "review": {
@@ -394,15 +400,9 @@ chmod +x scripts/*.sh
 #### Samm 7: Commit
 
 ```bash
-git add AGENTS.md .tasks/ scripts/
-git commit -m "chore(agents): upgrade to DG-VibeCoding-Framework v4.0.0 Equal Partnership"
+git add AGENTS.md sprint/ scripts/
+git commit -m "chore(agents): upgrade to DG-VibeCoding-Framework v5.0.0 Sprint-Based"
 ```
-
-**Reaalne migratsioon tehti 2026-02-12:**
-- melior-plus-mvp: v2.5 → v4.0.0 (170 → 106 rida)
-- project-aiks: auto-generated → v4.0.0 (45 → 147 rida)
-- tktk-asistant: vana mall → v4.0.0 (529 → 165 rida)
-- lightning-wizard: generic → v4.0.0 (363 → 147 rida)
 
 ---
 
@@ -419,6 +419,7 @@ claude
 ```
 
 CC teeb automaatselt:
+
 1. `hooks/git-context.js` laeb viimased 20 commit'i ja muudetud failid
 2. `hooks/block-env.js` aktiveerub .env failide kaitseks
 3. CC loeb `PROJECT.md` (skills aktiveeruvad automaatselt)
@@ -436,8 +437,8 @@ CC teeb automaatselt:
 # 1. Initsialiseeri sprint plaanist
 /sprint-init Vaja: registreerimine, login API, JWT, rollid, login UI
 
-# 2. Kontrolli task board'i seisu
-/sync-tasks
+# 2. Kontrolli sprindi seisu
+/sprint-status
 
 # 3. Vali feature
 /feature F001              # konkreetne feature
@@ -459,11 +460,10 @@ CC teeb automaatselt:
 /handoff "Implementeeri testid kõigile service failidele"
 
 # 3. CX käivitamine eraldi terminalis
-cd ../my-project-wt-cx-add-service-tests/
 codex --full-auto
 
 # 4. Kontrolli mõlema progressi
-/sync-tasks
+/sprint-status
 ```
 
 ---
@@ -488,6 +488,7 @@ codex --full-auto
 ```
 
 Kui testid ebaõnnestuvad:
+
 ```
 /done
 → ❌ Tests failed: 3 failures
@@ -499,14 +500,14 @@ Kui testid ebaõnnestuvad:
 #### CX töö lõpetamine
 
 ```bash
-# 1. CX liigutas taski "In Review" → CC saab teada
+# 1. CX märgib feature "done" sprint.json's → CC saab teada
 
 # 2. CC reviewb
-/peer-review cx/add-service-tests
+/peer-review cx/F003-add-service-tests
 
 # 3a. Kui PASS:
-git merge cx/add-service-tests
-scripts/worktree-cleanup.sh cx/add-service-tests
+git merge cx/F003-add-service-tests
+scripts/worktree-cleanup.sh cx/F003-add-service-tests
 
 # 3b. Kui NEEDS_CHANGES:
 # CC annab tagasiside → CX parandab → uus review
@@ -520,8 +521,8 @@ Enne sessiooni sulgemist:
 # 1. Kontrolli, et kõik on commititud
 git status
 
-# 2. Kontrolli task board'i
-/sync-tasks
+# 2. Kontrolli sprindi seisu
+/sprint-status
 
 # 3. Kui on pooleliolevaid CX töid:
 #    Ära sulge worktree'd — CX saab jätkata järgmises sessioonis
@@ -533,8 +534,8 @@ git push
 #### Sprindi lõpetamine
 
 ```bash
-# 1. Kontrolli, et kõik feature'd on "Completed"
-/sync-tasks
+# 1. Kontrolli, et kõik feature'd on "done"
+/sprint-status
 
 # 2. Viimane review
 /peer-review --headless --full .
@@ -545,8 +546,7 @@ git merge cx/branch-2
 scripts/worktree-cleanup.sh cx/branch-1
 scripts/worktree-cleanup.sh cx/branch-2
 
-# 4. Uuenda board.md
-# Liiguta kõik completed taskid arhiivi või kustuta
+# 4. sprint.json näitab kõik feature'd "done" staatuses
 
 # 5. Lõpp-commit
 git add .
@@ -560,14 +560,14 @@ git push
 
 ### Kiirviited
 
-| Olukord | Käsk | Tulemus |
-|---------|------|---------|
-| "Mis toimub?" | `/sync-tasks` | Näed kõiki taskid, branche, worktree'sid |
-| "Kiire review" | `/peer-review --headless` | Automaatne JSON raport 30 sekundiga |
-| "Suur töö CX-ile" | `/handoff "kirjeldus"` | Branch + worktree + task automaatselt |
-| "Viga!" | `/fix "kirjeldus"` | Debugger agent uurib süsteemselt |
-| "Uus sprint" | `/sprint-init` | Loob sprint.json plaanist automaatselt |
-| "Kuidas edasi?" | `/feature` | Võtab järgmise pending feature |
+| Olukord             | Käsk                       | Tulemus                                    |
+| ------------------- | --------------------------- | ------------------------------------------ |
+| "Mis toimub?"       | `/sprint-status`          | Näed kõiki feature'id ja nende staatust   |
+| "Kiire review"      | `/peer-review --headless` | Automaatne JSON raport 30 sekundiga        |
+| "Suur töö CX-ile" | `/handoff "kirjeldus"`    | Branch + worktree + task automaatselt      |
+| "Viga!"             | `/fix "kirjeldus"`        | Debugger agent uurib süsteemselt          |
+| "Uus sprint"        | `/sprint-init`            | Loob sprint.json plaanist automaatselt     |
+| "Kuidas edasi?"     | `/feature`                | Võtab järgmise pending feature           |
 
 ### Review tööriista valimine
 
@@ -581,6 +581,7 @@ Vali `framework.json` → `review.tool`:
 - **codex** — alternatiivne vaatenurk, vajab OPENAI_API_KEY
 
 Saab ka ad-hoc üle kirjutada:
+
 ```
 /peer-review --headless --tool codex src/
 ```
@@ -614,7 +615,7 @@ Parem lahendus — paranda tüübiviga enne commiti.
 
 Kui CC kaotab konteksti (session compaction):
 
-1. `/sync-tasks` — taastab task board'i seisu
+1. `/sprint-status` — taastab sprindi seisu
 2. `/feature` — taastab aktiivse feature sprint.json'ist
 3. `git log --oneline -10` — viimased commitid
 4. Hookid laevad git konteksti automaatselt
@@ -633,6 +634,7 @@ Pole alati vaja käsku — saad agenti otse kutsuda:
 ### Skill'ide debug
 
 Kui skill ei aktiveeru:
+
 1. Kontrolli kas fail on `SKILL.md` (mitte skill.md)
 2. Kontrolli kas kausta struktuur on `.claude/skills/nimi/SKILL.md`
 3. Kontrolli YAML frontmatter'i (peab olema `---` vahel)
@@ -694,5 +696,5 @@ fi
 
 ---
 
-*DG-VibeCoding-Framework v4.1.0 — Equal Partnership Model*
-*Kasutusjuhend v1.1 — 2026-02-22*
+*DG-VibeCoding-Framework v5.0.0 — Equal Partnership Model*
+*Kasutusjuhend v2.0 — 2026-03-13*

@@ -1,0 +1,33 @@
+{
+  "$schema": "sprint-v2",
+  "sprint_id": "S01",
+  "created": "",
+  "branch_strategy": "main",
+  "base_branch": "main",
+  "current_feature": null,
+  "features": [
+    {
+      "id": "F001",
+      "name": "",
+      "description": "",
+      "acceptance_criteria": [],
+      "complexity": "medium",
+      "status": "pending",
+      "assigned_to": null,
+      "branch": null,
+      "tested": false,
+      "git": { "hash": null, "message": null, "timestamp": null },
+      "completed_at": null,
+      "review": { "score": null, "verdict": null, "reviewer": null }
+    }
+  ],
+  "stats": {
+    "total": 0,
+    "pending": 0,
+    "in_progress": 0,
+    "in_review": 0,
+    "completed": 0
+  },
+  "last_updated": "",
+  "last_updated_by": null
+}

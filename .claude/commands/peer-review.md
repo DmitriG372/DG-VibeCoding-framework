@@ -29,6 +29,15 @@ Peer code review between CC and CX. Either partner can review the other's work.
 
 ## Your Task
 
+### Step 0: Detect Agent Identity
+
+Determine which agent you are:
+- If context loaded from CLAUDE.md → agent = "cc"
+- If context loaded from AGENTS.md → agent = "cx"
+- Fallback: ask user
+
+Store as $AGENT_ID for branch naming and sprint.json updates.
+
 ### Step 1: Determine Review Mode
 
 If `$ARGUMENTS` contains `--headless`:
@@ -126,7 +135,7 @@ Includes Quick Review plus:
 ## Peer Review Results
 
 **Target:** [branch/file/directory]
-**Reviewer:** CC
+**Reviewer:** $AGENT_ID
 **Mode:** Quick Review | Full Audit
 **Verdict:** [PASS/NEEDS_CHANGES/FAIL]
 **Score:** X/17 or X/35
@@ -149,11 +158,34 @@ Includes Quick Review plus:
 2. Do you want me to fix MAJOR issues? [Y/n]
 ```
 
-### Step 6: Update Task Board
+### Step 6: Update Sprint State
 
-If reviewing a CX branch with task in board.md:
-- If PASS → Move task to "Completed", note review score
-- If NEEDS_CHANGES → Keep in "In Review", add review notes
+If reviewing a branch with a matching feature in sprint/sprint.json:
+
+1. **Read sprint/sprint.json**
+2. **Find feature** by matching `feature.branch` to the reviewed branch
+3. **Update based on verdict:**
+   - If **PASS** → set `feature.status: "done"`, fill `feature.review`:
+     ```json
+     {
+       "score": <score>,
+       "verdict": "PASS",
+       "reviewer": "$AGENT_ID"
+     }
+     ```
+   - If **NEEDS_CHANGES** → set `feature.status: "in_review"`, fill `feature.review`:
+     ```json
+     {
+       "score": <score>,
+       "verdict": "NEEDS_CHANGES",
+       "reviewer": "$AGENT_ID",
+       "notes": ["<issue 1>", "<issue 2>"]
+     }
+     ```
+4. **Set `last_updated_by: "$AGENT_ID"`** at the sprint root level
+5. **Write updated sprint.json**
+
+If no sprint/sprint.json exists or no matching feature found, skip this step silently.
 
 ### Step 7: Headless Review
 
@@ -207,9 +239,9 @@ $ARGUMENTS — Branch name, file, or directory to review
 ## Output
 
 - Scored review with issues categorized by severity
-- Updated task board (if branch review)
+- Updated sprint.json (if branch review with matching feature)
 - Fix suggestions
 
 ---
 
-*DG-VibeCoding-Framework v4.0.0 — Equal Partnership*
+*DG-VibeCoding-Framework v5.0.0 — Equal Partnership*

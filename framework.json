@@ -1,5 +1,5 @@
 {
-  "version": "4.1.0",
+  "version": "5.0.0",
   "name": "DG-VibeCoding-Framework",
   "description": "Universal framework for CC + CX equal partnership development",
 
@@ -21,7 +21,7 @@
       "orchestrate",
       "peer-review",
       "handoff",
-      "sync-tasks",
+      "sprint-status",
       "context-refresh",
       "sync-notebook",
       "framework-update"
@@ -43,13 +43,13 @@
     "hooks_session": "hooks/git-context.js",
     "hooks_compact": "hooks/pre-compact.js",
     "hooks_recovery": "hooks/context-reload.js",
-    "hooks_board_validate": "hooks/validate-board.js",
-    "tasks": ".tasks/board.md",
+    "hooks_sprint_sync": "hooks/sprint-sync.js",
+    "sprint": "sprint/sprint.json",
     "codex_config": "AGENTS.md"
   },
 
   "agents": {
-    "cc": { "config": "CLAUDE.md", "branch_prefix": "feat/" },
+    "cc": { "config": "CLAUDE.md", "branch_prefix": "cc/" },
     "cx": { "config": "AGENTS.md", "branch_prefix": "cx/" }
   },
 

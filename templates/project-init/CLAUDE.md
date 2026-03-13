@@ -1,6 +1,6 @@
 # Claude Code Rules
 
-> Project context → `PROJECT.md` | Tasks → `.tasks/board.md`
+> Project context → `PROJECT.md` | Sprint → `sprint/sprint.json`
 
 ## Language
 
@@ -10,7 +10,7 @@
 ## Before Coding
 
 1. Read PROJECT.md
-2. Check .tasks/board.md
+2. Check sprint/sprint.json
 3. Understand patterns
 
 ## During Coding
@@ -23,4 +23,4 @@
 
 - Run all tests
 - Follow git conventions
-- Update .tasks/board.md
+- Use /done to complete features

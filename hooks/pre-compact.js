@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// DG-VibeCoding-Framework v4.1.0 — PreCompact Hook
+// DG-VibeCoding-Framework v5.0.0 — PreCompact Hook
 // Saves critical project context to snapshot before session compaction.
 // Claude receives this snapshot via context-reload.js after compaction.
 
@@ -44,9 +44,6 @@ process.stdin.on('end', () => {
       if (content) projectSections[section] = content;
     }
 
-    // --- Collect board.md ---
-    const boardContent = readFileSafe('.tasks/board.md');
-
     // --- Collect git state ---
     const gitState = {
       branch: run('git branch --show-current') || 'detached',
@@ -63,14 +60,13 @@ process.stdin.on('end', () => {
 
     // --- Build snapshot ---
     const snapshot = {
-      version: '4.1.0',
+      version: '5.0.0',
       timestamp: new Date().toISOString(),
       session_id: data.session_id || 'unknown',
       trigger: data.trigger || 'compact',
       project: {
         sections: projectSections,
       },
-      board: boardContent,
       git: gitState,
       sprint: sprintState,
     };

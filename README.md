@@ -1,10 +1,18 @@
-# DG-VibeCoding-Framework v4.0.0
+# DG-VibeCoding-Framework v5.0.0
 
 > **Philosophy:** Start Simple, Scale Smart — Equal Partnership
 
 Universal Claude Code + Codex framework with equal partnership model.
 
-## What's New in v4.0.0
+## What's New in v5.0.0
+
+### Sprint-Based Coordination
+
+Replaced `.tasks/board.md` with `sprint/sprint.json` for structured sprint management.
+
+- CC branch prefix changed from `feat/` to `cc/`
+- `/sync-tasks` replaced with `/sprint-status`
+- `validate-board.js` hook replaced with `sprint-sync.js`
 
 ### Equal Partnership Model
 
@@ -18,29 +26,31 @@ CC (Claude Code) and CX (Codex) are **equal partners**, not architect/executor.
 │  ┌─────────────────┐          ┌─────────────────┐           │
 │  │ • Interactive    │          │ • Headless        │           │
 │  │ • Reasoning      │ <─────> │ • Volume           │           │
-│  │ • Design         │ .tasks/ │ • Autonomous       │           │
-│  │ • Exploration    │  board  │ • Parallel          │           │
+│  │ • Design         │ sprint/ │ • Autonomous       │           │
+│  │ • Exploration    │  .json  │ • Parallel          │           │
 │  └─────────────────┘          └─────────────────┘           │
 │                                                              │
-│  Shared context: PROJECT.md + .tasks/board.md                │
+│  Shared context: PROJECT.md + sprint/sprint.json             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 - `/handoff` command — Give tasks to CX with automatic worktree setup
 - `/peer-review` — Either agent reviews the other's work
-- `/sync-tasks` — Task board and branch status overview
+- `/sprint-status` — Sprint progress and branch status overview
 - `partnership` skill — Coordination guidance
 
 ### Current Stats
 - **5 core skills** — debugging, testing, git, vibecoding, partnership
-- **12 commands** — sprint-init, feature, done, review, fix, orchestrate, peer-review, handoff, sync-tasks, context-refresh, sync-notebook, framework-update
+- **12 commands** — sprint-init, feature, done, review, fix, orchestrate, peer-review, handoff, sprint-status, context-refresh, sync-notebook, framework-update
 - **5 starter agents** — orchestrator, implementer, reviewer, tester, debugger
-- **3 templates** — project-init, tasks-board, skill/command/agent
+- **3 templates** — project-init, sprint, skill/command/agent
 
 ---
 
-## Previous: v3.1.0 → v3.0.1
+## Previous: v4.1.0 → v3.0.1
 
+- **v4.1.0** — Context preservation hooks, NLM integration
+- **v4.0.0** — Equal Partnership Model (CC + CX)
 - **v3.1.0** — Spec-Factory model (Claude as Architect, Codex as Executor)
 - **v3.0.1** — Simplified from 82 to ~35 files, `framework.json` config
 
@@ -67,7 +77,7 @@ CC (Claude Code) and CX (Codex) are **equal partners**, not architect/executor.
 ```
 DG-VibeCoding-framework/
 ├── README.md                    # This file
-├── VERSION                      # "4.0.0"
+├── VERSION                      # "5.0.0"
 ├── hooks/                       # Hook scripts
 ├── framework.json               # Central config
 │
@@ -86,7 +96,7 @@ DG-VibeCoding-framework/
 │   │   ├── vibecoding/SKILL.md
 │   │   └── partnership/SKILL.md  # CC + CX coordination
 │   │
-│   ├── commands/                # 9 commands
+│   ├── commands/                # 12 commands
 │   │   ├── sprint-init.md
 │   │   ├── feature.md
 │   │   ├── done.md
@@ -95,7 +105,9 @@ DG-VibeCoding-framework/
 │   │   ├── orchestrate.md
 │   │   ├── peer-review.md       # Peer code review
 │   │   ├── handoff.md           # Hand off task to CX
-│   │   ├── sync-tasks.md        # Task board status
+│   │   ├── sprint-status.md     # Sprint progress overview
+│   │   ├── context-refresh.md
+│   │   ├── sync-notebook.md
 │   │   └── framework-update.md
 │   │
 │   └── agents/                  # 5 starter agents
@@ -111,7 +123,7 @@ DG-VibeCoding-framework/
 │   │   ├── PROJECT.md
 │   │   ├── CLAUDE.md
 │   │   └── AGENTS.md
-│   ├── tasks-board.template.md  # Task board template
+│   ├── sprint.template.json     # Sprint template
 │   ├── skill.template.md
 │   ├── command.template.md
 │   └── agent.template.md
@@ -130,7 +142,8 @@ DG-VibeCoding-framework/
 │
 ├── hooks/
 │   ├── block-env.js             # Block sensitive file access
-│   └── git-context.js           # SessionStart git context hook
+│   ├── git-context.js           # SessionStart git context hook
+│   └── sprint-sync.js           # Sprint state sync hook
 │
 ├── setup-project.sh             # Project setup (8 steps)
 └── migrate-project.sh           # Project migration (9 steps)
@@ -150,7 +163,7 @@ DG-VibeCoding-framework/
 | `/orchestrate` | Multi-agent workflow |
 | `/peer-review` | Peer code review (CC or CX) |
 | `/handoff` | Hand off task to CX partner |
-| `/sync-tasks` | Task board and branch status |
+| `/sprint-status` | Sprint progress and branch status |
 | `/context-refresh` | Manually reload project context |
 | `/sync-notebook` | Sync project to NotebookLM |
 | `/framework-update` | Check for updates |
@@ -185,24 +198,24 @@ Skills auto-activate based on task context.
 
 ## Partnership Workflow
 
-CC and CX coordinate through a shared task board:
+CC and CX coordinate through a shared sprint file:
 
 ```bash
 # 1. Hand off task to CX
 /handoff "Implement CRUD endpoints for products API"
 
-# 2. CX works autonomously in worktree
-cd ../project-wt-cx-add-products/ && codex --full-auto
+# 2. CX works autonomously
+codex --full-auto
 
 # 3. Check status
-/sync-tasks
+/sprint-status
 
 # 4. Review CX's work
-/peer-review cx/add-products
+/peer-review cx/F003-add-products
 
 # 5. Merge and cleanup
-git merge cx/add-products
-scripts/worktree-cleanup.sh cx/add-products
+git merge cx/F003-add-products
+scripts/worktree-cleanup.sh cx/F003-add-products
 ```
 
 ### When to Use Which Partner
@@ -235,9 +248,9 @@ The framework uses a `SessionStart` hook instead of manual CHANGELOG.md:
 
 ```json
 {
-  "version": "4.0.0",
+  "version": "5.0.0",
   "agents": {
-    "cc": { "config": "CLAUDE.md", "branch_prefix": "feat/" },
+    "cc": { "config": "CLAUDE.md", "branch_prefix": "cc/" },
     "cx": { "config": "AGENTS.md", "branch_prefix": "cx/" }
   },
   "integrations": {
@@ -268,6 +281,13 @@ cp archive/agents/security-specialist.md .claude/agents/
 
 ## Migration
 
+### From v4.x
+```bash
+./migrate-project.sh /path/to/project
+```
+
+Key changes: `.tasks/board.md` → `sprint/sprint.json`, `feat/` → `cc/` branch prefix, `/sync-tasks` → `/sprint-status`
+
 ### From v3.x
 ```bash
 ./migrate-project.sh /path/to/project
@@ -278,7 +298,7 @@ cp archive/agents/security-specialist.md .claude/agents/
 ./migrate-project.sh /path/to/project
 ```
 
-The script handles both migration paths automatically.
+The script handles all migration paths automatically.
 
 ---
 
@@ -292,4 +312,4 @@ The script handles both migration paths automatically.
 
 ---
 
-*v4.1.0 — Equal Partnership, Context Robustness, Sprint Init*
+*v5.0.0 — Sprint-Based Coordination, Equal Partnership*

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "description": "Claude Code settings template for DG-VibeCoding-Framework v4.1.0",
+  "description": "Claude Code settings template for DG-VibeCoding-Framework v5.0.0",
 
   "permissions": {
     "allow": [
@@ -60,8 +60,8 @@
           },
           {
             "type": "command",
-            "command": "node ./hooks/validate-board.js",
-            "statusMessage": "Validating board.md..."
+            "command": "node ./hooks/sprint-sync.js",
+            "statusMessage": "Syncing sprint.md..."
           }
         ]
       },
@@ -71,6 +71,16 @@
           {
             "type": "command",
             "command": "node ./hooks/usage-tracker.js"
+          }
+        ]
+      },
+      {
+        "matcher": "ExitPlanMode|exit_plan_mode|exit_plan|plan_complete",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ./hooks/plan-to-sprint.js",
+            "statusMessage": "Converting plan to sprint..."
           }
         ]
       }
