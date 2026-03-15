@@ -118,16 +118,33 @@ If context is lost mid-feature:
 3. Resumes work on that feature
 4. Shows: "Resuming F001: User authentication (assigned to: cc)"
 
+### Mid-Feature Health Check
+Enne implementeerimise alustamist verifitseeri sessiooni olek:
+1. Kinnita, et praegune feature sprint.json-is vastab sellele mida arvad et teed
+2. Kinnita, et branch kus oled vastab feature branch'ile
+3. Kui on vastuolu: PEATU, raporteeri vastuolu, käivita /context-refresh
+
+### Step Tracking During Feature
+`medium` ja `high` keerukusega feature'de puhul hoia nähtav progress tracker:
+```
+FEATURE F001: User authentication
+[x] Step 1: Create user schema — DONE (src/db/schema.ts)
+[ ] Step 2: Implement login endpoint — CURRENT
+[ ] Step 3: Write tests — PENDING
+```
+Prindi tracker uuesti pärast iga sammu lõpetamist.
+`low` keerukuse puhul on tracker valikuline.
+
 ### Agent Integration
 
 When feature starts, auto-detect agent needs:
 
 | Feature Keywords | Agents to Activate |
 |-----------------|-------------------|
-| auth, login, user | security-specialist, backend-specialist |
-| UI, component, page | frontend-specialist |
-| API, endpoint | backend-specialist |
-| database, schema | database-specialist |
+| auth, login, user | implementer, reviewer |
+| UI, component, page | implementer |
+| API, endpoint | implementer |
+| database, schema | implementer |
 | test, coverage | tester |
 
 ## Examples

@@ -58,6 +58,22 @@ process.stdin.on('end', () => {
       if (sprintJson) sprintState = JSON.parse(sprintJson);
     } catch { /* ignore parse errors */ }
 
+    // --- Extract current step info ---
+    let currentStep = null;
+    if (sprintState && sprintState.current_feature && sprintState.features) {
+      const cf = sprintState.features.find(f => f.id === sprintState.current_feature);
+      if (cf && cf.steps && cf.steps.length > 0) {
+        const inProgress = cf.steps.find(s => s.status === 'in_progress');
+        const nextPending = cf.steps.find(s => s.status === 'pending');
+        currentStep = {
+          feature: cf.id,
+          current: inProgress ? inProgress.description : null,
+          next: nextPending ? nextPending.description : null,
+          progress: `${cf.steps.filter(s => s.status === 'done').length}/${cf.steps.length}`
+        };
+      }
+    }
+
     // --- Build snapshot ---
     const snapshot = {
       version: '5.0.0',
@@ -69,6 +85,7 @@ process.stdin.on('end', () => {
       },
       git: gitState,
       sprint: sprintState,
+      currentStep: currentStep,
     };
 
     // --- Ensure .claude/ directory exists ---

@@ -16,6 +16,7 @@
       "assigned_to": null,
       "branch": null,
       "tested": false,
+      "steps": [],
       "git": { "hash": null, "message": null, "timestamp": null },
       "completed_at": null,
       "review": { "score": null, "verdict": null, "reviewer": null }

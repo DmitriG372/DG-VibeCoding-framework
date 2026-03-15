@@ -99,6 +99,31 @@ AI Agent (Code Generator)
 
 ---
 
+## LLM-Aware Development
+
+### Tuntud LLM rikkerežiimid
+| Rikkerežiim | Sümptom | Framework'i kaitsemeede |
+|-------------|---------|------------------------|
+| Plan drift | AI unustab plaani täitmise ajal | Step tracking checklist (CLAUDE.md Rule 2) |
+| Hallutsineeritud lõpetamine | AI väidab "valmis" ilma tõendita | Evidence nõuded (CLAUDE.md Rule 3) |
+| Vaiksed tööriista rikked | Tool error ignoreeritud | Honest failure reporting (CLAUDE.md Rule 4) |
+| Pika plaani lagunemine | Sammud 6+ muutuvad ebausaldusväärseteks | Max 5 sammu (CLAUDE.md Rule 1) |
+| Sessiooni korruptsioon | AI kaotab oleku jälgimise | Health check protokoll (CLAUDE.md Rule 6) |
+
+### Konteksti eelarve
+- Iga plaanile lisatud samm tarbib konteksti jälgimiseks
+- Eelista 3-sammulist plaani 7-sammulisele
+- Pärast kompaktsiooni loe alati sprint.json enne jätkamist
+
+### Equal Partnership eelis
+Arendaja roll LLM-teadlikus arenduses:
+- **Gate-keeper:** Kinnita iga samm enne järgmist
+- **Tõendite verifitseerija:** Kinnita et näidatud tõendid on reaalsed
+- **Drift detektor:** Märka kui AI kaldub plaanist kõrvale
+- **Taastamise algataja:** Kutsu /context-refresh kui asjad lähevad valesti
+
+---
+
 ## Session Flow
 
 ```

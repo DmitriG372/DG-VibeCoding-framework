@@ -22,52 +22,54 @@ Coordinate complex tasks that require multiple specialist agents.
 
    | Task Type | Primary | Support | Notes |
    |-----------|---------|---------|-------|
-   | New feature | planner | architect, implementer, tester | |
-   | Bug fix | debugger | implementer, tester | |
-   | Refactor | refactorer | reviewer, tester | |
-   | Performance | performance-specialist | implementer | |
-   | Security | security-specialist | reviewer | |
-   | UI work | frontend-specialist | implementer | |
-   | API work | backend-specialist | database-specialist | |
+   | New feature | implementer | reviewer, tester | Max 5 steps |
+   | Bug fix | debugger | reviewer, tester | |
+   | Code review | reviewer | tester | |
+   | Testing | tester | debugger | |
+   | Complex/multi-domain | implementer | reviewer, tester, debugger | Max 5 steps per phase |
    | Large volume | Either | assign via /feature or /handoff | |
-   | Background refactor | Either | /handoff | |
 
 4. **Create execution plan:**
    - List phases in order
    - Identify parallel opportunities
    - Note dependencies between phases
 
-5. **Check for sprint mode:**
+5. **Enforce step limits and evidence requirements:**
+   - Kui plaanil on rohkem kui 5 sammu: jaota Phase 1 (sammud 1-5) ja Phase 2+ (ülejäänud)
+   - Esita AINULT Phase 1 täitmiseks
+   - Phase 2 luuakse PÄRAST Phase 1 lõpetamist verifitseeritud tulemustega
+   - Igal sammul PEAB olema kontrollitav väljund "Expected output" väljal
+   - Ebamäärased väljundid nagu "architecture designed" ei ole aktsepteeritavad
+   - Aktsepteeritav: "Fail `src/auth/schema.ts` loodud User interface definitsiooniga"
+
+6. **Check for sprint mode:**
    ```
    If exists: sprint/sprint.json
    Then: Enforce one-feature-at-a-time rule
    ```
 
-6. **Output orchestration plan** in this format:
+7. **Output orchestration plan** in this format:
 
 ```yaml
 ## Orchestration Plan
 
-**Task:** <user's task description>
+**Task:** <ülesande kirjeldus>
 **Complexity:** LOW | MEDIUM | HIGH
+**Phase:** 1/N (ainult esimene faas nähtav)
 
-### Agent Team
-- Primary: <agent name>
-- Support: [<agent>, <agent>]
-
-### Execution Phases
-1. **<Phase name>**
+### Execution Steps (max 5)
+1. **<Sammu nimi>**
    - Agent: <agent>
-   - Action: <what to do>
-   - Output: <expected result>
+   - Action: <konkreetne tegevus>
+   - Expected output: <kontrollitav tulemus>
+   - Evidence: <kuidas tõestada lõpetamist>
+   - Status: PENDING
 
-2. **<Phase name>**
-   - Agent: <agent>
-   - Depends on: Phase 1
-   - Action: <what to do>
-
-### Next Step
-<What Claude should do immediately>
+### Checkpoint
+Pärast iga sammu näita:
+- Tegelik vs oodatud väljund
+- Lõpetamise tõend
+- Uuendatud staatus (DONE/FAILED)
 ```
 
 ## Example
@@ -81,19 +83,20 @@ Output:
 **Task:** Add user authentication with JWT
 **Complexity:** HIGH
 
-### Agent Team
-- Primary: architect
-- Support: [backend-specialist, security-specialist, tester]
+**Phase:** 1/1
 
-### Execution Phases
-1. **Design** - architect designs auth flow
-2. **Database** - database-specialist creates user schema
-3. **API** - backend-specialist implements endpoints
-4. **Security** - security-specialist reviews
-5. **Testing** - tester writes auth tests
+### Execution Steps (max 5)
+1. **Design + Schema** - implementer designs auth flow and creates user schema
+   - Evidence: schema file created
+2. **API + UI** - implementer implements auth endpoints and login UI
+   - Evidence: endpoint responds correctly
+3. **Review** - reviewer checks security and code quality
+   - Evidence: review checklist completed
+4. **Testing** - tester writes and runs auth tests
+   - Evidence: test output shown
 
 ### Next Step
-Reading agents/architect.md to begin design phase...
+Starting step 1: Design + Schema...
 ```
 
 ---
@@ -149,36 +152,33 @@ Teatud ülesandeid saab täita paralleelselt, kiirendades töövoogu.
 **Task:** Add user dashboard with charts
 **Complexity:** HIGH
 
-### Agent Team
-- Primary: architect
-- Support: [frontend-specialist, backend-specialist, tester]
+**Phase:** 1/1
 
-### Execution Phases
+### Execution Steps (max 5)
 
 1. **Design** (sequential)
-   - Agent: architect
+   - Agent: implementer
    - Action: Design dashboard architecture
+   - Evidence: architecture documented
 
 2. **Implementation** (PARALLEL)
-   - 2a. Agent: frontend-specialist
-     - Action: Create chart components
-   - 2b. Agent: backend-specialist
-     - Action: Create data endpoints
-   - 2c. Agent: documenter (background)
-     - Action: Update API docs
+   - 2a. Agent: implementer
+     - Action: Create chart components + data endpoints
+   - Evidence: components render, endpoints respond
 
-3. **Integration** (sequential, depends on 2a+2b)
+3. **Integration** (sequential, depends on 2)
    - Agent: implementer
    - Action: Connect frontend to backend
+   - Evidence: dashboard loads with real data
 
 4. **Testing** (PARALLEL)
-   - 4a. Agent: tester - Unit tests
-   - 4b. Agent: tester - Integration tests
-   - 4c. Agent: tester - E2E tests
+   - Agent: tester - Unit + Integration + E2E tests
+   - Evidence: test output shown
 
 5. **Review** (sequential)
    - Agent: reviewer
    - Action: Final code review
+   - Evidence: review checklist completed
 ```
 
 ### Paralleelsuse Piirangud
