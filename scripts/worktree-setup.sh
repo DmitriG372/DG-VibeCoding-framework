@@ -1,5 +1,5 @@
 #!/bin/bash
-# DG-VibeCoding-Framework v4.0.0 - Worktree Setup
+# DG-VibeCoding-Framework v5.1.0 - Worktree Setup
 # Usage: scripts/worktree-setup.sh <branch-name>
 # Creates a git worktree for parallel agent work (CC or CX)
 
@@ -47,13 +47,12 @@ elif [ -f requirements.txt ]; then
     echo -e "${YELLOW}Python project detected. Run: pip install -r requirements.txt${NC}"
 fi
 
-# Copy .env files from main worktree
-for env in "../${PROJECT_NAME}"/.env*; do
-    if [ -f "$env" ]; then
-        cp "$env" . 2>/dev/null
-        echo -e "${GREEN}✓${NC} Copied $(basename "$env")"
-    fi
-done
+# Do not copy .env files automatically.
+# This keeps secret handling explicit and aligned with AGENTS.md rules.
+if ls "../${PROJECT_NAME}"/.env* >/dev/null 2>&1; then
+    echo -e "${YELLOW}ℹ${NC} Detected .env files in the main worktree."
+    echo -e "${YELLOW}ℹ${NC} They were NOT copied to this worktree. Provision secrets manually if needed."
+fi
 
 echo ""
 echo -e "${GREEN}╔════════════════════════════════════════╗${NC}"

@@ -1,11 +1,10 @@
 {
-  "version": "5.0.0",
+  "version": "5.1.0",
   "name": "DG-VibeCoding-Framework",
   "description": "Universal framework for CC + CX equal partnership development",
 
   "core": {
     "skills": [
-      "sub-agent",
       "debugging",
       "testing",
       "git",
@@ -31,7 +30,8 @@
       "implementer",
       "reviewer",
       "tester",
-      "debugger"
+      "debugger",
+      "plan-checker"
     ]
   },
 
@@ -44,6 +44,8 @@
     "hooks_compact": "hooks/pre-compact.js",
     "hooks_recovery": "hooks/context-reload.js",
     "hooks_sprint_sync": "hooks/sprint-sync.js",
+    "settings": ".claude/settings.local.json",
+    "headless_review": "scripts/headless-review.sh",
     "sprint": "sprint/sprint.json",
     "codex_config": "AGENTS.md"
   },

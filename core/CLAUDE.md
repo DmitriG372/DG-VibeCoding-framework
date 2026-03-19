@@ -1,4 +1,4 @@
-# Claude Code Rules (v5.0.0)
+# Claude Code Rules (v5.1.0)
 
 > Project details → `PROJECT.md` | Agents → `.claude/agents/` | Skills → `.claude/skills/` | Sprint → `sprint/sprint.json`
 
@@ -71,6 +71,16 @@ Uuenda seda ENNE iga uue sammu alustamist. Ära jäta vahele.
 - "This should work" → VERIFITSEERI, näita tõend
 - "I've updated the file" → NÄITA diff või loe fail tagasi
 - "Everything is in place" → LOETELE konkreetselt mida tegid koos tõenditega
+- "The function handles..." → KÄIVITA funktsioon, näita väljund
+- "I believe this fixes..." → REPRODUTSEERI bug, näita et parandus töötab
+- "Should be working now" → TÕESTA konkreetse käsuga
+
+**Stub Detection** — enne lõpetamist kontrolli, et EI jää:
+- `TODO`, `FIXME`, `HACK`, `XXX` kommentaare
+- Tühjad funktsioonid / komponendid (ainult `return null` vms)
+- Hardcoded väärtused mis peaksid olema konfist/DB-st
+- `console.log`-only error handlerid
+- Placeholder tekste ("Lorem ipsum", "test", "asdf")
 
 ### Rule 4: Honest Failure Reporting
 Kui tööriistakutse ebaõnnestub:
@@ -138,6 +148,7 @@ Agents are **role definitions** Claude adopts via slash commands.
 | reviewer | Code review | `/review` |
 | tester | Testing | `/done` |
 | debugger | Debug issues | `/fix` |
+| plan-checker | Validate plans before execution | `/orchestrate` (auto) |
 
 See `.claude/agents/README.md` for agent protocol.
 
@@ -211,7 +222,11 @@ CC and CX are **equal partners**, not architect/executor.
 
 Hooks in `/hooks`:
 - `block-env.js` — Block sensitive file access
+- `type-check.js` — Best-effort TypeScript verification after TS edits
+- `auto-format.js` — Best-effort Prettier formatting when available
+- `usage-tracker.js` — JSONL usage log for skills/commands/tasks
 - `git-context.js` — Auto-load git history on SessionStart
+- `context-monitor.js` — Warn when the context window is filling up
 - `pre-compact.js` — Save context snapshot before compaction
 - `context-reload.js` — Recover context after compaction
 - `sprint-sync.js` — Regenerate sprint.md after sprint.json edit

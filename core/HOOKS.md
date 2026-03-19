@@ -1,4 +1,4 @@
-# Claude Code Hooks (v2.6)
+# Claude Code Hooks (v5.1.0)
 
 > **Hooks** = commands that run before/after Claude executes tools
 
@@ -9,7 +9,7 @@
 | Hook Type | When | Can Block? | Use Case |
 |-----------|------|------------|----------|
 | Pre-tool use | Before execution | ✅ Yes | Block sensitive files, validate actions |
-| Post-tool use | After execution | ❌ No | Type checking, format, test |
+| Post-tool use | After execution | ❌ No | Type checking, format, sprint sync, telemetry |
 
 ---
 
@@ -20,7 +20,7 @@ Hooks can be defined in three locations (priority order):
 ```
 1. ~/.claude/settings.json          # Global (all projects)
 2. .claude/settings.json            # Project (committed, shared with team)
-3. .claude/settings.local.json      # Project local (personal, not committed)
+3. .claude/settings.local.json      # Project local (installed by this framework)
 ```
 
 **Command:** Use `/hooks` inside Claude Code to configure interactively.

@@ -18,11 +18,11 @@ Peer code review between CC and CX. Either partner can review the other's work.
 
 ```
 /peer-review [branch|file|directory]
-/peer-review cx/add-auth-api          # CC reviews CX's branch
-/peer-review --full cx/refactor-db    # Full audit (35 points)
+/peer-review cx/F003-add-auth-api     # CC reviews CX's branch
+/peer-review --full cx/F007-refactor-db    # Full audit (35 points)
 /peer-review src/services/            # Review specific directory
 /peer-review --headless                    # Headless review uncommitted changes
-/peer-review --headless feat/auth          # Headless review branch
+/peer-review --headless cx/F003-add-auth-api  # Headless review branch
 /peer-review --headless --full src/        # Headless full audit
 /peer-review --headless --tool codex       # Use Codex instead of Claude
 ```
@@ -165,7 +165,7 @@ If reviewing a branch with a matching feature in sprint/sprint.json:
 1. **Read sprint/sprint.json**
 2. **Find feature** by matching `feature.branch` to the reviewed branch
 3. **Update based on verdict:**
-   - If **PASS** → set `feature.status: "done"`, fill `feature.review`:
+   - If **PASS** → set `feature.status: "completed"`, fill `feature.review` and `completed_at`:
      ```json
      {
        "score": <score>,
@@ -244,4 +244,4 @@ $ARGUMENTS — Branch name, file, or directory to review
 
 ---
 
-*DG-VibeCoding-Framework v5.0.0 — Equal Partnership*
+*DG-VibeCoding-Framework v5.1.0 — Equal Partnership*

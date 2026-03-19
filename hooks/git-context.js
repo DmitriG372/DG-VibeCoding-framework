@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// DG-VibeCoding-Framework v4.0.0 — Git Context Hook
+// DG-VibeCoding-Framework v5.1.0 — Git Context Hook
 // Outputs recent git history to stderr on SessionStart
 // Claude receives stderr as context automatically
 

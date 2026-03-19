@@ -32,4 +32,4 @@
 ### Never
 - Modify files outside task scope
 - Skip tests
-- Touch .env files
+- Touch `.env*` files or secrets

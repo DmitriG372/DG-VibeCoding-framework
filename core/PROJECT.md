@@ -133,9 +133,9 @@ Types: feat, fix, refactor, docs, test, chore
 
 ### Branch Strategy
 - `main` — production
-- `dev` — development
-- `feat/*` — features
-- `fix/*` — bugfixes
+- `dev` — development/integration (optional)
+- `cc/FXXX-<slug>` — Claude Code feature branches
+- `cx/FXXX-<slug>` — Codex feature branches
 
 ---
 

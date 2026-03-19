@@ -9,7 +9,7 @@ description: "CC + CX equal partnership coordination. Activates when mentioning 
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  EQUAL PARTNERSHIP MODEL (v5.0.0)                           │
+│  EQUAL PARTNERSHIP MODEL (v5.1.0)                           │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
 │  CC (Claude Code)              CX (Codex)                   │
@@ -115,7 +115,7 @@ CC can invoke headless review within the same session:
 
 ### Deep Review (worktree)
 ```
-/handoff "Review feat/auth branch"
+/handoff "Review cx/F003-add-auth-api branch"
 ```
 - CX gets full worktree access
 - More thorough, can run tests
@@ -146,7 +146,7 @@ codex exec --full-auto "Read sprint/sprint.json, complete features assigned to C
 
 ### Feature States
 ```
-todo → in_progress → in_review → completed
+pending → in_progress → in_review → completed
 ```
 
 ### Assignment
@@ -170,4 +170,4 @@ todo → in_progress → in_review → completed
 
 ---
 
-*DG-VibeCoding-Framework v5.0.0 — Equal Partnership Model*
+*DG-VibeCoding-Framework v5.1.0 — Equal Partnership Model*

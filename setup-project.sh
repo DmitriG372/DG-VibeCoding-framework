@@ -1,5 +1,5 @@
 #!/bin/bash
-# DG-VibeCoding-Framework v5.0.0 - Project Setup Script
+# DG-VibeCoding-Framework v5.1.0 - Project Setup Script
 # Usage: ./setup-project.sh /path/to/your/project
 
 set -e
@@ -16,7 +16,7 @@ FRAMEWORK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="${1:-.}"
 
 # Read version
-VERSION=$(cat "$FRAMEWORK_DIR/VERSION" 2>/dev/null || echo "5.0.0")
+VERSION=$(cat "$FRAMEWORK_DIR/VERSION" 2>/dev/null || echo "5.1.0")
 
 echo -e "${BLUE}╔════════════════════════════════════════════════════╗${NC}"
 echo -e "${BLUE}║  DG-VibeCoding-Framework v${VERSION} - Project Setup      ║${NC}"
@@ -38,7 +38,7 @@ echo ""
 # ─────────────────────────────────────────────────────────────
 # 1. Copy core files
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[1/8] Copying core files...${NC}"
+echo -e "${YELLOW}[1/10] Copying core files...${NC}"
 
 cp "$FRAMEWORK_DIR/templates/project-init/PROJECT.md" "$PROJECT_DIR/PROJECT.md"
 cp "$FRAMEWORK_DIR/templates/project-init/CLAUDE.md" "$PROJECT_DIR/CLAUDE.md"
@@ -48,7 +48,7 @@ echo -e "  ${GREEN}✓${NC} PROJECT.md, CLAUDE.md"
 # ─────────────────────────────────────────────────────────────
 # 2. Copy agents
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[2/8] Copying agents...${NC}"
+echo -e "${YELLOW}[2/10] Copying agents...${NC}"
 
 mkdir -p "$PROJECT_DIR/.claude/agents"
 cp "$FRAMEWORK_DIR/.claude/agents/"*.md "$PROJECT_DIR/.claude/agents/"
@@ -59,7 +59,7 @@ echo -e "  ${GREEN}✓${NC} $AGENT_COUNT agents copied"
 # ─────────────────────────────────────────────────────────────
 # 3. Copy commands
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[3/8] Copying commands...${NC}"
+echo -e "${YELLOW}[3/10] Copying commands...${NC}"
 
 mkdir -p "$PROJECT_DIR/.claude/commands"
 cp "$FRAMEWORK_DIR/.claude/commands/"*.md "$PROJECT_DIR/.claude/commands/"
@@ -70,7 +70,7 @@ echo -e "  ${GREEN}✓${NC} $COMMAND_COUNT commands copied"
 # ─────────────────────────────────────────────────────────────
 # 4. Copy skills
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[4/8] Copying skills...${NC}"
+echo -e "${YELLOW}[4/10] Copying skills...${NC}"
 
 mkdir -p "$PROJECT_DIR/.claude/skills"
 
@@ -88,7 +88,7 @@ echo -e "  ${GREEN}✓${NC} $SKILL_COUNT skills copied"
 # ─────────────────────────────────────────────────────────────
 # 5. Copy hooks
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[5/8] Copying hooks...${NC}"
+echo -e "${YELLOW}[5/10] Copying hooks...${NC}"
 
 mkdir -p "$PROJECT_DIR/hooks"
 cp "$FRAMEWORK_DIR/hooks/"*.js "$PROJECT_DIR/hooks/" 2>/dev/null || true
@@ -97,18 +97,29 @@ HOOK_COUNT=$(ls -1 "$PROJECT_DIR/hooks/"*.js 2>/dev/null | wc -l | tr -d ' ')
 echo -e "  ${GREEN}✓${NC} $HOOK_COUNT hooks copied"
 
 # ─────────────────────────────────────────────────────────────
-# 6. Copy AGENTS.md (CX entry point)
+# 6. Install framework runtime config
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[6/8] Copying AGENTS.md (CX entry point)...${NC}"
+echo -e "${YELLOW}[6/10] Installing framework runtime config...${NC}"
+
+mkdir -p "$PROJECT_DIR/.claude"
+cp "$FRAMEWORK_DIR/core/settings.template.json" "$PROJECT_DIR/.claude/settings.local.json"
+cp "$FRAMEWORK_DIR/framework.json" "$PROJECT_DIR/framework.json"
+
+echo -e "  ${GREEN}✓${NC} .claude/settings.local.json, framework.json"
+
+# ─────────────────────────────────────────────────────────────
+# 7. Copy AGENTS.md (CX entry point)
+# ─────────────────────────────────────────────────────────────
+echo -e "${YELLOW}[7/10] Copying AGENTS.md (CX entry point)...${NC}"
 
 cp "$FRAMEWORK_DIR/templates/project-init/AGENTS.md" "$PROJECT_DIR/AGENTS.md"
 
 echo -e "  ${GREEN}✓${NC} AGENTS.md"
 
 # ─────────────────────────────────────────────────────────────
-# 7. Create sprint directory with template
+# 8. Create sprint directory with template
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[7/8] Creating sprint directory...${NC}"
+echo -e "${YELLOW}[8/10] Creating sprint directory...${NC}"
 
 mkdir -p "$PROJECT_DIR/sprint"
 cp "$FRAMEWORK_DIR/templates/sprint.template.json" "$PROJECT_DIR/sprint/sprint.json"
@@ -116,17 +127,28 @@ cp "$FRAMEWORK_DIR/templates/sprint.template.json" "$PROJECT_DIR/sprint/sprint.j
 echo -e "  ${GREEN}✓${NC} sprint/sprint.json (template — run /sprint-init to populate)"
 
 # ─────────────────────────────────────────────────────────────
-# 8. Copy worktree scripts
+# 9. Copy helper scripts
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[8/8] Copying worktree scripts...${NC}"
+echo -e "${YELLOW}[9/10] Copying helper scripts...${NC}"
 
 mkdir -p "$PROJECT_DIR/scripts"
 cp "$FRAMEWORK_DIR/scripts/worktree-setup.sh" "$PROJECT_DIR/scripts/"
 cp "$FRAMEWORK_DIR/scripts/worktree-cleanup.sh" "$PROJECT_DIR/scripts/"
+cp "$FRAMEWORK_DIR/scripts/headless-review.sh" "$PROJECT_DIR/scripts/"
 chmod +x "$PROJECT_DIR/scripts/worktree-setup.sh"
 chmod +x "$PROJECT_DIR/scripts/worktree-cleanup.sh"
+chmod +x "$PROJECT_DIR/scripts/headless-review.sh"
 
-echo -e "  ${GREEN}✓${NC} worktree-setup.sh, worktree-cleanup.sh"
+echo -e "  ${GREEN}✓${NC} worktree-setup.sh, worktree-cleanup.sh, headless-review.sh"
+
+# ─────────────────────────────────────────────────────────────
+# 10. Install helper docs
+# ─────────────────────────────────────────────────────────────
+echo -e "${YELLOW}[10/10] Installing helper docs...${NC}"
+
+cp "$FRAMEWORK_DIR/core/HOOKS.md" "$PROJECT_DIR/HOOKS.md"
+
+echo -e "  ${GREEN}✓${NC} HOOKS.md"
 
 # ─────────────────────────────────────────────────────────────
 # Summary
@@ -160,10 +182,13 @@ echo "  $PROJECT_DIR/"
 echo "  ├── PROJECT.md           # Project context (single source of truth)"
 echo "  ├── CLAUDE.md            # CC entry point"
 echo "  ├── AGENTS.md            # CX entry point"
+echo "  ├── framework.json       # Framework runtime config"
+echo "  ├── HOOKS.md             # Hook setup guide"
 echo "  ├── sprint/sprint.json   # Sprint state (shared CC + CX)"
+echo "  ├── .claude/settings.local.json  # Hook + permission config"
 echo "  ├── .claude/commands/    # Slash commands"
 echo "  ├── .claude/skills/      # Auto-activated skills"
 echo "  ├── .claude/agents/      # Agent definitions"
-echo "  ├── scripts/             # Worktree scripts"
+echo "  ├── scripts/             # Worktree + review scripts"
 echo "  └── hooks/               # Automation hooks"
 echo ""

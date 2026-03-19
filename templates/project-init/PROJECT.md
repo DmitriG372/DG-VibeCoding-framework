@@ -56,6 +56,6 @@ src/
 
 ## Git
 
-- Branch: `feature/description`
+- Branches: `cc/FXXX-<slug>` for Claude Code, `cx/FXXX-<slug>` for Codex
 - Commit: `type(scope): description`
 - PR required for main

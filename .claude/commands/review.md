@@ -10,7 +10,7 @@ Review code for quality, security, and best practices.
 
 1. **Load reviewer agent definition:**
    ```
-   Read: agents/reviewer.md
+   Read: .claude/agents/reviewer.md
    ```
 
 2. **Read project standards:**

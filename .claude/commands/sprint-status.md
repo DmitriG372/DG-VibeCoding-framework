@@ -74,7 +74,7 @@ git rev-list --count main..<feature.branch> 2>/dev/null || echo "0"
 git merge-tree $(git merge-base main <feature.branch>) main <feature.branch> 2>/dev/null
 ```
 
-For each feature with `status: "done"`:
+For each feature with `status: "completed"` (or legacy `status: "done"`):
 
 ```bash
 # Check if branch was merged
@@ -98,9 +98,9 @@ Sprint Progress: [████████░░░░░░░░░░░░] 
 
 | ID | Name | Status | Branch | Commits Ahead | Merge Ready |
 |----|------|--------|--------|---------------|-------------|
-| F001 | User auth | done | feat/auth | — | merged |
-| F002 | Product catalog | done | feat/catalog | — | merged |
-| F003 | Shopping cart | in_progress | feat/cart | 5 | yes |
+| F001 | User auth | completed | cc/F001-user-auth | — | merged |
+| F002 | Product catalog | completed | cx/F002-product-catalog | — | merged |
+| F003 | Shopping cart | in_progress | cc/F003-shopping-cart | 5 | yes |
 | F004 | Checkout flow | pending | — | — | — |
 | F005 | Order history | pending | — | — | — |
 
@@ -108,19 +108,19 @@ Sprint Progress: [████████░░░░░░░░░░░░] 
 
 | Branch | Feature | Last Commit | Status |
 |--------|---------|-------------|--------|
-| feat/cart | F003 | 2h ago | 5 commits ahead, clean merge |
+| cc/F003-shopping-cart | F003 | 2h ago | 5 commits ahead, clean merge |
 
 ### Worktrees
 
 | Path | Branch | Feature |
 |------|--------|---------|
-| /path/to/worktree | cx/feat/cart | F003 |
+| /path/to/worktree | cx/F004-checkout-flow | F004 |
 
 (Or: "No active worktrees.")
 
 ### Warnings
 
-- ⚠️ feat/cart has potential merge conflicts with main
+- ⚠️ cc/F003-shopping-cart has potential merge conflicts with main
 - ⚠️ F003 has been in_progress for 3 days
 
 ### Current Feature
@@ -134,7 +134,7 @@ Adapt the output to actual data. Omit sections that have no data (e.g., skip Wor
 ### Progress Bar Calculation
 
 ```
-completed = features with status "done"
+completed = features with status "completed" (treat legacy `"done"` as completed)
 total = all features
 percentage = (completed / total) * 100
 bar_filled = round(percentage / 5)  # 20 chars total
@@ -160,4 +160,4 @@ bar_empty = 20 - bar_filled
 
 ---
 
-*DG-VibeCoding-Framework v5.0.0 — Sprint Coordination*
+*DG-VibeCoding-Framework v5.1.0 — Sprint Coordination*

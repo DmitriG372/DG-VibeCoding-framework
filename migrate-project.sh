@@ -1,7 +1,7 @@
 #!/bin/bash
-# DG-VibeCoding-Framework v5.0.0 - Project Migration Script
+# DG-VibeCoding-Framework v5.1.0 - Project Migration Script
 # Usage: ./migrate-project.sh /path/to/your/project
-# Migrates existing v2.x/v3.x/v4.x project to v5.0.0
+# Migrates existing v2.x/v3.x/v4.x project to v5.1.0
 
 set -e
 
@@ -14,7 +14,7 @@ NC='\033[0m'
 
 FRAMEWORK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="${1:-.}"
-VERSION=$(cat "$FRAMEWORK_DIR/VERSION" 2>/dev/null || echo "5.0.0")
+VERSION=$(cat "$FRAMEWORK_DIR/VERSION" 2>/dev/null || echo "5.1.0")
 
 echo -e "${BLUE}╔════════════════════════════════════════════════════╗${NC}"
 echo -e "${BLUE}║  DG-VibeCoding-Framework v${VERSION} - Migration          ║${NC}"
@@ -186,11 +186,12 @@ AGENT_COUNT=$(ls -1 "$PROJECT_DIR/.claude/agents/"*.md 2>/dev/null | wc -l | tr 
 echo -e "  ${GREEN}✓${NC} $AGENT_COUNT starter agents installed"
 
 # ─────────────────────────────────────────────────────────────
-# 8. Update hooks
+# 8. Update hooks and runtime config
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[8/10] Updating hooks...${NC}"
+echo -e "${YELLOW}[8/10] Updating hooks and runtime config...${NC}"
 
 mkdir -p "$PROJECT_DIR/hooks"
+mkdir -p "$PROJECT_DIR/.claude"
 
 # Remove old hooks
 for hook in auto-format.js session-init.js type-check.js usage-tracker.js validate-board.js; do
@@ -200,9 +201,12 @@ for hook in auto-format.js session-init.js type-check.js usage-tracker.js valida
 done
 
 cp "$FRAMEWORK_DIR/hooks/"*.js "$PROJECT_DIR/hooks/" 2>/dev/null || true
+cp "$FRAMEWORK_DIR/core/settings.template.json" "$PROJECT_DIR/.claude/settings.local.json"
+cp "$FRAMEWORK_DIR/framework.json" "$PROJECT_DIR/framework.json"
 
 HOOK_COUNT=$(ls -1 "$PROJECT_DIR/hooks/"*.js 2>/dev/null | wc -l | tr -d ' ')
 echo -e "  ${GREEN}✓${NC} $HOOK_COUNT hooks installed"
+echo -e "  ${GREEN}✓${NC} .claude/settings.local.json, framework.json"
 
 # Archive CHANGELOG.md
 if [ -f "$PROJECT_DIR/CHANGELOG.md" ]; then
@@ -217,7 +221,7 @@ echo -e "${YELLOW}[9/10] Installing partnership files...${NC}"
 
 # AGENTS.md (CX entry point)
 cp "$FRAMEWORK_DIR/templates/project-init/AGENTS.md" "$PROJECT_DIR/AGENTS.md"
-echo -e "  ${GREEN}✓${NC} AGENTS.md (CX entry point — v5.0.0 sprint-based)"
+echo -e "  ${GREEN}✓${NC} AGENTS.md (CX entry point — v5.1.0 sprint-based)"
 
 # Sprint directory
 mkdir -p "$PROJECT_DIR/sprint"
@@ -235,17 +239,20 @@ else
 fi
 
 # ─────────────────────────────────────────────────────────────
-# 10. Install worktree scripts
+# 10. Install helper scripts and docs
 # ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[10/10] Installing worktree scripts...${NC}"
+echo -e "${YELLOW}[10/10] Installing helper scripts and docs...${NC}"
 
 mkdir -p "$PROJECT_DIR/scripts"
 cp "$FRAMEWORK_DIR/scripts/worktree-setup.sh" "$PROJECT_DIR/scripts/"
 cp "$FRAMEWORK_DIR/scripts/worktree-cleanup.sh" "$PROJECT_DIR/scripts/"
+cp "$FRAMEWORK_DIR/scripts/headless-review.sh" "$PROJECT_DIR/scripts/"
 chmod +x "$PROJECT_DIR/scripts/worktree-setup.sh"
 chmod +x "$PROJECT_DIR/scripts/worktree-cleanup.sh"
+chmod +x "$PROJECT_DIR/scripts/headless-review.sh"
+cp "$FRAMEWORK_DIR/core/HOOKS.md" "$PROJECT_DIR/HOOKS.md"
 
-echo -e "  ${GREEN}✓${NC} worktree-setup.sh, worktree-cleanup.sh"
+echo -e "  ${GREEN}✓${NC} worktree-setup.sh, worktree-cleanup.sh, headless-review.sh, HOOKS.md"
 
 # ─────────────────────────────────────────────────────────────
 # Summary
@@ -258,12 +265,13 @@ echo ""
 echo -e "Project: ${BLUE}$PROJECT_DIR${NC}"
 echo -e "Backup:  ${BLUE}$BACKUP_DIR${NC}"
 echo ""
-echo -e "${YELLOW}v5.0.0 Changes:${NC}"
+echo -e "${YELLOW}v5.1.0 Changes:${NC}"
 echo "  - Sprint-based coordination: sprint/sprint.json replaces .tasks/board.md"
 echo "  - Symmetric agents: cc/ and cx/ branch prefixes"
 echo "  - Branch strategy per-sprint (main or worktree)"
 echo "  - Auto sprint-init from Plan Mode (plan-to-sprint hook)"
 echo "  - sprint.md auto-generated (sprint-sync hook)"
+echo "  - Turnkey runtime config (.claude/settings.local.json + framework.json)"
 echo "  - Agent identity auto-detected (CLAUDE.md → cc, AGENTS.md → cx)"
 echo ""
 echo -e "${YELLOW}New commands:${NC}"

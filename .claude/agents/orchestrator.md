@@ -395,5 +395,5 @@ Enne iga uut sammu verifitseeri:
 ---
 
 *Agent created: 2025-11-29*
-*Updated: 2026-03-15 (v5.0.0 Execution Integrity Rules)*
-*Part of DG-VibeCoding-Framework v5.0.0*
+*Updated: 2026-03-15 (v5.1.0 Execution Integrity Rules)*
+*Part of DG-VibeCoding-Framework v5.1.0*

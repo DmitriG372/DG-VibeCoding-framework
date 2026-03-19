@@ -43,6 +43,7 @@ Extract distinct features from the plan. For each feature, generate:
 | `name` | Short English name | Used in branch names and commits |
 | `description` | 1-2 sentences | What needs to be done |
 | `acceptance_criteria` | List of strings | Concrete, testable criteria |
+| `acceptance` | Object (optional) | Goal-backward verification (see below) |
 | `complexity` | `low` / `medium` / `high` | Scope estimate |
 | `status` | `"pending"` | Always starts as pending |
 | `assigned_to` | `null` | Assigned later via /feature or /handoff |
@@ -101,6 +102,11 @@ Vali [1/2] (vaikimisi: 1):
         "Criterion 1",
         "Criterion 2"
       ],
+      "acceptance": {
+        "truths": ["Observable behavior that must be true"],
+        "artifacts": ["src/path/to/file.ts"],
+        "verify": "npm test -- --grep feature-name"
+      },
       "complexity": "medium",
       "status": "pending",
       "assigned_to": null,
@@ -202,4 +208,4 @@ Next step: /feature to start working on F001
 
 ---
 
-*Part of DG-VibeCoding-Framework v5.0.0*
+*Part of DG-VibeCoding-Framework v5.1.0*

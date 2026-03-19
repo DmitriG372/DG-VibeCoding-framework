@@ -100,7 +100,7 @@ Agent Flow: planner -> implementer -> tester
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 When implementation is complete and tested:
-  -> Use /done to commit and mark as completed
+  -> Use /done to commit and move the feature to in_review
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
@@ -184,4 +184,4 @@ When feature starts, auto-detect agent needs:
 
 ---
 
-*Part of DG-VibeCoding-Framework v5.0.0*
+*Part of DG-VibeCoding-Framework v5.1.0*

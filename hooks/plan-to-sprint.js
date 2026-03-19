@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// DG-VibeCoding-Framework v5.0.0 — Plan-to-Sprint Hook
+// DG-VibeCoding-Framework v5.1.0 — Plan-to-Sprint Hook
 // PostToolUse hook: triggers /sprint-init after plan approval.
 // Works with both CC (ExitPlanMode) and CX (plan-related tools).
 // Injects additionalContext prompting the agent to parse the approved plan

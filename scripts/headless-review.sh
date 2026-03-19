@@ -1,5 +1,5 @@
 #!/bin/bash
-# DG-VibeCoding-Framework v4.0.0 — Headless Review Script
+# DG-VibeCoding-Framework v5.1.0 — Headless Review Script
 # Invokes claude -p or codex exec for automated code review.
 #
 # Usage: ./scripts/headless-review.sh [OPTIONS] [target]
@@ -12,7 +12,7 @@
 #   --output <path>       Save report to file (default: stdout)
 #
 # Examples:
-#   ./scripts/headless-review.sh --branch feat/auth
+#   ./scripts/headless-review.sh --branch cx/F003-add-auth-api
 #   ./scripts/headless-review.sh --tool codex --staged
 #   ./scripts/headless-review.sh --mode full src/services/
 

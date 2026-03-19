@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// DG-VibeCoding-Framework v5.0.0 — PreCompact Hook
+// DG-VibeCoding-Framework v5.1.0 — PreCompact Hook
 // Saves critical project context to snapshot before session compaction.
 // Claude receives this snapshot via context-reload.js after compaction.
 

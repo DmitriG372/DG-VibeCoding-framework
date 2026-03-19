@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// DG-VibeCoding-Framework v5.0.0 — Context Reload Hook
+// DG-VibeCoding-Framework v5.1.0 — Context Reload Hook
 // Recovers project context after session compaction.
 // Triggered by SessionStart with matcher "compact".
 // Outputs JSON to stdout with additionalContext for Claude.

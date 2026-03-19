@@ -10,7 +10,7 @@ Coordinate complex tasks that require multiple specialist agents.
 
 1. **Load orchestrator agent definition:**
    ```
-   Read: agents/orchestrator.md
+   Read: .claude/agents/orchestrator.md
    ```
 
 2. **Analyze task complexity:**
@@ -245,5 +245,5 @@ TaskOutput: <task_id>
 
 ---
 
-*Part of DG-VibeCoding-Framework v5.0.0*
+*Part of DG-VibeCoding-Framework v5.1.0*
 *Parallel execution + Ctrl+B backgrounding from CC 2.1.0*

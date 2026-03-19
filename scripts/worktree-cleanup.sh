@@ -1,5 +1,5 @@
 #!/bin/bash
-# DG-VibeCoding-Framework v4.0.0 - Worktree Cleanup
+# DG-VibeCoding-Framework v5.1.0 - Worktree Cleanup
 # Usage: scripts/worktree-cleanup.sh <branch-name>
 # Removes a git worktree after merge
 

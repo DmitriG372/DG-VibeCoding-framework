@@ -108,4 +108,4 @@ If missing, note that no pre-compaction snapshot is available.
 
 ---
 
-*DG-VibeCoding-Framework v5.0.0 — Context Robustness*
+*DG-VibeCoding-Framework v5.1.0 — Context Robustness*

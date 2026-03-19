@@ -198,4 +198,4 @@ $ARGUMENTS -- Feature ID (e.g., F003) or feature description for the target agen
 
 ---
 
-*Part of DG-VibeCoding-Framework v5.0.0 -- Equal Partnership*
+*Part of DG-VibeCoding-Framework v5.1.0 -- Equal Partnership*

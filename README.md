@@ -1,10 +1,10 @@
-# DG-VibeCoding-Framework v5.0.0
+# DG-VibeCoding-Framework v5.1.0
 
 > **Philosophy:** Start Simple, Scale Smart — Equal Partnership
 
 Universal Claude Code + Codex framework with equal partnership model.
 
-## What's New in v5.0.0
+## What's New in v5.1.0
 
 ### Sprint-Based Coordination
 
@@ -13,6 +13,7 @@ Replaced `.tasks/board.md` with `sprint/sprint.json` for structured sprint manag
 - CC branch prefix changed from `feat/` to `cc/`
 - `/sync-tasks` replaced with `/sprint-status`
 - `validate-board.js` hook replaced with `sprint-sync.js`
+- Generated projects now include `framework.json`, `scripts/headless-review.sh`, and `.claude/settings.local.json`
 
 ### Equal Partnership Model
 
@@ -42,7 +43,8 @@ CC (Claude Code) and CX (Codex) are **equal partners**, not architect/executor.
 ### Current Stats
 - **5 core skills** — debugging, testing, git, vibecoding, partnership
 - **12 commands** — sprint-init, feature, done, review, fix, orchestrate, peer-review, handoff, sprint-status, context-refresh, sync-notebook, framework-update
-- **5 starter agents** — orchestrator, implementer, reviewer, tester, debugger
+- **6 starter agents** — orchestrator, implementer, reviewer, tester, debugger, plan-checker
+- **10 hooks** — block-env, type-check, auto-format, usage-tracker, git-context, context-monitor, pre-compact, context-reload, sprint-sync, plan-to-sprint
 - **3 templates** — project-init, sprint, skill/command/agent
 
 ---
@@ -77,7 +79,7 @@ CC (Claude Code) and CX (Codex) are **equal partners**, not architect/executor.
 ```
 DG-VibeCoding-framework/
 ├── README.md                    # This file
-├── VERSION                      # "5.0.0"
+├── VERSION                      # "5.1.0"
 ├── hooks/                       # Hook scripts
 ├── framework.json               # Central config
 │
@@ -86,7 +88,7 @@ DG-VibeCoding-framework/
 │   ├── AGENTS.md                # CX rules
 │   ├── PROJECT.md               # Project template
 │   ├── HOOKS.md                 # Hook documentation
-│   └── settings.template.json   # Settings template
+│   └── settings.template.json   # Template for .claude/settings.local.json
 │
 ├── .claude/                     # Claude Code config
 │   ├── skills/                  # 5 core skills
@@ -110,13 +112,14 @@ DG-VibeCoding-framework/
 │   │   ├── sync-notebook.md
 │   │   └── framework-update.md
 │   │
-│   └── agents/                  # 5 starter agents
+│   └── agents/                  # 6 starter agents
 │       ├── README.md
 │       ├── orchestrator.md
 │       ├── implementer.md
 │       ├── reviewer.md
 │       ├── tester.md
-│       └── debugger.md
+│       ├── debugger.md
+│       └── plan-checker.md
 │
 ├── templates/                   # Project templates
 │   ├── project-init/            # New project starter
@@ -131,6 +134,7 @@ DG-VibeCoding-framework/
 ├── scripts/                     # Utility scripts
 │   ├── worktree-setup.sh        # Create worktree for CX
 │   ├── worktree-cleanup.sh      # Remove worktree after merge
+│   ├── headless-review.sh       # Headless peer review runner
 │   ├── init-project.sh
 │   └── migrate-skills.sh
 │
@@ -142,8 +146,15 @@ DG-VibeCoding-framework/
 │
 ├── hooks/
 │   ├── block-env.js             # Block sensitive file access
+│   ├── type-check.js            # Best-effort type checking
+│   ├── auto-format.js           # Best-effort formatting
+│   ├── usage-tracker.js         # JSONL usage log
 │   ├── git-context.js           # SessionStart git context hook
-│   └── sprint-sync.js           # Sprint state sync hook
+│   ├── context-monitor.js       # Context window monitor
+│   ├── pre-compact.js           # Pre-compact snapshot hook
+│   ├── context-reload.js        # Restore context after compact
+│   ├── sprint-sync.js           # Sprint state sync hook
+│   └── plan-to-sprint.js        # Plan Mode → sprint bridge
 │
 ├── setup-project.sh             # Project setup (8 steps)
 └── migrate-project.sh           # Project migration (9 steps)
@@ -248,7 +259,7 @@ The framework uses a `SessionStart` hook instead of manual CHANGELOG.md:
 
 ```json
 {
-  "version": "5.0.0",
+  "version": "5.1.0",
   "agents": {
     "cc": { "config": "CLAUDE.md", "branch_prefix": "cc/" },
     "cx": { "config": "AGENTS.md", "branch_prefix": "cx/" }
@@ -312,4 +323,4 @@ The script handles all migration paths automatically.
 
 ---
 
-*v5.0.0 — Sprint-Based Coordination, Equal Partnership*
+*v5.1.0 — Sprint-Based Coordination, Equal Partnership*
