@@ -1,6 +1,10 @@
 ---
 name: git
-description: "Git patterns: conventional commits, branch naming, pre-commit hooks"
+description: "Use when creating commits, branches, PRs, or configuring pre-commit hooks. NOT for reading git history or answering 'what changed'."
+triggers: ["commit", "branch", "pull request", "rebase", "pre-commit hook", "conventional commits"]
+negative_triggers: ["git log inspection", "blame question", "read history only", "explain what commit did"]
+user-invocable: false
+level: "2"
 ---
 
 # Git Patterns

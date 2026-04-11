@@ -12,236 +12,103 @@ allowed-tools:
 
 Peer code review between CC and CX. Either partner can review the other's work.
 
-> **Philosophy:** Equal partnership means mutual accountability. Both agents review each other.
+> Full checklist, mode comparison, and JSON output contract live in `.claude/skills/partnership/references/peer-review-modes.md`. This command wires them to sprint state.
 
 ## Usage
 
 ```
-/peer-review [branch|file|directory]
-/peer-review cx/F003-add-auth-api     # CC reviews CX's branch
-/peer-review --full cx/F007-refactor-db    # Full audit (35 points)
-/peer-review src/services/            # Review specific directory
-/peer-review --headless                    # Headless review uncommitted changes
-/peer-review --headless cx/F003-add-auth-api  # Headless review branch
-/peer-review --headless --full src/        # Headless full audit
-/peer-review --headless --tool codex       # Use Codex instead of Claude
+/peer-review [<branch|file|directory>] [--full] [--headless] [--tool claude|codex]
 ```
 
-## Your Task
+Examples:
+```
+/peer-review cx/F003-add-auth-api            # CC reviews CX branch
+/peer-review --full cx/F007-refactor-db      # 35-point deep review
+/peer-review src/services/                   # review a directory
+/peer-review --headless                      # headless, uncommitted changes
+/peer-review --headless --tool codex         # cross-model review
+```
 
-### Step 0: Detect Agent Identity
+## Instructions
 
-Determine which agent you are:
-- If context loaded from CLAUDE.md → agent = "cc"
-- If context loaded from AGENTS.md → agent = "cx"
-- Fallback: ask user
+### Step 1: Detect agent identity
+- Context from `CLAUDE.md` → `$AGENT_ID = "cc"`
+- Context from `AGENTS.md` → `$AGENT_ID = "cx"`
 
-Store as $AGENT_ID for branch naming and sprint.json updates.
+### Step 2: Determine mode
+- `--headless` present → headless mode (Step 6)
+- `cx/...` or `cc/...` branch argument → interactive branch review
+- File/directory argument → standard review of that path
+- `--full` → 35-point audit, else 17-point quick review
 
-### Step 1: Determine Review Mode
-
-If `$ARGUMENTS` contains `--headless`:
-- **Headless mode** — invoke external review agent
-- Parse additional flags: `--tool`, `--full`, `--branch`
-- Proceed to **Step 7** (Headless Review)
-
-If `$ARGUMENTS` contains a `cx/` branch prefix:
-- **CC is reviewing CX's work** — interactive mode
-- Check out the branch diff: `git diff main...cx/<branch>`
-
-If `$ARGUMENTS` is a file/directory:
-- **Standard review** — review the specified path
-
-If `--full` flag present:
-- Use Full Audit checklist (35 points)
-- Otherwise use Quick Review (17 points)
-
-### Step 2: Gather Changes
-
+### Step 3: Gather changes
+For branch review:
 ```bash
-# For branch review
-git log main..cx/<branch> --oneline
-git diff main...cx/<branch> --stat
-git diff main...cx/<branch>
+git log main..<branch> --oneline
+git diff main...<branch> --stat
+git diff main...<branch>
+```
+For path review, read files directly.
 
-# For file/directory review
-# Read the files directly
+### Step 4: Apply checklist
+Load the 17- or 35-point checklist from `.claude/skills/partnership/references/peer-review-modes.md`. Categories: Correctness, Security, Quality, Git hygiene, Documentation. (Deep mode adds Performance, a11y, i18n, observability, deps, migration, rollback.)
+
+### Step 5: Score and produce JSON report
+Output contract:
+```json
+{
+  "score": 14,
+  "max": 17,
+  "verdict": "approve" | "approve_with_comments" | "request_changes",
+  "issues": [
+    { "severity": "blocker|major|minor", "file": "<path>", "line": 0, "note": "..." }
+  ]
+}
 ```
 
-### Step 3: Apply Review Checklist
+Verdict thresholds:
+| Score | Quick (17) | Full (35) |
+|-------|-----------|-----------|
+| approve | 15–17 | 28–35 |
+| with_comments | 10–14 | 20–27 |
+| request_changes | 0–9 | 0–19 |
 
-#### Quick Review (17 points)
-
-**Code Quality (5):**
-- [ ] Readability and clarity
-- [ ] Function length (<50 lines)
-- [ ] Nesting depth (<4 levels)
-- [ ] Naming conventions
-- [ ] DRY compliance
-
-**Security (5):**
-- [ ] No hardcoded secrets
-- [ ] Input validation
-- [ ] No injection vulnerabilities
-- [ ] Auth/authz checks
-- [ ] Data sanitization
-
-**Performance (4):**
-- [ ] Algorithm complexity
-- [ ] Memory management
-- [ ] Async patterns
-- [ ] Database queries
-
-**Patterns (3):**
-- [ ] Project consistency (matches PROJECT.md)
-- [ ] Architecture compliance
-- [ ] No anti-patterns
-
-#### Full Audit (35 points)
-
-Includes Quick Review plus:
-
-**Documentation (5):**
-- README, API docs, inline, types, changelog
-
-**Test Coverage (5):**
-- Unit, integration, edge cases, error paths, >=70%
-
-**Dependencies (4):**
-- Vulnerabilities, outdated, unused, license
-
-**Tech Debt (4):**
-- TODOs, deprecated, complexity, duplication
-
-### Step 4: Score and Verdict
-
-**Quick Review:**
-| Score | Verdict |
-|-------|---------|
-| 15-17 | PASS |
-| 10-14 | NEEDS_CHANGES |
-| 0-9 | FAIL |
-
-**Full Audit:**
-| Score | Verdict |
-|-------|---------|
-| 28-35 | PASS |
-| 20-27 | NEEDS_ATTENTION |
-| 0-19 | FAIL |
-
-### Step 5: Display Results
-
-```markdown
-## Peer Review Results
-
-**Target:** [branch/file/directory]
-**Reviewer:** $AGENT_ID
-**Mode:** Quick Review | Full Audit
-**Verdict:** [PASS/NEEDS_CHANGES/FAIL]
-**Score:** X/17 or X/35
-
-### Issues Found
-
-#### CRITICAL (blocks merge)
-- [issue + file:line]
-
-#### MAJOR (should fix)
-- [issue + file:line]
-
-#### MINOR (nice to fix)
-- [issue + file:line]
-
----
-
-**Next Steps:**
-1. Fix CRITICAL issues before merge
-2. Do you want me to fix MAJOR issues? [Y/n]
+### Step 6: Headless mode
+If `--headless`:
+```bash
+TOOL=$(python3 -c "import json; print(json.load(open('framework.json')).get('review',{}).get('tool','claude'))")
+./scripts/headless-review.sh \
+  --tool $TOOL \
+  --mode ${FULL:+full}${FULL:-quick} \
+  --branch "$BRANCH" \
+  --output /tmp/review-report.json
 ```
+Then read `/tmp/review-report.json` and format the same JSON contract.
 
-### Step 6: Update Sprint State
+### Step 7: Update sprint.json (when reviewing a branch)
+1. Read `sprint/sprint.json`
+2. Find feature whose `branch` matches the reviewed branch
+3. Update based on verdict:
+   - `approve` → `status: "completed"`, fill `review` + `completed_at`
+   - `approve_with_comments` → `status: "in_review"`, fill `review.notes`
+   - `request_changes` → `status: "in_progress"`, fill `review.notes`
+4. Set root `last_updated_by: "$AGENT_ID"`
+5. Write sprint.json
 
-If reviewing a branch with a matching feature in sprint/sprint.json:
+If no matching feature → skip silently.
 
-1. **Read sprint/sprint.json**
-2. **Find feature** by matching `feature.branch` to the reviewed branch
-3. **Update based on verdict:**
-   - If **PASS** → set `feature.status: "completed"`, fill `feature.review` and `completed_at`:
-     ```json
-     {
-       "score": <score>,
-       "verdict": "PASS",
-       "reviewer": "$AGENT_ID"
-     }
-     ```
-   - If **NEEDS_CHANGES** → set `feature.status: "in_review"`, fill `feature.review`:
-     ```json
-     {
-       "score": <score>,
-       "verdict": "NEEDS_CHANGES",
-       "reviewer": "$AGENT_ID",
-       "notes": ["<issue 1>", "<issue 2>"]
-     }
-     ```
-4. **Set `last_updated_by: "$AGENT_ID"`** at the sprint root level
-5. **Write updated sprint.json**
-
-If no sprint/sprint.json exists or no matching feature found, skip this step silently.
-
-### Step 7: Headless Review
-
-When `--headless` flag is present:
-
-1. **Determine target:**
-   - Branch argument → `--branch <name>`
-   - File/directory argument → pass as target
-   - No argument → uncommitted changes (default)
-
-2. **Read tool preference from framework.json:**
-   ```bash
-   # Read review.tool from framework.json (default: claude)
-   TOOL=$(python3 -c "import json; print(json.load(open('framework.json')).get('review',{}).get('tool','claude'))")
-   ```
-   Override with `--tool claude|codex` in arguments.
-
-3. **Execute headless review:**
-   ```bash
-   ./scripts/headless-review.sh \
-     --tool $TOOL \
-     --mode quick \
-     --branch $BRANCH \
-     --output /tmp/review-report.json
-   ```
-   Use `--mode full` if `--full` flag was provided.
-   Use `--staged` if reviewing staged changes.
-   Pass file/directory path as positional target.
-
-4. **Read and display results:**
-   Read `/tmp/review-report.json` and display:
-   - Verdict + score
-   - Issues grouped by severity (CRITICAL → MAJOR → MINOR)
-   - Summary
-
-5. **Offer auto-fix:**
-   "Do you want me to fix these issues? [Y/n]"
-   If yes → fix each issue using the Edit tool, then re-run headless review to verify.
+### Step 8: Offer auto-fix
+For non-blocker issues: "Fix these? [Y/n]". If yes, use Edit tool and re-run review to verify.
 
 ## Rules
 
-- ALWAYS review against PROJECT.md patterns
-- ALWAYS check for security issues
-- NEVER auto-merge without user confirmation
-- For CX branches: ALWAYS check git diff, not just final state
+- Always review against `PROJECT.md` patterns
+- Always check security (items 5–8 of checklist)
+- Never auto-merge without user confirmation
+- For partner branches: inspect `git diff`, not just final state
+- Update sprint.json atomically (one write)
 
-## Input
+## Input / Output
 
-$ARGUMENTS — Branch name, file, or directory to review
-
-## Output
-
-- Scored review with issues categorized by severity
-- Updated sprint.json (if branch review with matching feature)
-- Fix suggestions
-
----
-
-*DG-VibeCoding-Framework v5.1.0 — Equal Partnership*
+- **Input:** `$ARGUMENTS` — branch, file, or directory
+- **Output:** JSON report + updated `sprint.json` (if applicable) + optional auto-fix diff

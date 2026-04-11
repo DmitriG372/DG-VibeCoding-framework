@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "description": "Claude Code settings template for DG-VibeCoding-Framework v5.1.0",
+  "description": "Claude Code settings template for DG-VibeCoding-Framework v7.0.0",
 
   "permissions": {
     "allow": [
@@ -21,6 +21,19 @@
     ]
   },
 
+  "outputStyle": "Explanatory",
+  "plansDirectory": "./sprint",
+  "respectGitignore": true,
+
+  "attribution": {
+    "commit": "Co-Authored-By: Claude <noreply@anthropic.com>",
+    "pr": "Generated with Claude Code"
+  },
+
+  "env": {
+    "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "80"
+  },
+
   "hooks": {
     "PreToolUse": [
       {
@@ -29,6 +42,24 @@
           {
             "type": "command",
             "command": "node ./hooks/block-env.js"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ./hooks/completion-guard.js"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ./hooks/test-dir-protection.js"
           }
         ]
       }
@@ -49,6 +80,15 @@
             "type": "command",
             "command": "node ./hooks/sprint-sync.js",
             "statusMessage": "Syncing sprint.md..."
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ./hooks/test-output-filter.js"
           }
         ]
       },

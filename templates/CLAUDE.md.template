@@ -1,0 +1,107 @@
+# Claude Code Rules — {{PROJECT_NAME}}
+
+> **Framework:** DG-VibeCoding v7.0.0
+> **Single source of truth:** `PROJECT.md`
+> **Sprint state:** `sprint/sprint.json`
+> **Rules:** `.claude/rules/`
+
+---
+
+## Language
+
+- **Code & commits:** English
+- **UI text:** {{UI_LANGUAGE}} (see `docs/UBIQUITOUS_LANGUAGE.md` if exists)
+- **Chat:** Match user's language
+
+---
+
+## Context Loading (MANDATORY)
+
+Execute at every session start — including after compaction:
+
+1. **Read `PROJECT.md`** — stack, patterns, conventions (IMMUTABLE rules)
+2. **Read `sprint/sprint.json`** — feature assignments and current state
+3. **Review git context** — auto-loaded via `git-context.js` SessionStart hook
+4. **Skills + agents** — auto-activate based on task triggers
+
+> **Separation Principle:**
+> - `PROJECT.md` = rules, patterns, stack, conventions (IMMUTABLE)
+> - `sprint/sprint.json` = sprint state (MUTABLE via `/feature`, `/done`, `/peer-review`)
+> - `sprint/sprint.md` = auto-generated overview (never edit)
+
+---
+
+## Negative Constraints
+
+**Framework global:** `.claude/rules/negative-constraints.md`
+**Project specific:** `.claude/rules/project-constraints.md` (if exists)
+
+Read both on first tool call each session. They define what agents must NOT do.
+
+---
+
+## Execution Integrity
+
+Six mandatory rules: `.claude/rules/execution-integrity.md`
+- Rule 1: Max 5 steps per plan
+- Rule 3: Evidence-based completion (actual output, not "should work")
+- Rule 4: Honest failure reporting
+
+Hooks enforce these where possible (`completion-guard.js`, `test-dir-protection.js`).
+
+---
+
+## Agent Identity Detection
+
+Entry-point file determines agent identity:
+- `CLAUDE.md` → **CC** (Claude Code), branch prefix `cc/`
+- `AGENTS.md` → **CX** (Codex), branch prefix `cx/`
+
+No manual configuration needed.
+
+---
+
+## Workflow
+
+### Before coding
+1. Read `PROJECT.md` for context
+2. Check `sprint/sprint.json` for active features
+3. Load relevant skills/agents on demand
+
+### During coding
+- Follow patterns from `PROJECT.md#patterns`
+- Respect rules in `.claude/rules/*.md`
+- Delegate to specialist agents when needed
+
+### After coding
+1. Run tests before commit (mandatory — execution-integrity Rule 3)
+2. `/done` — moves feature to `in_review`
+3. `/peer-review` — closes as `completed`
+
+---
+
+## Development Commands
+
+Project-specific commands live in `Makefile` (see `make help`). Framework commands:
+
+| Command | Purpose |
+|---------|---------|
+| `/feature` | Start next pending feature |
+| `/done` | Complete feature (tests + stub check + commit) |
+| `/review` | Code review |
+| `/peer-review` | CC ↔ CX peer review |
+| `/handoff` | Assign feature to partner agent |
+| `/sprint-status` | Show sprint state |
+| `/context-refresh` | Reload project context |
+
+---
+
+## References
+
+- **Project truth:** `PROJECT.md`
+- **Sprint state:** `sprint/sprint.json`
+- **Execution rules:** `.claude/rules/execution-integrity.md`
+- **Negative constraints:** `.claude/rules/negative-constraints.md`, `.claude/rules/project-constraints.md`
+- **Agents:** `.claude/agents/*.md`
+- **Skills:** `.claude/skills/*/SKILL.md`
+- **CX config:** `AGENTS.md`

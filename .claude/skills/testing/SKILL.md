@@ -1,244 +1,53 @@
 ---
 name: testing
-description: "Testing patterns: Vitest unit tests, Playwright E2E, test-driven development, mocking strategies"
+description: "Use when writing tests, running test suites, doing TDD, or fixing failing tests. NOT for one-off scripts or prod bug reproduction without intent to add coverage."
+triggers: ["write tests", "run tests", "TDD", "coverage", "test failing", "spec", "vitest", "playwright", "jest"]
+negative_triggers: ["simple bug fix without test", "one-off script", "prototype exploration", "database-only tweak"]
+paths: "**/*.test.*, **/*.spec.*, **/tests/**, **/__tests__/**"
+level: "2"
 ---
 
-# Testing Patterns
+# Testing
 
-> Test-Driven Development with Vitest and Playwright.
+> TDD with Vitest (unit) and Playwright (E2E). Test-first is the default.
 
----
+## Validation Gate (HARD BLOCK)
 
-## Test Structure
+Before marking any feature `done`:
 
-```typescript
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+1. Test file must exist AND be imported by the runner
+2. `pnpm test` (or project equivalent) must have been executed in this session
+3. Actual runner output must be visible — **not** "tests should pass"
+4. Summary line must show `0 failed`
 
-describe('Feature: User Authentication', () => {
-  beforeEach(() => {
-    // Setup before each test
-  })
+If any gate fails → feature stays `in_progress`. No exceptions.
 
-  afterEach(() => {
-    // Cleanup after each test
-    vi.restoreAllMocks()
-  })
+## TDD Workflow
 
-  describe('login()', () => {
-    it('should authenticate valid credentials', async () => {
-      // Arrange
-      const credentials = { email: 'test@example.com', password: 'password' }
+1. **Red** — Write failing test. Run it. SHOW the failing output.
+2. **Green** — Minimal implementation to pass. Run. SHOW the passing output.
+3. **Refactor** — Clean up. Re-run. SHOW the still-passing output.
+4. **Commit** — `test(scope): F<ID> <what>` with runner evidence in body.
 
-      // Act
-      const result = await login(credentials)
+## When to use which tool
 
-      // Assert
-      expect(result.success).toBe(true)
-      expect(result.user).toBeDefined()
-    })
+| Need | Tool |
+|------|------|
+| Pure function / module | Vitest unit |
+| React/Vue component | Vitest + @testing-library |
+| HTTP API route | Vitest + supertest OR Playwright API context |
+| Full user flow | Playwright E2E |
+| Visual regression | Playwright snapshot |
 
-    it('should reject invalid credentials', async () => {
-      const credentials = { email: 'test@example.com', password: 'wrong' }
+## Level 3 References (load on demand)
 
-      await expect(login(credentials)).rejects.toThrow('Invalid credentials')
-    })
-  })
-})
-```
+- `references/patterns.md` — Vitest describe/it/mock, Playwright page patterns, Vue/React component setup, organization layout
 
----
+Load only when actively writing new test scaffolding. For modifying existing tests, read the neighboring test file instead.
 
-## Vitest Configuration
+## Anti-Patterns
 
-```typescript
-// vitest.config.ts
-import { defineConfig } from 'vitest/config'
-import path from 'path'
-
-export default defineConfig({
-  test: {
-    globals: true,
-    environment: 'jsdom',
-    setupFiles: ['./tests/setup.ts'],
-    coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json', 'html'],
-      exclude: ['node_modules/', 'tests/']
-    }
-  },
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src')
-    }
-  }
-})
-```
-
----
-
-## Mocking
-
-### Mock Functions
-```typescript
-import { vi } from 'vitest'
-
-const mockFn = vi.fn()
-mockFn.mockReturnValue('value')
-mockFn.mockResolvedValue('async value')
-mockFn.mockImplementation((x) => x * 2)
-
-expect(mockFn).toHaveBeenCalled()
-expect(mockFn).toHaveBeenCalledWith('arg')
-expect(mockFn).toHaveBeenCalledTimes(3)
-```
-
-### Mock Modules
-```typescript
-vi.mock('@/lib/supabase', () => ({
-  supabase: {
-    from: vi.fn(() => ({
-      select: vi.fn().mockResolvedValue({ data: [], error: null }),
-      insert: vi.fn().mockResolvedValue({ data: {}, error: null })
-    }))
-  }
-}))
-```
-
-### Spy on Methods
-```typescript
-const spy = vi.spyOn(object, 'method')
-spy.mockReturnValue('mocked')
-
-// After test
-spy.mockRestore()
-```
-
----
-
-## Testing React Components
-
-```typescript
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { ProjectCard } from '@/components/ProjectCard'
-
-describe('ProjectCard', () => {
-  it('renders project name', () => {
-    render(<ProjectCard project={{ id: '1', name: 'Test Project' }} />)
-
-    expect(screen.getByText('Test Project')).toBeInTheDocument()
-  })
-
-  it('calls onDelete when delete button clicked', async () => {
-    const onDelete = vi.fn()
-    render(<ProjectCard project={{ id: '1', name: 'Test' }} onDelete={onDelete} />)
-
-    fireEvent.click(screen.getByRole('button', { name: /delete/i }))
-
-    await waitFor(() => {
-      expect(onDelete).toHaveBeenCalledWith('1')
-    })
-  })
-})
-```
-
----
-
-## Testing Vue Components
-
-```typescript
-import { mount } from '@vue/test-utils'
-import ProjectCard from '@/components/ProjectCard.vue'
-
-describe('ProjectCard', () => {
-  it('renders project name', () => {
-    const wrapper = mount(ProjectCard, {
-      props: { project: { id: '1', name: 'Test Project' } }
-    })
-
-    expect(wrapper.text()).toContain('Test Project')
-  })
-
-  it('emits delete event', async () => {
-    const wrapper = mount(ProjectCard, {
-      props: { project: { id: '1', name: 'Test' } }
-    })
-
-    await wrapper.find('button.delete').trigger('click')
-
-    expect(wrapper.emitted('delete')).toBeTruthy()
-    expect(wrapper.emitted('delete')[0]).toEqual(['1'])
-  })
-})
-```
-
----
-
-## E2E with Playwright
-
-```typescript
-// tests/e2e/auth.spec.ts
-import { test, expect } from '@playwright/test'
-
-test.describe('Authentication', () => {
-  test('user can login', async ({ page }) => {
-    await page.goto('/login')
-
-    await page.fill('input[name="email"]', 'test@example.com')
-    await page.fill('input[name="password"]', 'password')
-    await page.click('button[type="submit"]')
-
-    await expect(page).toHaveURL('/dashboard')
-    await expect(page.locator('h1')).toContainText('Dashboard')
-  })
-
-  test('shows error for invalid credentials', async ({ page }) => {
-    await page.goto('/login')
-
-    await page.fill('input[name="email"]', 'test@example.com')
-    await page.fill('input[name="password"]', 'wrong')
-    await page.click('button[type="submit"]')
-
-    await expect(page.locator('.error')).toContainText('Invalid credentials')
-  })
-})
-```
-
----
-
-## Test Organization
-
-```
-tests/
-├── unit/                # Unit tests
-│   ├── services/
-│   └── utils/
-├── integration/         # Integration tests
-│   └── api/
-├── e2e/                 # End-to-end tests
-│   ├── auth.spec.ts
-│   └── projects.spec.ts
-├── fixtures/            # Test data
-│   └── projects.json
-└── setup.ts             # Global setup
-```
-
----
-
-## Running Tests
-
-```bash
-# All tests
-pnpm test
-
-# Watch mode
-pnpm test:watch
-
-# Coverage
-pnpm test:coverage
-
-# E2E
-pnpm test:e2e
-
-# E2E with UI
-pnpm test:e2e --ui
-```
+- Asserting on output you haven't run (`expect(foo).toBe(...)` without evidence)
+- Mocking the system under test (mock collaborators, not the target)
+- Modifying tests to make them pass (blocked by `hooks/test-dir-protection.js`)
+- Skipping tests via `.skip()` or `it.only()` without a tracked reason

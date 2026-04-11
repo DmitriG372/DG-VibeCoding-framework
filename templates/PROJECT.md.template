@@ -1,0 +1,162 @@
+# {{PROJECT_NAME}} — Project Reference
+
+> **Role:** Single source of truth for stack, patterns, and conventions.
+> **Size:** This file has NO hard size limit — keep it rich.
+> **CLAUDE.md / AGENTS.md link here** — they don't duplicate this content.
+
+---
+
+## Project Identity
+
+- **Name:** {{PROJECT_NAME}}
+- **Version:** {{APP_VERSION}}
+- **Status:** {{prototype | beta | production}}
+- **Short description:** <one-paragraph summary>
+- **Repo root:** `{{REPO_PATH}}`
+
+---
+
+## Stack
+
+| Layer | Technology | Why |
+|-------|------------|-----|
+| Frontend | {{Vue 3 / React / Next.js}} | ... |
+| Backend | {{Supabase / Express / FastAPI}} | ... |
+| Database | {{PostgreSQL / SQLite}} | ... |
+| Auth | {{Supabase Auth / Clerk}} | ... |
+| Deployment | {{Vercel / Fly / Railway}} | ... |
+| Package manager | {{pnpm / npm / yarn}} | ... |
+
+---
+
+## Patterns
+
+### Architecture
+Describe the high-level layout. Examples:
+- Monorepo with `apps/*` + `packages/*`
+- Clean architecture: domain / application / infrastructure
+- Feature folders with colocation
+
+### State management
+How does the app manage state? (Pinia, Zustand, Redux, server state via React Query, etc.)
+
+### Data layer
+How are DB queries structured? Which ORM/query-builder? What about RLS?
+
+### API contracts
+REST, tRPC, GraphQL, or Server Actions? Where are contract definitions?
+
+### Testing
+Unit with Vitest, E2E with Playwright? Coverage target?
+
+---
+
+## Conventions
+
+### Naming
+- Components: `PascalCase`
+- Files: `kebab-case`
+- Variables: `camelCase`
+- Constants: `UPPER_SNAKE`
+- DB tables: `snake_case`
+
+### Code style
+- Strict TypeScript, no `any`
+- Functions under 50 lines
+- Nesting depth ≤ 4
+
+### UI
+- {{Global CSS variables only / Tailwind utility-first / CSS modules}}
+- {{Atomic design: atoms → molecules → organisms}}
+- Accessibility: WCAG AA minimum
+
+### Git
+- Conventional commits (`feat(scope): F<ID> <description>`)
+- Feature branches from `main`
+- One logical change per commit
+
+---
+
+## Critical Rules (project-specific)
+
+Things that are load-bearing for this specific project. Examples:
+- "Never use localStorage for business data — DB is the only truth"
+- "Baseline ID generation must use `generate_baseline_id()` RPC"
+- "RLS is mandatory on every table"
+- "Vector embeddings live in dedicated tables, not `metadata` columns"
+
+---
+
+## Environment
+
+Required env vars (names only, values in `.env`):
+
+```
+NEXT_PUBLIC_SUPABASE_URL
+SUPABASE_SERVICE_ROLE_KEY
+DATABASE_URL
+# ...
+```
+
+Local setup:
+```bash
+cp .env.example .env
+# fill in values
+pnpm install
+pnpm dev
+```
+
+---
+
+## Database
+
+Migrations live in `supabase/migrations/` (or your equivalent). List key migrations:
+
+| Migration | Description |
+|-----------|-------------|
+| `<timestamp>_baseline.sql` | Initial schema |
+| `<timestamp>_rls.sql` | Row-level security policies |
+| ... | ... |
+
+Regenerate types after schema changes:
+```bash
+npx supabase gen types typescript --project-id <id> > apps/web/src/types/database.types.ts
+```
+
+---
+
+## External Integrations
+
+| Service | Purpose | Config location |
+|---------|---------|-----------------|
+| ... | ... | ... |
+
+---
+
+## Domain Glossary
+
+See `docs/UBIQUITOUS_LANGUAGE.md` for domain terms. Examples:
+
+- **Baseline** — <definition>
+- **Project** — <definition>
+- **Feature** — <definition>
+
+---
+
+## Performance Notes
+
+Known hot paths, N+1 prevention patterns, caching strategies, etc.
+
+---
+
+## References
+
+- `docs/ARCHITECTURE.md` — detailed architecture
+- `docs/UBIQUITOUS_LANGUAGE.md` — domain terms
+- `supabase/migrations/MIGRATION_HISTORY.md` — schema history
+- `Makefile` — development commands
+- `package.json` — scripts
+
+---
+
+*Updated: {{YYYY-MM-DD}}. Keep iteratively fresh. Do NOT let this become a "write-once" file.*

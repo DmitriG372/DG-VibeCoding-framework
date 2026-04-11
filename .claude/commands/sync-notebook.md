@@ -172,4 +172,4 @@ rm /tmp/ingest-$(basename "$PWD").txt
 
 ---
 
-*DG-VibeCoding-Framework v4.1.0 — NotebookLM Integration*
+*DG-VibeCoding-Framework v7.0.0 — NotebookLM Integration*

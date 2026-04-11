@@ -11,14 +11,18 @@ allowed-tools:
 
 # /handoff
 
-Hand off a feature to the partner agent for implementation. Either agent can hand off to the other.
+Hand off a feature to the partner agent (CC ↔ CX).
 
-> **Philosophy:** CC and CX are equal partners. Use `/handoff` to delegate features that suit the partner's strengths.
+> Handoff protocol details (CC→CX, CX→CC, launch variants) live in `.claude/skills/partnership/references/handoff-protocol.md`. Routing matrix lives in `.claude/skills/partnership/SKILL.md`.
 
 ## Usage
 
 ```
-/handoff <F-ID or feature description>
+/handoff <F-ID | feature description>
+```
+
+Examples:
+```
 /handoff F003
 /handoff "Implement CRUD endpoints for products API"
 /handoff "Add unit tests for all service files"
@@ -26,176 +30,79 @@ Hand off a feature to the partner agent for implementation. Either agent can han
 
 ## Instructions
 
-### Step 0: Detect Agent Identity
+### Step 1: Detect agent identity + target
+- `CLAUDE.md` → `$AGENT_ID="cc"`, `$TARGET="cx"`
+- `AGENTS.md` → `$AGENT_ID="cx"`, `$TARGET="cc"`
 
-Determine which agent you are:
-- If context loaded from CLAUDE.md → agent = "cc"
-- If context loaded from AGENTS.md → agent = "cx"
-- Fallback: ask user
+### Step 2: Read context
+Read `PROJECT.md` and `sprint/sprint.json`. If sprint.json is missing → prompt `/sprint-init` first.
 
-Store as `$AGENT_ID`. Determine target agent:
-- If `$AGENT_ID == "cc"` → `$TARGET_AGENT = "cx"`
-- If `$AGENT_ID == "cx"` → `$TARGET_AGENT = "cc"`
+### Step 3: Validate suitability
+Consult the partnership routing matrix in `.claude/skills/partnership/SKILL.md`. Reject ambiguous tasks, user-facing prototyping, or anything needing live interaction.
 
-### Step 1: Read Context
+### Step 4: Resolve feature
+**F-ID given** → find in sprint.json, verify status is `pending` or reassignable.
 
-```
-Read: PROJECT.md
-Read: sprint/sprint.json
-```
+**Description given** → create new feature entry:
+- Auto-assign next sequential F-ID
+- `name`: short English slug
+- `description`: full text from arguments
+- `acceptance_criteria`: 2–4 testable criteria derived from description
+- `complexity`: estimate from scope
+- `status`: `"pending"`
+- Update `stats.total`, `stats.pending`
 
-If `sprint/sprint.json` doesn't exist, prompt: "Run /sprint-init first."
+### Step 5: Assign + branch
+Update the feature:
+- `assigned_to: "$TARGET"`
+- `branch: "$TARGET/<id>-<slug>"`
+- `last_updated_by: "$AGENT_ID"`
+- `last_updated`: ISO timestamp
 
-### Step 2: Analyze and Validate
+Create the branch per `branch_strategy`:
 
-Determine if the task is suitable for the target agent:
-
-| Good for partner | Not for partner |
-|-----------------|----------------|
-| Bulk implementation | Interactive design |
-| Test generation | Architecture decisions |
-| Migration/refactor | Ambiguous requirements |
-| Documentation | Debugging unknown issues |
-| Pattern-based coding | User-facing prototyping |
-
-If NOT suitable, explain why and suggest keeping it for the current agent.
-
-### Step 3: Feature Selection
-
-Interpret `$ARGUMENTS`:
-
-**Case A: F-ID provided** (e.g., `F003`)
-- Find the feature in sprint.json
-- Verify it is `pending` or reassignable (not `done`)
-
-**Case B: Description provided** (e.g., `"Add unit tests for all service files"`)
-- Create a NEW feature entry in sprint.json
-- Auto-generate the next sequential F-ID
-- Parse description into feature fields:
-  - `name`: Short English slug
-  - `description`: Full description from arguments
-  - `acceptance_criteria`: Generate 2-4 testable criteria based on description
-  - `complexity`: Estimate from description scope
-  - `status`: `"pending"`
-- Add the new feature to the `features` array
-- Update `stats.total` and `stats.pending`
-
-### Step 4: Assign to Target Agent
-
-Update the feature in sprint.json:
-- Set `assigned_to: "$TARGET_AGENT"`
-- Generate branch name: `$TARGET_AGENT/<feature-id>-<slug>` (e.g., `cx/F003-crud-endpoints`)
-- Set `feature.branch: "<branch-name>"`
-- Set `last_updated_by: "$AGENT_ID"`
-- Set `last_updated` to current ISO timestamp
-- Update stats
-
-### Step 5: Branch/Worktree Setup
-
-Read `branch_strategy` from sprint.json:
-
-**If `branch_strategy == "main"`:**
+**`branch_strategy: "main"`**
 ```bash
-BRANCH="$TARGET_AGENT/<feature-id>-<slug>"
-git branch "$BRANCH" 2>/dev/null || true
+git branch "$TARGET/<id>-<slug>" 2>/dev/null || true
 ```
-Create the branch but do NOT switch to it (the target agent will check it out).
 
-**If `branch_strategy == "worktree"`:**
+**`branch_strategy: "worktree"`**
 ```bash
-PROJECT_NAME=$(basename "$(pwd)")
-BRANCH="$TARGET_AGENT/<feature-id>-<slug>"
-WT_DIR="../${PROJECT_NAME}-wt-${BRANCH//\//-}"
-git worktree add "$WT_DIR" -b "$BRANCH" 2>/dev/null || git worktree add "$WT_DIR" "$BRANCH"
+PROJECT=$(basename "$(pwd)")
+BR="$TARGET/<id>-<slug>"
+git worktree add "../${PROJECT}-wt-${BR//\//-}" -b "$BR" 2>/dev/null \
+  || git worktree add "../${PROJECT}-wt-${BR//\//-}" "$BR"
 ```
 
-### Step 6: Update sprint.json
+### Step 6: Write sprint.json (atomic)
 
-Write the updated sprint.json with all changes from Steps 3-5.
-
-### Step 7: Show Handoff Summary
-
-Display the handoff result and launch instructions for the target agent.
-
-## Output Format
-
+### Step 7: Show handoff summary
 ```
-╔══════════════════════════════════════════════════╗
-║  Handoff: F003 -> $TARGET_AGENT                  ║
-╚══════════════════════════════════════════════════╝
+Handoff: F<ID> → $TARGET
+Feature: <name>
+Branch:  $TARGET/<id>-<slug>
+Strategy: main | worktree
 
-From: $AGENT_ID
-To:   $TARGET_AGENT
+Acceptance:
+  - <criterion 1>
+  - <criterion 2>
 
-Feature: F003 - CRUD endpoints
-Branch:  cx/F003-crud-endpoints
-Strategy: main
-
-Acceptance Criteria:
-  - GET /products returns paginated list
-  - POST /products creates new product
-  - PUT /products/:id updates product
-  - DELETE /products/:id removes product
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Start $TARGET_AGENT:
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Launch $TARGET:
+  cd <path>  &&  <codex --full-auto | claude>
 ```
 
-### Launch Instructions by Strategy
-
-**main strategy:**
-```
-# If target is CX:
-cd <project-root>
-codex --full-auto
-
-# If target is CC:
-cd <project-root>
-claude
-```
-
-**worktree strategy:**
-```
-# If target is CX:
-cd ../<project>-wt-cx-F003-crud-endpoints/
-codex --full-auto
-
-# If target is CC:
-cd ../<project>-wt-cc-F003-feature-name/
-claude
-```
-
-### After Partner Completes
-
-```
-# Review partner's work
-/peer-review $TARGET_AGENT/<feature-id>-<slug>
-
-# Check sprint status
-cat sprint/sprint.json
-```
+For worktree strategy, `<path>` is `../<project>-wt-<target>-<id>-<slug>/`. For main, it's the project root.
 
 ## Rules
 
-- ALWAYS read PROJECT.md first
-- ALWAYS update sprint.json with the handoff
-- NEVER assign ambiguous tasks -- clarify first
-- NEVER hand off tasks that require user interaction
-- ALWAYS create a branch for the target agent
-- Feature descriptions can create NEW features dynamically
-- Agent identity is symmetric: either agent can hand off to the other
+- Always read PROJECT.md first
+- Always update sprint.json with the handoff (atomic write)
+- Never assign ambiguous tasks — clarify first
+- Never hand off tasks needing user interaction
+- Always create a branch for the target agent
+- Agent identity is symmetric — either side can hand off
 
-## Input
+## Input / Output
 
-$ARGUMENTS -- Feature ID (e.g., F003) or feature description for the target agent
-
-## Output
-
-- Updated sprint/sprint.json
-- New branch (and worktree if applicable)
-- Target agent launch instructions
-
----
-
-*Part of DG-VibeCoding-Framework v5.1.0 -- Equal Partnership*
+- **Input:** `$ARGUMENTS` — F-ID or feature description
+- **Output:** Updated `sprint/sprint.json`, new branch (or worktree), launch instructions for target agent

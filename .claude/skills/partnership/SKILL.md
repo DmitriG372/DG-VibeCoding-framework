@@ -1,173 +1,74 @@
 ---
 name: partnership
-description: "CC + CX equal partnership coordination. Activates when mentioning Codex, CX, partnership, handoff, worktree, dual-agent, peer review, or sprint."
+description: "Use when coordinating CC + CX equal partnership — routing features between agents, setting up git worktrees, or running peer reviews. NOT for single-agent tasks or simple Q&A."
+triggers: ["codex", "CX", "handoff", "peer review", "worktree", "dual agent", "sprint coordination"]
+negative_triggers: ["single agent task", "simple Q&A", "one-off script", "no parallel work"]
+level: "2"
 ---
 
-# Partnership Skill
+# Equal Partnership (CC + CX)
 
-## Philosophy
+> Two agents, different strengths, shared state via `PROJECT.md` + `sprint/sprint.json`. Neither is subordinate.
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  EQUAL PARTNERSHIP MODEL (v5.1.0)                           │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  CC (Claude Code)              CX (Codex)                   │
-│  ┌─────────────────┐          ┌─────────────────┐          │
-│  │ • Interactive    │          │ • Headless       │          │
-│  │ • Reasoning      │ <─────> │ • Volume          │          │
-│  │ • Design         │ sprint  │ • Autonomous      │          │
-│  │ • Exploration    │  .json  │ • Parallel         │          │
-│  └─────────────────┘          └─────────────────┘          │
-│                                                             │
-│  Both are EQUAL partners. Neither is subordinate.           │
-└─────────────────────────────────────────────────────────────┘
-```
+## Identity Detection
 
-> **Core Principle:** Two agents, different strengths, shared context via PROJECT.md and sprint/sprint.json
+Entry-point file determines agent identity at session start:
 
-## Agent Identity Detection
+- `CLAUDE.md` → agent is **CC** (Claude Code), branch prefix `cc/`
+- `AGENTS.md` → agent is **CX** (Codex), branch prefix `cx/`
 
-Identity is determined by the entry point file loaded at session start:
-- `CLAUDE.md` → agent is **CC**, branch prefix `cc/`
-- `AGENTS.md` → agent is **CX**, branch prefix `cx/`
+No manual configuration. Branches are symmetric: `cc/FXXX-slug` ↔ `cx/FXXX-slug`.
 
-No manual configuration needed. Branch naming is symmetric: `cc/FXXX-slug` and `cx/FXXX-slug`.
+## Routing Matrix
 
-## When to Use Which Partner
+| Task type | Best partner | Reason |
+|-----------|-------------|--------|
+| Interactive UI design | **CC** | Needs user dialogue and iteration |
+| Bug investigation | **CC** | Reasoning + exploration tools |
+| Architecture decisions | **CC** | Trade-offs, user input |
+| Prototyping | **CC** | Fast iteration loop with user |
+| Large refactor (10+ files) | **CX** | Volume, autonomous execution |
+| Bulk implementation | **CX** | Headless parallel execution |
+| Test generation | **CX** | Repetitive, pattern-based |
+| Framework/dep migration | **CX** | Systematic, large scale |
+| Documentation generation | **CX** | Volume, templated output |
+| Code review | **Either** | `/peer-review` works both ways |
 
-| Task | Best Partner | Why |
-|------|-------------|-----|
-| Interactive UI design | CC | Needs user dialogue, iteration |
-| Large refactor (10+ files) | CX | Volume, autonomous execution |
-| Bug investigation | CC | Reasoning, exploration, tools |
-| Bulk implementation | CX | Headless, parallel execution |
-| Architecture decisions | CC | Ambiguity, trade-offs, user input |
-| Test generation | CX | Repetitive, pattern-based |
-| Code review | Either | `/peer-review` works both ways |
-| Documentation | CX | Volume, templated output |
-| Prototyping | CC | Fast iteration with user |
-| Migration (framework/deps) | CX | Systematic, large-scale |
+## Sprint State Machine
 
-## Worktree Pattern
-
-Worktree usage is **optional** — determined by `branch_strategy` in sprint.json.
-
-### When using worktrees
-```
-project/                          ← CC works here (main worktree)
-../project-wt-cx-<branch>/       ← CX works here (separate worktree)
-```
-
-### Setup
-```bash
-# From project root:
-scripts/worktree-setup.sh cx/FXXX-<slug>
-```
-
-### Cleanup
-```bash
-# After merge:
-scripts/worktree-cleanup.sh cx/FXXX-<slug>
-```
-
-### When NOT using worktrees
-Both agents work on separate branches in the same repo. Branch strategy is defined per-sprint in sprint.json.
-
-## Handoff Protocol
-
-### CC → CX (giving feature to CX)
-
-1. Define feature in `sprint/sprint.json` via `/sprint-init`
-2. Assign feature to CX (`assigned_to: "cx"`)
-3. Optionally create worktree: `scripts/worktree-setup.sh cx/FXXX-<slug>`
-4. Start CX: `codex --full-auto` (CX reads sprint.json for its assignments)
-
-Use `/handoff` command for automated workflow.
-
-### CX → CC (returning work)
-
-1. CX uses `/done` command — updates feature status to `in_review` in sprint.json
-2. CX commits all changes to `cx/FXXX-<slug>` branch
-3. CC reviews: `/peer-review cx/FXXX-<slug>`
-4. CC merges or requests changes
-
-## Peer Review
-
-Either agent can review the other's work:
-
-- **CC reviews CX:** `/peer-review cx/FXXX-<branch>` — interactive review with user
-- **CX reviews CC:** `/peer-review --headless` — automated headless review
-
-Review uses the same 17/35-point checklist regardless of reviewer.
-
-## Headless Review Pattern
-
-CC can invoke headless review within the same session:
-
-### Quick Review (same session)
-```
-/peer-review --headless
-```
-- Runs `claude -p` or `codex exec` (configured in framework.json `review.tool`)
-- Returns JSON report with score + issues
-- CC offers to auto-fix
-
-### Deep Review (worktree)
-```
-/handoff "Review cx/F003-add-auth-api branch"
-```
-- CX gets full worktree access
-- More thorough, can run tests
-- Async workflow
-
-### When to Use Which
-| Scenario | Approach |
-|----------|----------|
-| Quick sanity check | `--headless` |
-| Thorough audit | `--headless --full` |
-| Need tests run | `/handoff` (worktree) |
-| Different model perspective | `--headless --tool codex` |
-
-## CX Background Launch
-
-```bash
-# Full auto mode (CX decides everything)
-cd ../<project>-wt-cx-<branch>/
-codex --full-auto
-
-# With specific feature from sprint
-codex exec --full-auto "Read sprint/sprint.json, complete features assigned to CX"
-```
-
-## Sprint Coordination
-
-**File:** `sprint/sprint.json`
-
-### Feature States
 ```
 pending → in_progress → in_review → completed
 ```
 
-### Assignment
-- Features have `assigned_to: "cc"` or `assigned_to: "cx"`
-- CC controls feature assignment (user decides routing)
-- One active feature per agent recommended (focus)
+Feature ownership lives in `sprint/sprint.json`:
 
-### Rules
-- Always use `/done` command to update feature status
-- Include feature ID in commits: `feat(F001): description`
-- sprint.md is auto-generated — never edit directly
+- `assigned_to: "cc"` or `assigned_to: "cx"`
+- `/feature` claims the next feature for the current agent
+- `/done` transitions to `in_review`
+- `/peer-review` transitions to `completed`
+- `last_updated_by` always reflects the acting agent
+- One active feature per agent (focus)
 
-## Integration with Commands
+## Command Surface
 
-| Command | Purpose |
-|---------|---------|
-| `/handoff` | Assign feature to CX, optionally setup worktree |
-| `/peer-review` | Review partner's work |
-| `/sprint-status` | Show sprint state and branches |
-| `/orchestrate` | Multi-agent routing (includes CX) |
+| Command | Purpose | Level 3 reference |
+|---------|---------|-------------------|
+| `/handoff` | Assign feature to partner, optionally setup worktree | `references/handoff-protocol.md` |
+| `/peer-review` | Review partner's branch (interactive or headless) | `references/peer-review-modes.md` |
+| `/sprint-status` | Show sprint state + branches + merge readiness | — |
+| `/orchestrate` | Multi-agent task routing | — |
 
----
+## Level 3 References (load on demand)
 
-*DG-VibeCoding-Framework v5.1.0 — Equal Partnership Model*
+- `references/worktree-patterns.md` — git worktree setup/cleanup scripts, when NOT to use worktrees
+- `references/handoff-protocol.md` — detailed CC→CX and CX→CC transfer steps
+- `references/peer-review-modes.md` — headless vs worktree review, 17/35-point checklist
+
+Load these **only** when actively performing the corresponding workflow. For quick routing decisions, the matrix above is enough.
+
+## Anti-Patterns
+
+- Assigning dependent tasks to parallel agents → conflicts → assign only isolated tasks
+- Main agent getting impatient and implementing partner's work → wait for partner
+- Skipping `assigned_to` update → sprint.json loses coherence
+- Editing `sprint/sprint.md` manually → it is auto-generated by `sprint-sync` hook

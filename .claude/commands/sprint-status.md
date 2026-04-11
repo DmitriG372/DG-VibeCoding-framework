@@ -160,4 +160,4 @@ bar_empty = 20 - bar_filled
 
 ---
 
-*DG-VibeCoding-Framework v5.1.0 — Sprint Coordination*
+*DG-VibeCoding-Framework v7.0.0 — Sprint Coordination*

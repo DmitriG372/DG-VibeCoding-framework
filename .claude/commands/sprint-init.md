@@ -27,6 +27,12 @@ Store as `$AGENT_ID` for branch naming and sprint.json updates.
 
 Read `PROJECT.md` for project context (stack, patterns, domain).
 
+**CLAUDE.md bloat check:** also `wc -l CLAUDE.md`. If it exceeds 200 lines, surface a one-line warning:
+
+> "CLAUDE.md is <N> lines (>200). Framework v7.0.0 recommends moving stack/patterns to `PROJECT.md` and project-specific rules to `.claude/rules/project-constraints.md`. Template: `templates/CLAUDE.md.template`."
+
+Do NOT migrate automatically — just warn. Migration is a deliberate user decision.
+
 ### Step 2: Gather Sprint Input
 
 - If `$ARGUMENTS` contains a plan or feature list: use that directly
@@ -208,4 +214,4 @@ Next step: /feature to start working on F001
 
 ---
 
-*Part of DG-VibeCoding-Framework v5.1.0*
+*Part of DG-VibeCoding-Framework v7.0.0*

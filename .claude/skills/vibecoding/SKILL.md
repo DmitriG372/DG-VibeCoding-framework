@@ -1,6 +1,11 @@
 ---
 name: vibecoding
-description: "VibeCoding methodology: context engineering, three development models (CEM/TDM/IAM), AI orchestration patterns"
+description: "Framework philosophy and LLM-aware development patterns. Preloaded by agents; not directly invocable."
+triggers: ["methodology", "context engineering", "CEM", "TDM", "IAM"]
+negative_triggers: ["user invocation", "direct question", "bug fix", "simple code change"]
+user-invocable: false
+disable-model-invocation: true
+level: "2"
 ---
 
 # VibeCoding Methodology

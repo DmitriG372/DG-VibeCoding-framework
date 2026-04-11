@@ -6,244 +6,77 @@ description: Orchestrate complex multi-step tasks with agent coordination
 
 Coordinate complex tasks that require multiple specialist agents.
 
+> Agent behaviors live in `.claude/agents/*.md`. Execution integrity rules live in `.claude/rules/execution-integrity.md`. This command wires them together.
+
 ## Instructions
 
-1. **Load orchestrator agent definition:**
-   ```
-   Read: .claude/agents/orchestrator.md
-   ```
+1. **Load orchestrator agent:** Read `.claude/agents/orchestrator.md`.
+2. **Classify complexity:**
+   - LOW: single file / simple change → route directly to `implementer`
+   - MEDIUM: multi-file, needs review → `implementer` + `reviewer`
+   - HIGH: cross-domain, architecture → full team
+3. **Select team** from this matrix:
 
-2. **Analyze task complexity:**
-   - LOW: Single file, simple change → route directly to implementer
-   - MEDIUM: Multiple files, needs review → primary agent + reviewer
-   - HIGH: Cross-domain, architecture needed → full orchestration
+   | Task type | Primary | Support |
+   |-----------|---------|---------|
+   | New feature | implementer | reviewer, tester |
+   | Bug fix | debugger | reviewer, tester |
+   | Code review | reviewer | tester |
+   | Testing | tester | debugger |
+   | Cross-domain | implementer | reviewer, tester, debugger |
+   | High volume | — | delegate via `/feature` or `/handoff` |
 
-3. **Select agent team based on task type:**
+4. **Create a plan under 5 steps** (enforces execution-integrity Rule 1). If the task needs more, split into Phase 1 and defer Phase 2+ until Phase 1 verifies.
+5. **Enforce evidence gates per step** (execution-integrity Rule 3):
+   - Each step has a concrete "Expected output" (file path, test result, command output)
+   - Vague outputs like "architecture designed" are rejected
+   - After each step, show real vs expected output + DONE/FAILED status
 
-   | Task Type | Primary | Support | Notes |
-   |-----------|---------|---------|-------|
-   | New feature | implementer | reviewer, tester | Max 5 steps |
-   | Bug fix | debugger | reviewer, tester | |
-   | Code review | reviewer | tester | |
-   | Testing | tester | debugger | |
-   | Complex/multi-domain | implementer | reviewer, tester, debugger | Max 5 steps per phase |
-   | Large volume | Either | assign via /feature or /handoff | |
-
-4. **Create execution plan:**
-   - List phases in order
-   - Identify parallel opportunities
-   - Note dependencies between phases
-
-5. **Enforce step limits and evidence requirements:**
-   - Kui plaanil on rohkem kui 5 sammu: jaota Phase 1 (sammud 1-5) ja Phase 2+ (ülejäänud)
-   - Esita AINULT Phase 1 täitmiseks
-   - Phase 2 luuakse PÄRAST Phase 1 lõpetamist verifitseeritud tulemustega
-   - Igal sammul PEAB olema kontrollitav väljund "Expected output" väljal
-   - Ebamäärased väljundid nagu "architecture designed" ei ole aktsepteeritavad
-   - Aktsepteeritav: "Fail `src/auth/schema.ts` loodud User interface definitsiooniga"
-
-6. **Check for sprint mode:**
-   ```
-   If exists: sprint/sprint.json
-   Then: Enforce one-feature-at-a-time rule
-   ```
-
-7. **Output orchestration plan** in this format:
+## Output Format
 
 ```yaml
 ## Orchestration Plan
 
-**Task:** <ülesande kirjeldus>
-**Complexity:** LOW | MEDIUM | HIGH
-**Phase:** 1/N (ainult esimene faas nähtav)
+Task: <description>
+Complexity: LOW | MEDIUM | HIGH
+Phase: 1/N
 
-### Execution Steps (max 5)
-1. **<Sammu nimi>**
-   - Agent: <agent>
-   - Action: <konkreetne tegevus>
-   - Expected output: <kontrollitav tulemus>
-   - Evidence: <kuidas tõestada lõpetamist>
-   - Status: PENDING
+Steps (max 5):
+  1. <name>
+     agent: <agent>
+     action: <specific action>
+     expected: <verifiable output>
+     status: PENDING
+  ...
 
-### Checkpoint
-Pärast iga sammu näita:
-- Tegelik vs oodatud väljund
-- Lõpetamise tõend
-- Uuendatud staatus (DONE/FAILED)
+Checkpoint: Report real vs expected + status after each step.
 ```
 
-## Example
+## Parallel Execution
 
-Input: `/orchestrate Add user authentication with JWT`
+| Phase | Parallel? | Notes |
+|-------|-----------|-------|
+| Planning | no | one plan at a time |
+| Exploration | yes | up to 3 parallel file/search agents |
+| Implementation | partial | only for truly independent components |
+| Testing | yes | independent suites in parallel |
+| Review | no | sequential, needs complete picture |
 
-Output:
-```yaml
-## Orchestration Plan
+Rules:
+- Max 3–4 parallel agents (rate limits)
+- Never parallelize git operations (conflicts)
+- Database migrations are sequential
+- Review is always last
 
-**Task:** Add user authentication with JWT
-**Complexity:** HIGH
+## Sprint Mode
 
-**Phase:** 1/1
+If `sprint/sprint.json` exists, enforce one-feature-per-agent focus. The orchestrator does not start a new feature until the current one reaches `in_review` or later.
 
-### Execution Steps (max 5)
-1. **Design + Schema** - implementer designs auth flow and creates user schema
-   - Evidence: schema file created
-2. **API + UI** - implementer implements auth endpoints and login UI
-   - Evidence: endpoint responds correctly
-3. **Review** - reviewer checks security and code quality
-   - Evidence: review checklist completed
-4. **Testing** - tester writes and runs auth tests
-   - Evidence: test output shown
+## Background Execution
 
-### Next Step
-Starting step 1: Design + Schema...
-```
+Use `Ctrl+B` while `/orchestrate` is running to push it into the background. Useful for:
+- Large test/doc generation
+- Migration tasks
+- Any task that would block the prompt for >1 minute
 
----
-
-## Parallel Execution (NEW v2.5)
-
-Teatud ülesandeid saab täita paralleelselt, kiirendades töövoogu.
-
-### Paralleelsuse Võimalused
-
-| Faas | Paralleelne? | Näide |
-|------|--------------|-------|
-| Planeerimine | EI | Üks plaan korraga |
-| Uurimine | JAH | Mitu faili korraga |
-| Implementeerimine | OSALISELT | Sõltumatud komponendid |
-| Testimine | JAH | Erinevad test suite'id |
-| Review | EI | Järjestikku |
-
-### Paralleelse Täitmise Juhis
-
-1. **Identifitseeri sõltumatud ülesanded:**
-   ```yaml
-   Independent:
-     - Component A tests
-     - Component B tests
-     - Documentation update
-
-   Dependent (must be sequential):
-     - Database migration → API update → Frontend update
-   ```
-
-2. **Kasuta Task tool'i paralleelseks:**
-   ```
-   # Käivita mitu agenti korraga
-   Task: "Run unit tests" (background)
-   Task: "Run integration tests" (background)
-   Task: "Check linting" (background)
-
-   # Oota tulemusi
-   TaskOutput: all
-   ```
-
-3. **Jälgi ressursse:**
-   - Max 3-4 paralleelset ülesannet korraga
-   - Ära ülekoorma süsteemi
-   - CPU-intensiivsed ülesanded järjestikku
-
-### Parallel Orchestration Example
-
-```yaml
-## Orchestration Plan (Parallel)
-
-**Task:** Add user dashboard with charts
-**Complexity:** HIGH
-
-**Phase:** 1/1
-
-### Execution Steps (max 5)
-
-1. **Design** (sequential)
-   - Agent: implementer
-   - Action: Design dashboard architecture
-   - Evidence: architecture documented
-
-2. **Implementation** (PARALLEL)
-   - 2a. Agent: implementer
-     - Action: Create chart components + data endpoints
-   - Evidence: components render, endpoints respond
-
-3. **Integration** (sequential, depends on 2)
-   - Agent: implementer
-   - Action: Connect frontend to backend
-   - Evidence: dashboard loads with real data
-
-4. **Testing** (PARALLEL)
-   - Agent: tester - Unit + Integration + E2E tests
-   - Evidence: test output shown
-
-5. **Review** (sequential)
-   - Agent: reviewer
-   - Action: Final code review
-   - Evidence: review checklist completed
-```
-
-### Paralleelsuse Piirangud
-
-| Piirang | Põhjus |
-|---------|--------|
-| Max 4 paralleelset agenti | Claude rate limiting |
-| Ära paralleliseeri git operatsioone | Konfliktid |
-| Database migrations järjestikku | Andmete terviklikkus |
-| Review alati lõpus | Vajab täielikku pilti |
-
----
-
-## Background Execution (CC 2.1.0)
-
-Kasuta `Ctrl+B` agentide ja käskude taustal käivitamiseks.
-
-### Kuidas Kasutada
-
-1. **Käivita käsk tavaliselt:**
-   ```
-   /orchestrate "Generate tests for all components"
-   ```
-
-2. **Vajuta `Ctrl+B`** ajal kui käsk töötab:
-   - Käsk jätkab taustal
-   - Saad koheselt uue sisendi võimaluse
-   - Tulemused ilmuvad automaatselt kui valmis
-
-3. **Jätka teiste ülesannetega:**
-   ```
-   /review src/components/Button.tsx
-   ```
-
-### Backgrounding Use Cases
-
-| Stsenaarium | Käsk | Miks Backgroundida |
-|-------------|------|-------------------|
-| Testide genereerimine | `/orchestrate "Generate tests"` | Võtab kaua, saab vahepeal tegeleda |
-| Koodi migratsioon | `/orchestrate "Migrate Vue to React"` | Token-intensiivne |
-| Dokumentatsiooni genereerimine | `/orchestrate "Document API"` | Ei vaja kohest tulemust |
-| Turvaaudit | `/codex-review --full src/` | Codex töötab paralleelselt |
-
-### Backgrounding + Parallel
-
-Kombineeri background ja parallel execution:
-
-```yaml
-1. Käivita: /orchestrate "Add auth" [Ctrl+B] → background
-2. Käivita: /codex-review src/ [Ctrl+B] → background
-3. Tee manuaalselt väiksemaid muudatusi
-4. Tulemused saabuvad järjest
-```
-
-### Tulemuste Vaatamine
-
-```bash
-# Vaata taustaülesandeid
-/tasks
-
-# Loe konkreetse ülesande tulemust
-TaskOutput: <task_id>
-```
-
----
-
-*Part of DG-VibeCoding-Framework v5.1.0*
-*Parallel execution + Ctrl+B backgrounding from CC 2.1.0*
+View results with `/tasks` or `TaskOutput <id>`.

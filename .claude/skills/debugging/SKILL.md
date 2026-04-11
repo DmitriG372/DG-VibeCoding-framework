@@ -1,259 +1,73 @@
 ---
 name: debugging
-description: "Debugging techniques: console methods, browser DevTools, network inspection, error tracking, logging strategies"
+description: "Use when a bug needs reproduction, diagnosis, or root-cause analysis. NOT for writing new features or refactors where nothing is broken yet."
+triggers: ["bug", "error", "broken", "fix", "diagnose", "reproduce", "stack trace", "why doesn't", "regression"]
+negative_triggers: ["new feature", "refactor clean code", "write first version", "documentation only"]
+paths: "**/*.ts, **/*.tsx, **/*.js, **/*.jsx, **/*.py, **/*.vue"
+level: "2"
 ---
 
-# Debugging Techniques
+# Debugging with Claude Code
 
-> Systematic debugging for web development.
+> Systematic debugging optimised for AI-assisted development.
 
----
+## Protocol: Reproduce → Diagnose → Fix → Verify
 
-## Console Methods
+1. **Reproduce** — confirm the bug exists, get exact error
+2. **Diagnose** — read error, form hypothesis, gather evidence
+3. **Fix** — minimal change, one thing at a time
+4. **Verify** — run the code, show actual output as proof
 
-### Beyond console.log
-```typescript
-// Styled output
-console.log("%cImportant!", "color: red; font-size: 20px")
+## Claude Code Debugging Tools
 
-// Table for arrays/objects
-console.table([{ id: 1, name: "A" }, { id: 2, name: "B" }])
+### Screenshots
+Share screenshots with Claude for visual bugs. Ask the user to provide screenshots or use browser MCP.
 
-// Grouped logs
-console.group("User Flow")
-console.log("Step 1: Login")
-console.log("Step 2: Dashboard")
-console.groupEnd()
+### Browser MCP (Chrome, Playwright)
+Let Claude see console logs, network requests, and DOM state directly:
+- Claude in Chrome: `mcp__claude-in-chrome__read_console_messages`
+- Playwright: `mcp__playwright__browser_snapshot`
 
-// Collapsed group
-console.groupCollapsed("Details")
-console.log("Hidden by default")
-console.groupEnd()
-
-// Timing
-console.time("fetch")
-await fetchData()
-console.timeEnd("fetch") // fetch: 234.56ms
-
-// Count calls
-function onClick() {
-  console.count("click") // click: 1, click: 2, ...
-}
-
-// Assertions
-console.assert(user !== null, "User should exist")
-
-// Stack trace
-console.trace("How did we get here?")
+### Background Tasks
+Run long-running processes (dev server, test watch) as **background tasks** for better log visibility:
+```
+"Run the dev server as a background task so I can see logs"
 ```
 
----
-
-## Structured Logging
-
-```typescript
-// Debug levels
-const logger = {
-  debug: (msg: string, data?: object) => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`[DEBUG] ${msg}`, data)
-    }
-  },
-  info: (msg: string, data?: object) => {
-    console.log(`[INFO] ${msg}`, data)
-  },
-  warn: (msg: string, data?: object) => {
-    console.warn(`[WARN] ${msg}`, data)
-  },
-  error: (msg: string, error?: Error) => {
-    console.error(`[ERROR] ${msg}`, error)
-  }
-}
-
-// Usage
-logger.debug('Fetching user', { userId })
-logger.error('Failed to fetch', error)
+### Agentic Search (glob + grep)
+Better than RAG for code debugging — search the actual codebase:
 ```
-
----
-
-## Browser DevTools
-
-### Network Tab
-```typescript
-// Filter requests
-// - XHR: fetch/XMLHttpRequest
-// - WS: WebSocket
-// - Doc: Document requests
-
-// Copy as cURL for debugging
-// Right-click → Copy → Copy as cURL
-
-// Throttle network
-// - Fast 3G, Slow 3G for mobile testing
+Glob: find files by pattern
+Grep: find code by content
+Read: examine specific files
 ```
+Always search before guessing.
 
-### Application Tab
-```typescript
-// LocalStorage inspection
-localStorage.setItem('debug', JSON.stringify({ enabled: true }))
+### /doctor
+Run `/doctor` for Claude Code diagnostics when Claude itself seems broken.
 
-// Clear storage
-localStorage.clear()
-sessionStorage.clear()
+## Recovery Strategies
 
-// Cookie inspection
-document.cookie
+### Context Lost
+If Claude seems confused or repeats mistakes:
+- Run `/context-refresh` to reload project state
+- Check sprint.json for current feature
+- Re-read PROJECT.md
+
+### Going Off Track
+- `Esc Esc` or `/rewind` to undo — better than trying to fix in same context
+- Start fresh session if context is corrupted
+
+### Cross-Model QA
+Use a second agent (or Codex) to review findings:
 ```
-
-### Performance Tab
-```typescript
-// Profile rendering
-// 1. Click Record
-// 2. Interact with page
-// 3. Stop recording
-// 4. Analyze flame chart
-
-// React DevTools
-// Components tab → Highlight updates
-// Profiler → Record → Identify slow renders
+/peer-review --headless
 ```
+One agent can cause bugs, another (same model) can find them.
 
----
+## Anti-Patterns
 
-## Debugging React
-
-### React DevTools
-```typescript
-// Component props/state inspection
-// - Components tab
-// - Click component
-// - View/edit props and state
-
-// useDebugValue for custom hooks
-function useAuth() {
-  const [user, setUser] = useState(null)
-  useDebugValue(user ? 'Logged in' : 'Logged out')
-  return { user }
-}
-```
-
-### Error Boundaries
-```typescript
-class ErrorBoundary extends React.Component {
-  state = { hasError: false, error: null }
-
-  static getDerivedStateFromError(error) {
-    return { hasError: true, error }
-  }
-
-  componentDidCatch(error, errorInfo) {
-    console.error('Error caught:', error, errorInfo)
-    // Log to error tracking service
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return <div>Something went wrong</div>
-    }
-    return this.props.children
-  }
-}
-```
-
----
-
-## Debugging Vue
-
-### Vue DevTools
-```typescript
-// Component inspection
-// - Components tab
-// - Select component
-// - View data, props, computed
-
-// Vuex/Pinia state
-// - State tab
-// - Time-travel debugging
-```
-
-### Debug Composables
-```typescript
-// Add debug watchers
-const { user } = useAuth()
-
-watch(user, (newVal, oldVal) => {
-  console.log('User changed:', { oldVal, newVal })
-}, { immediate: true })
-```
-
----
-
-## Network Debugging
-
-### Fetch Interceptor
-```typescript
-const originalFetch = window.fetch
-window.fetch = async (...args) => {
-  console.log('Fetch:', args[0])
-  const start = performance.now()
-  const response = await originalFetch(...args)
-  const duration = performance.now() - start
-  console.log(`Response: ${response.status} (${duration.toFixed(2)}ms)`)
-  return response
-}
-```
-
-### API Error Handling
-```typescript
-async function fetchWithLogging(url: string) {
-  try {
-    const response = await fetch(url)
-    if (!response.ok) {
-      console.error('API Error:', {
-        url,
-        status: response.status,
-        statusText: response.statusText
-      })
-    }
-    return response
-  } catch (error) {
-    console.error('Network Error:', { url, error })
-    throw error
-  }
-}
-```
-
----
-
-## Common Issues
-
-### "undefined is not a function"
-```typescript
-// Check optional chaining
-user?.getProfile?.()
-
-// Verify imports
-import { getUser } from './userService' // Named export
-import getUser from './userService'      // Default export
-```
-
-### "Cannot read property of null"
-```typescript
-// Use optional chaining
-const name = user?.profile?.name
-
-// Or guard clause
-if (!user) return null
-```
-
-### State Not Updating
-```typescript
-// React: Ensure new reference
-setItems([...items, newItem]) // ✅
-items.push(newItem); setItems(items) // ❌
-
-// Vue: Check reactivity
-const obj = reactive({ count: 0 })
-obj.count++ // ✅ Reactive
-```
+- "This should work" → RUN it, show output
+- Guessing without reading error → READ the actual error first
+- Fixing symptoms not causes → find ROOT CAUSE before patching
+- Large speculative changes → make ONE small change, verify, repeat
