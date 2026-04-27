@@ -128,4 +128,4 @@ Code is functional but has security concerns that need addressing.
 
 ---
 
-*Part of DG-VibeCoding-Framework v2.6*
+*Part of DG-VibeCoding-Framework*

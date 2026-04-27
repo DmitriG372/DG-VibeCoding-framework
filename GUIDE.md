@@ -1,4 +1,4 @@
-# DG-VibeCoding-Framework v5.1.0 — Kasutusjuhend
+# DG-VibeCoding-Framework v7.1.0 — Kasutusjuhend
 
 > Equal Partnership Model — CC + CX kui võrdsed partnerid
 
@@ -22,10 +22,10 @@ CC (Claude Code)                    CX (Codex)
 
 | Komponent | Arv | Kirjeldus                                                                                                                                                |
 | --------- | --- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Skills    | 5   | debugging, testing, git, vibecoding, partnership                                                                                                         |
+| Skills    | 8   | debugging, testing, git, vibecoding, partnership, start, finish, housekeeping                                                                            |
 | Commands  | 12  | /sprint-init, /feature, /done, /review, /fix, /orchestrate, /peer-review, /handoff, /sprint-status, /context-refresh, /sync-notebook, /framework-update |
 | Agents    | 6   | orchestrator, implementer, reviewer, tester, debugger, plan-checker                                                                                      |
-| Hooks     | 10  | block-env, type-check, auto-format, usage-tracker, git-context, context-monitor, pre-compact, context-reload, sprint-sync, plan-to-sprint             |
+| Hooks     | 13  | block-env, type-check, auto-format, usage-tracker, git-context, context-monitor, pre-compact, context-reload, sprint-sync, plan-to-sprint, completion-guard, test-dir-protection, test-output-filter |
 | Scripts   | 5   | worktree-setup, worktree-cleanup, headless-review, init-project, migrate-skills                                                                          |
 
 **Kolm võtmefaili igas projektis:**
@@ -270,7 +270,7 @@ Lisa projekti-spetsiifilised reeglid CC jaoks. Näiteks:
 
 #### Samm 4: Kohanda AGENTS.md
 
-AGENTS.md on juba v5.1.0 formaadis (init-project kopeerib template'i). Lisa ainult projekti-spetsiifilised reeglid.
+AGENTS.md on juba praegusest formaadis (init-project kopeerib template'i). Lisa ainult projekti-spetsiifilised reeglid.
 
 #### Samm 5: Seadista hookid (valikuline)
 
@@ -306,7 +306,7 @@ See loob `sprint/sprint.json` faili automaatselt koos feature'ide ja aktsepteeri
 
 ```bash
 git add .
-git commit -m "feat: initialize project with DG-VibeCoding-Framework v5.1.0"
+git commit -m "feat: initialize project with DG-VibeCoding-Framework"
 ```
 
 **Valmis!** Ava Claude Code ja alusta tööd: `claude`
@@ -315,7 +315,7 @@ git commit -m "feat: initialize project with DG-VibeCoding-Framework v5.1.0"
 
 ### 3b. Kuidas migreerida olemasolev projekt
 
-**Näide: melior-plus-mvp v4.x → v5.1.0 migratsioon**
+**Näide: melior-plus-mvp legacy → praegune raamistik migratsioon**
 
 #### Samm 1: Varunda
 
@@ -326,7 +326,7 @@ git stash  # või commit uncommitted muudatused
 
 #### Samm 2: Uuenda AGENTS.md
 
-Asenda vana fail v5.1.0 struktuuriga. Põhimõte:
+Asenda vana fail uue struktuuriga. Põhimõte:
 
 **Vana (v4.x — board.md põhine):**
 
@@ -340,7 +340,7 @@ Asenda vana fail v5.1.0 struktuuriga. Põhimõte:
 3. Work only on tasks assigned to CX
 ```
 
-**Uus (v5.1.0 — sprint.json põhine):**
+**Uus (sprint.json põhine):**
 
 ```markdown
 # Codex Rules
@@ -401,7 +401,7 @@ chmod +x scripts/*.sh
 
 ```bash
 git add AGENTS.md sprint/ scripts/
-git commit -m "chore(agents): upgrade to DG-VibeCoding-Framework v5.1.0 Sprint-Based"
+git commit -m "chore(agents): upgrade to DG-VibeCoding-Framework (Sprint-Based)"
 ```
 
 ---
@@ -696,5 +696,5 @@ fi
 
 ---
 
-*DG-VibeCoding-Framework v5.1.0 — Equal Partnership Model*
+*DG-VibeCoding-Framework — Equal Partnership Model*
 *Kasutusjuhend v2.0 — 2026-03-13*

@@ -56,4 +56,3 @@ When `sprint/sprint.json` exists:
 
 ---
 
-*DG-VibeCoding-Framework v7.0.0*

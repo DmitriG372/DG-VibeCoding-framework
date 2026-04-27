@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// DG-VibeCoding-Framework v5.1.0 — Context Monitor Hook
+// DG-VibeCoding-Framework — Context Monitor Hook
 // Inspired by GSD's context-monitor pattern
 // Warns when context window is filling up (PostToolUse)
 //

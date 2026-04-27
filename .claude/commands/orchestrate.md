@@ -10,7 +10,9 @@ Coordinate complex tasks that require multiple specialist agents.
 
 ## Instructions
 
-1. **Load orchestrator agent:** Read `.claude/agents/orchestrator.md`.
+1. **Load orchestrator agent:**
+
+   Read: .claude/agents/orchestrator.md
 2. **Classify complexity:**
    - LOW: single file / simple change → route directly to `implementer`
    - MEDIUM: multi-file, needs review → `implementer` + `reviewer`

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// DG-VibeCoding-Framework v7.0.0 — Test Output Filter Hook
+// DG-VibeCoding-Framework — Test Output Filter Hook
 // PostToolUse on Bash; when a test runner command completed, emit a short advisory
 // to stderr and mark `.claude/.last-test-run` so test-dir-protection can act on it.
 

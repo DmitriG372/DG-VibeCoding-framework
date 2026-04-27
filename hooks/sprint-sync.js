@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// DG-VibeCoding-Framework v5.1.0 — Sprint Sync Hook
+// DG-VibeCoding-Framework — Sprint Sync Hook
 // PostToolUse hook: regenerates sprint/sprint.md after Write|Edit on sprint.json.
 // Never blocks (exit 0 always).
 

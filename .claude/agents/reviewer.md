@@ -59,4 +59,3 @@ Reviews code for quality, patterns, security, and performance. Read-only — doe
 
 ---
 
-*DG-VibeCoding-Framework v7.0.0*

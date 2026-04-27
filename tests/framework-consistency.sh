@@ -35,17 +35,17 @@ agent_count="$(find .claude/agents -maxdepth 1 -type f -name '*.md' ! -name 'REA
 command_count="$(find .claude/commands -maxdepth 1 -type f -name '*.md' | wc -l | tr -d ' ')"
 hook_count="$(find hooks -maxdepth 1 -type f -name '*.js' | wc -l | tr -d ' ')"
 
-[ "$skill_count" = "5" ] || fail "Expected 5 skills, found $skill_count"
+[ "$skill_count" = "8" ] || fail "Expected 8 skills, found $skill_count"
 [ "$agent_count" = "6" ] || fail "Expected 6 agents, found $agent_count"
 [ "$command_count" = "12" ] || fail "Expected 12 commands, found $command_count"
-[ "$hook_count" = "10" ] || fail "Expected 10 hooks, found $hook_count"
+[ "$hook_count" = "13" ] || fail "Expected 13 hooks, found $hook_count"
 
-assert_contains '- **5 core skills**' README.md
+assert_contains '- **8 core skills**' README.md
 assert_contains '- **6 starter agents**' README.md
-assert_contains '- **10 hooks**' README.md
-assert_contains '| Skills    | 5' GUIDE.md
+assert_contains '- **13 hooks**' README.md
+assert_contains '| Skills    | 8' GUIDE.md
 assert_contains '| Agents    | 6' GUIDE.md
-assert_contains '| Hooks     | 10' GUIDE.md
+assert_contains '| Hooks     | 13' GUIDE.md
 
 assert_not_contains 'Read: agents/' .claude/commands/orchestrate.md
 assert_not_contains 'Read: agents/' .claude/commands/review.md
@@ -82,8 +82,23 @@ if sorted(framework["core"]["commands"]) != commands:
     sys.exit(1)
 PY
 
-if rg -n 'v5\.0\.0' README.md GUIDE.md core .claude hooks scripts templates framework.json >/dev/null; then
-  fail "Found stale v5.0.0 references in active framework files"
+# Version-leak guard: VERSION file is the single source of truth.
+# Outside the whitelist (VERSION, README.md, GUIDE.md, framework.json), no file
+# in active framework directories may contain the current vX.Y.Z string.
+#
+# Whitelist rationale:
+#   - VERSION                    : the source of truth itself
+#   - README.md / GUIDE.md       : header line is auto-validated against VERSION above
+#   - framework.json             : "version" field is auto-validated against VERSION above
+#   - tests/framework-consistency.sh: this guard's own implementation
+leak_paths=$(grep -rEl "v${version//./\\.}" \
+  core .claude hooks scripts templates 2>/dev/null || true)
+
+if [ -n "$leak_paths" ]; then
+  echo "FAIL: hardcoded current version v$version found outside the whitelist:" >&2
+  printf '%s\n' "$leak_paths" >&2
+  echo "Fix: remove or replace with a VERSION-file-derived reference." >&2
+  exit 1
 fi
 
 echo "framework-consistency: ok"

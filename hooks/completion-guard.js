@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// DG-VibeCoding-Framework v7.0.0 — Completion Guard Hook
+// DG-VibeCoding-Framework — Completion Guard Hook
 // PreToolUse on Bash; blocks `git commit` if scripts/stub-check.sh finds stubs.
 // Exit code 2 = hard block; Claude receives the error and must fix before retrying.
 

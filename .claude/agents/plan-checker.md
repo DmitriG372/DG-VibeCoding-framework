@@ -67,4 +67,3 @@ Verdict: PASS | PASS with suggestions | NEEDS REVISION
 
 ---
 
-*DG-VibeCoding-Framework v7.0.0*

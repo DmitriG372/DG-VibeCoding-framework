@@ -1,13 +1,31 @@
 #!/usr/bin/env node
-// DG-VibeCoding-Framework v5.1.0 — PreCompact Hook
+// DG-VibeCoding-Framework — PreCompact Hook
 // Saves critical project context to snapshot before session compaction.
 // Claude receives this snapshot via context-reload.js after compaction.
+// Also updates timestamp in .claude/SNAPSHOT.md (narrative session memory) when present.
 
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
 const SNAPSHOT_PATH = '.claude/context-snapshot.json';
+const NARRATIVE_SNAPSHOT_PATH = '.claude/SNAPSHOT.md';
+
+function readFrameworkVersion() {
+  // Single source of truth: VERSION file at the framework root.
+  // Look up the directory tree from this hook's location.
+  const candidates = [
+    path.join(__dirname, '..', 'VERSION'),
+    path.join(process.cwd(), 'VERSION'),
+  ];
+  for (const candidate of candidates) {
+    try {
+      const v = fs.readFileSync(candidate, 'utf8').trim();
+      if (v) return v;
+    } catch { /* try next */ }
+  }
+  return 'unknown';
+}
 
 function run(cmd) {
   try {
@@ -76,7 +94,7 @@ process.stdin.on('end', () => {
 
     // --- Build snapshot ---
     const snapshot = {
-      version: '5.0.0',
+      version: readFrameworkVersion(),
       timestamp: new Date().toISOString(),
       session_id: data.session_id || 'unknown',
       trigger: data.trigger || 'compact',
@@ -94,9 +112,29 @@ process.stdin.on('end', () => {
       fs.mkdirSync(snapshotDir, { recursive: true });
     }
 
-    // --- Write snapshot ---
+    // --- Write JSON snapshot ---
     fs.writeFileSync(SNAPSHOT_PATH, JSON.stringify(snapshot, null, 2));
     process.stderr.write(`📸 Context snapshot saved to ${SNAPSHOT_PATH}\n`);
+
+    // --- Update narrative SNAPSHOT.md timestamp (if exists) ---
+    // We only touch the timestamp line — content sections are the agent's responsibility.
+    // The hook never auto-commits SNAPSHOT.md; that's a /finish concern, gated on repo_access.
+    if (fs.existsSync(NARRATIVE_SNAPSHOT_PATH)) {
+      try {
+        const content = fs.readFileSync(NARRATIVE_SNAPSHOT_PATH, 'utf8');
+        const newTimestamp = new Date().toISOString();
+        const updated = content.replace(
+          /^\*\*Last update:\*\*.*$/m,
+          `**Last update:** ${newTimestamp} (pre-compaction)`
+        );
+        if (updated !== content) {
+          fs.writeFileSync(NARRATIVE_SNAPSHOT_PATH, updated);
+          process.stderr.write(`📝 SNAPSHOT.md timestamp updated\n`);
+        }
+      } catch (snapErr) {
+        process.stderr.write(`⚠️ SNAPSHOT.md timestamp update failed: ${snapErr.message}\n`);
+      }
+    }
   } catch (err) {
     // Fail-open: log error but don't block compaction
     process.stderr.write(`⚠️ pre-compact.js error: ${err.message}\n`);

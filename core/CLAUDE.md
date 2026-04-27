@@ -1,4 +1,4 @@
-# Claude Code Rules (v7.0.0)
+# Claude Code Rules
 
 > Project → `PROJECT.md` | Sprint → `sprint/sprint.json` | Rules → `.claude/rules/`
 
@@ -68,10 +68,20 @@ Automatic — no manual configuration needed.
 
 ## References
 
-- **Execution rules:** `.claude/rules/execution-integrity.md` (6 mandatory rules)
+### Mandatory rules (LLM safety)
+- **Execution integrity:** `.claude/rules/execution-integrity.md` (6 mandatory rules — LLM failure-mode protections)
 - **Negative constraints:** `.claude/rules/negative-constraints.md` (what NOT to do)
-- **Components:** `.claude/rules/components.md` (one-screen pointer)
+
+### Operational rules (how to work)
+- **Autonomy:** `.claude/rules/autonomy.md` (deficit→blocker→unblock cycle, anti-paralysis)
+- **Delegation:** `.claude/rules/delegation.md` (when to use agents, mandatory post-agent commit cycle)
+- **Context management:** `.claude/rules/context-management.md` (compaction protocols, 20-tool checkpoint)
+- **Production safety:** `.claude/rules/production-safety.md` (when to ask the user)
+
+### Structure
+- **Components map:** `.claude/rules/components.md` (one-screen pointer)
 - **Agents:** `.claude/agents/*.md`
 - **Skills:** `.claude/skills/*/SKILL.md` (+ `references/` for Level 3)
 - **Configuration:** `framework.json`
 - **CX config:** `AGENTS.md`
+- **Project metadata:** `manifest.md` (project_name, repo_access — see `framework-state-mode.sh`)

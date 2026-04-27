@@ -1,4 +1,4 @@
-# Codex Rules (v7.0.0)
+# Codex Rules
 
 > Project details → `PROJECT.md` | Sprint state → `sprint/sprint.json`
 
@@ -104,4 +104,4 @@ Types: feat, fix, refactor, docs, test, chore
 
 ---
 
-*DG-VibeCoding-Framework v7.0.0 — CX Entry Point*
+*DG-VibeCoding-Framework — CX Entry Point*

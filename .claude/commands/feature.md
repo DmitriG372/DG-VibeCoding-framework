@@ -184,4 +184,4 @@ When feature starts, auto-detect agent needs:
 
 ---
 
-*Part of DG-VibeCoding-Framework v7.0.0*
+*Part of DG-VibeCoding-Framework*

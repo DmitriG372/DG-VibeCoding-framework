@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// DG-VibeCoding-Framework v5.1.0 — Type Check Hook
+// DG-VibeCoding-Framework — Type Check Hook
 // PostToolUse hook: runs a non-blocking TypeScript check after TS edits.
 
 const { execSync } = require('child_process');

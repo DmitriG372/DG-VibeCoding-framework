@@ -1,0 +1,59 @@
+# Always ignored — never commit to any repo, regardless of repo_access mode.
+
+# Secrets and credentials
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.p12
+credentials.json
+secrets/
+*secret*
+
+# Local agent settings + private notes
+.claude/settings.local.json
+.claude/notebook.json
+.claude/.tool-counter
+.claude/logs/
+CLAUDE.local.md
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Dependencies and build artifacts
+node_modules/
+__pycache__/
+.venv/
+venv/
+dist/
+build/
+*.egg-info/
+.next/
+.vercel/
+
+# Editor / OS metadata
+.DS_Store
+**/.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Test artifacts
+coverage/
+test-results/
+playwright-report/
+.nyc_output/
+*.log
+
+# >>> framework-public-ignore
+# Uncomment these lines when repo_access=public or private-shared (scripts/switch-repo-access.sh handles this automatically)
+# .claude/
+# CLAUDE.md
+# AGENTS.md
+# manifest.md
+# sprint/
+# <<< framework-public-ignore

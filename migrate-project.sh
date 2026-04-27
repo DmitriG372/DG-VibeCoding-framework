@@ -1,7 +1,7 @@
 #!/bin/bash
-# DG-VibeCoding-Framework v5.1.0 - Project Migration Script
+# DG-VibeCoding-Framework - Project Migration Script
 # Usage: ./migrate-project.sh /path/to/your/project
-# Migrates existing v2.x/v3.x/v4.x project to v5.1.0
+# Migrates existing legacy projects to the current framework version
 
 set -e
 
@@ -221,7 +221,7 @@ echo -e "${YELLOW}[9/10] Installing partnership files...${NC}"
 
 # AGENTS.md (CX entry point)
 cp "$FRAMEWORK_DIR/templates/project-init/AGENTS.md" "$PROJECT_DIR/AGENTS.md"
-echo -e "  ${GREEN}✓${NC} AGENTS.md (CX entry point — v5.1.0 sprint-based)"
+echo -e "  ${GREEN}✓${NC} AGENTS.md (CX entry point — sprint-based)"
 
 # Sprint directory
 mkdir -p "$PROJECT_DIR/sprint"
@@ -265,7 +265,7 @@ echo ""
 echo -e "Project: ${BLUE}$PROJECT_DIR${NC}"
 echo -e "Backup:  ${BLUE}$BACKUP_DIR${NC}"
 echo ""
-echo -e "${YELLOW}v5.1.0 Changes:${NC}"
+echo -e "${YELLOW}Framework Changes:${NC}"
 echo "  - Sprint-based coordination: sprint/sprint.json replaces .tasks/board.md"
 echo "  - Symmetric agents: cc/ and cx/ branch prefixes"
 echo "  - Branch strategy per-sprint (main or worktree)"

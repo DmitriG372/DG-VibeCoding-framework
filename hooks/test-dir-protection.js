@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// DG-VibeCoding-Framework v7.0.0 — Test Directory Protection Hook
+// DG-VibeCoding-Framework — Test Directory Protection Hook
 // PreToolUse on Edit|Write|MultiEdit; blocks edits to test files within 120s
 // of a test run (fresh test failure → likely "fix by modifying the test" anti-pattern).
 // Exit code 2 = hard block.

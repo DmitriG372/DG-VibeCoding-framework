@@ -1,0 +1,32 @@
+# Project Snapshot
+
+**Status:** {{STATUS}}
+**Last update:** {{TIMESTAMP}}
+
+## Mis tehtud (selles sessioonis)
+
+_Uuendatakse `/finish` käigus ja iga olulise sammu järel. Vaba vorm._
+
+## Mis ootel
+
+_Pooleli olev töö, otsused, mille kohta on vaja kasutaja sisendit._
+
+## Tuntud probleemid
+
+_Bugid, flaky testid, defitsiidid (vt `autonomy.md` Deficit definition)._
+
+## Järgmised sammud
+
+_Kõige esimene asi, mida järgmises sessioonis teha. Eelista konkreetsust ("käivita /feature F003") abstraktsele ("alusta katti")._
+
+---
+
+> **NB:** See fail on **narratiivne sessioonimälu** — komplementaarne `sprint/sprint.json`-iga.
+>
+> - `sprint.json` = struktureeritud feature-state (status, hash, branch) — masina-loetav
+> - `SNAPSHOT.md` = mis selle ümber toimub (otsused, blokerid, mõtted) — agent + kasutaja loevad pärast compaction'it
+>
+> Mitte dubleerida sprint.json sisu siia. Viita ainult feature ID-le ja kirjelda konteksti.
+>
+> **Loetakse automaatselt:** `/start`, `/context-refresh`, post-compaction `context-reload.js`.
+> **Uuendatakse:** `/finish`, käsitsi olulistes punktides, automaatselt timestamp `pre-compact.js`-is.

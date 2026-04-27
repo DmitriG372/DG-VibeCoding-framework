@@ -1,5 +1,5 @@
 #!/bin/bash
-# DG-VibeCoding-Framework v5.1.0 - Worktree Setup
+# DG-VibeCoding-Framework - Worktree Setup
 # Usage: scripts/worktree-setup.sh <branch-name>
 # Creates a git worktree for parallel agent work (CC or CX)
 

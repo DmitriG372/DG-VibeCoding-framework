@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// DG-VibeCoding-Framework v5.1.0 — Usage Tracker Hook
+// DG-VibeCoding-Framework — Usage Tracker Hook
 // PostToolUse hook: appends lightweight JSONL usage events to .claude/usage.log.
 
 const fs = require('fs');

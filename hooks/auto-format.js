@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// DG-VibeCoding-Framework v5.1.0 — Auto Format Hook
+// DG-VibeCoding-Framework — Auto Format Hook
 // PostToolUse hook: best-effort formatting for common text/code files.
 
 const { execSync } = require('child_process');

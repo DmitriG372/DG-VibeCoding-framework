@@ -1,5 +1,5 @@
 #!/bin/bash
-# DG-VibeCoding-Framework v5.1.0 - Project Setup Script
+# DG-VibeCoding-Framework - Project Setup Script
 # Usage: ./setup-project.sh /path/to/your/project
 
 set -e

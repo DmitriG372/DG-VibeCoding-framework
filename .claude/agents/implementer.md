@@ -41,4 +41,3 @@ Write implementation → Self-review → Run linting/types → Output
 
 ---
 
-*DG-VibeCoding-Framework v7.0.0*

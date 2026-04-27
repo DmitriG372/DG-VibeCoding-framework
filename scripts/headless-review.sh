@@ -1,5 +1,5 @@
 #!/bin/bash
-# DG-VibeCoding-Framework v5.1.0 — Headless Review Script
+# DG-VibeCoding-Framework — Headless Review Script
 # Invokes claude -p or codex exec for automated code review.
 #
 # Usage: ./scripts/headless-review.sh [OPTIONS] [target]

@@ -1,13 +1,15 @@
 #!/usr/bin/env node
-// DG-VibeCoding-Framework v5.1.0 — Context Reload Hook
+// DG-VibeCoding-Framework — Context Reload Hook
 // Recovers project context after session compaction.
 // Triggered by SessionStart with matcher "compact".
 // Outputs JSON to stdout with additionalContext for Claude.
+// Surfaces narrative .claude/SNAPSHOT.md when present (free-form session memory).
 
 const fs = require('fs');
 const { execSync } = require('child_process');
 
 const SNAPSHOT_PATH = '.claude/context-snapshot.json';
+const NARRATIVE_SNAPSHOT_PATH = '.claude/SNAPSHOT.md';
 
 function run(cmd) {
   try {
@@ -90,6 +92,16 @@ process.stdin.on('end', () => {
           }
         }
         context += '\n';
+      }
+
+      // --- Narrative SNAPSHOT.md ---
+      if (fs.existsSync(NARRATIVE_SNAPSHOT_PATH)) {
+        const narrative = readFileSafe(NARRATIVE_SNAPSHOT_PATH);
+        if (narrative) {
+          context += '--- SNAPSHOT.md (narrative session memory) ---\n';
+          context += narrative;
+          context += '\n';
+        }
       }
 
       context += '=== END RECOVERY ===\n\n';

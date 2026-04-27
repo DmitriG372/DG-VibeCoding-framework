@@ -1,14 +1,14 @@
-# DG-VibeCoding-Framework v5.1.0
+# DG-VibeCoding-Framework v7.1.0
 
 > **Philosophy:** Start Simple, Scale Smart — Equal Partnership
 
 Universal Claude Code + Codex framework with equal partnership model.
 
-## What's New in v5.1.0
+## Current Features
 
 ### Sprint-Based Coordination
 
-Replaced `.tasks/board.md` with `sprint/sprint.json` for structured sprint management.
+`sprint/sprint.json` is the structured sprint state — single source of truth for feature assignments, branches, and review status.
 
 - CC branch prefix changed from `feat/` to `cc/`
 - `/sync-tasks` replaced with `/sprint-status`
@@ -41,16 +41,21 @@ CC (Claude Code) and CX (Codex) are **equal partners**, not architect/executor.
 - `partnership` skill — Coordination guidance
 
 ### Current Stats
-- **5 core skills** — debugging, testing, git, vibecoding, partnership
+- **8 core skills** — debugging, testing, git, vibecoding, partnership, start, finish, housekeeping
 - **12 commands** — sprint-init, feature, done, review, fix, orchestrate, peer-review, handoff, sprint-status, context-refresh, sync-notebook, framework-update
 - **6 starter agents** — orchestrator, implementer, reviewer, tester, debugger, plan-checker
-- **10 hooks** — block-env, type-check, auto-format, usage-tracker, git-context, context-monitor, pre-compact, context-reload, sprint-sync, plan-to-sprint
+- **13 hooks** — block-env, type-check, auto-format, usage-tracker, git-context, context-monitor, pre-compact, context-reload, sprint-sync, plan-to-sprint, completion-guard, test-dir-protection, test-output-filter
 - **3 templates** — project-init, sprint, skill/command/agent
 
 ---
 
-## Previous: v4.1.0 → v3.0.1
+## Version History
 
+> Current version: see `VERSION` file (single source of truth) and `framework.json`. Validated by `tests/framework-consistency.sh`.
+
+- **v7.1.0** — `manifest.md` + `repo_access` modes, operational rules pack (autonomy/delegation/context-management/production-safety), session-level skills (`/start`, `/finish`, `/housekeeping`), narrative `SNAPSHOT.md`
+- **v7.0.0** — Progressive-disclosure skills, evidence hooks, slim CLAUDE.md
+- **v5.1.0** — Sprint-based coordination, framework.json/headless-review.sh in generated projects
 - **v4.1.0** — Context preservation hooks, NLM integration
 - **v4.0.0** — Equal Partnership Model (CC + CX)
 - **v3.1.0** — Spec-Factory model (Claude as Architect, Codex as Executor)
@@ -91,7 +96,7 @@ DG-VibeCoding-framework/
 │   └── settings.template.json   # Template for .claude/settings.local.json
 │
 ├── .claude/                     # Claude Code config
-│   ├── skills/                  # 5 core skills
+│   ├── skills/                  # 8 core skills
 │   │   ├── debugging/SKILL.md
 │   │   ├── testing/SKILL.md
 │   │   ├── git/SKILL.md
@@ -259,7 +264,7 @@ The framework uses a `SessionStart` hook instead of manual CHANGELOG.md:
 
 ```json
 {
-  "version": "5.1.0",
+  "version": "<see VERSION file — single source of truth>",
   "agents": {
     "cc": { "config": "CLAUDE.md", "branch_prefix": "cc/" },
     "cx": { "config": "AGENTS.md", "branch_prefix": "cx/" }
@@ -323,4 +328,4 @@ The script handles all migration paths automatically.
 
 ---
 
-*v5.1.0 — Sprint-Based Coordination, Equal Partnership*
+*Sprint-Based Coordination, Equal Partnership — see `VERSION` file for current version*

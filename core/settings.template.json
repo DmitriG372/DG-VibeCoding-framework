@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "description": "Claude Code settings template for DG-VibeCoding-Framework v7.0.0",
+  "description": "Claude Code settings template for DG-VibeCoding-Framework",
 
   "permissions": {
     "allow": [

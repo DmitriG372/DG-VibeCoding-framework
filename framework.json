@@ -1,15 +1,18 @@
 {
-  "version": "7.0.0",
+  "version": "7.1.0",
   "name": "DG-VibeCoding-Framework",
-  "description": "Universal framework for CC + CX equal partnership development — modern agent frontmatter, progressive skills, rules-based architecture",
+  "description": "Universal framework for CC + CX equal partnership development — modern agent frontmatter, progressive skills, rules-based architecture, repo_access modes",
 
   "core": {
     "skills": [
       "debugging",
-      "testing",
+      "finish",
       "git",
-      "vibecoding",
-      "partnership"
+      "housekeeping",
+      "partnership",
+      "start",
+      "testing",
+      "vibecoding"
     ],
     "commands": [
       "sprint-init",
