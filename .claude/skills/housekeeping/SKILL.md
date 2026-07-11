@@ -77,17 +77,14 @@ Kui leidub:
 # Kontrolli SNAPSHOT.md timestamp'i
 [ -f .claude/SNAPSHOT.md ] && grep "Last update" .claude/SNAPSHOT.md
 
-# Valideeri sprint.json
+# Valideeri sprint.json dependency-free frameworki validaatoriga
 if [ -f sprint/sprint.json ]; then
-  CURRENT=$(jq -r '.current_feature // empty' sprint/sprint.json)
-  if [ -n "$CURRENT" ]; then
-    EXISTS=$(jq -r ".features[] | select(.id == \"$CURRENT\") | .id" sprint/sprint.json)
-    [ -z "$EXISTS" ] && echo "BLOCKER: current_feature=$CURRENT pole sprint.features-is"
-  fi
+  node scripts/validate-sprint.js sprint/sprint.json
 fi
 ```
 
-Kui SNAPSHOT.md timestamp on enne viimase sessiooni-commit'i — uuenda.
+Kui SNAPSHOT.md timestamp on enne viimase sessiooni-commit'i — uuenda seda
+lokaalselt, kuid ära stage'i ega commit'i.
 
 ### 6. Repo-access ohutus
 
@@ -95,7 +92,9 @@ Kui SNAPSHOT.md timestamp on enne viimase sessiooni-commit'i — uuenda.
 [ -x scripts/framework-state-mode.sh ] && scripts/framework-state-mode.sh check-safe-mode
 ```
 
-Kui väljub kood 2 — STOP, ütle kasutajale et `repo_access=public/private-shared` aga raamistiku failid on ikka tracked. Soovita käivitada `scripts/switch-repo-access.sh <mode>`.
+Kui väljub kood 2 — STOP: mõni alati lokaalne fail (settings, notebook,
+SNAPSHOT, logi või `manifest.md`) on endiselt tracked. Käivita
+`scripts/switch-repo-access.sh <mode>`; tiimi juhised ja sprint jäävad tracked.
 
 ### 7. Manifest täielikkus
 
@@ -130,7 +129,7 @@ Housekeeping valmis:
 - README: [up-to-date | uuendatud]
 - CHANGELOG: [N undocumented commits added | up-to-date | not present]
 - .gitignore: [clean | N files removed from tracking]
-- SNAPSHOT: [fresh | uuendatud timestamp]
+- SNAPSHOT: [fresh | uuendatud lokaalselt]
 - Repo-access: <mode> [safe | BLOCKER message]
 
 Valmis push'iks: yes / no (<põhjused>)

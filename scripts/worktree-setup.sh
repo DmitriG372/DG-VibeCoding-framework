@@ -9,12 +9,17 @@ set -e
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-RED='\033[0;31m'
 NC='\033[0m'
 
 BRANCH="${1:?Usage: $0 <branch-name>}"
-PROJECT_NAME=$(basename "$(pwd)")
-WT_DIR="../${PROJECT_NAME}-wt-${BRANCH//\//-}"
+if ! git check-ref-format --branch "$BRANCH" >/dev/null 2>&1; then
+    echo "worktree-setup: invalid branch name: $BRANCH" >&2
+    exit 64
+fi
+ROOT="$(git rev-parse --show-toplevel)"
+PROJECT_NAME="$(basename "$ROOT")"
+WT_DIR="$(dirname "$ROOT")/${PROJECT_NAME}-wt-${BRANCH//\//-}"
+cd "$ROOT"
 
 echo -e "${BLUE}Setting up worktree for branch: ${BRANCH}${NC}"
 echo -e "${BLUE}Worktree path: ${WT_DIR}${NC}"
@@ -30,22 +35,8 @@ fi
 
 cd "$WT_DIR"
 
-# Auto-detect package manager and install dependencies
-if [ -f pnpm-lock.yaml ]; then
-    echo -e "${YELLOW}Installing dependencies (pnpm)...${NC}"
-    pnpm install --frozen-lockfile 2>/dev/null || pnpm install
-    echo -e "${GREEN}✓${NC} pnpm install complete"
-elif [ -f yarn.lock ]; then
-    echo -e "${YELLOW}Installing dependencies (yarn)...${NC}"
-    yarn install --frozen-lockfile 2>/dev/null || yarn install
-    echo -e "${GREEN}✓${NC} yarn install complete"
-elif [ -f package-lock.json ]; then
-    echo -e "${YELLOW}Installing dependencies (npm)...${NC}"
-    npm ci 2>/dev/null || npm install
-    echo -e "${GREEN}✓${NC} npm install complete"
-elif [ -f requirements.txt ]; then
-    echo -e "${YELLOW}Python project detected. Run: pip install -r requirements.txt${NC}"
-fi
+echo -e "${YELLOW}Dependencies were not installed automatically.${NC}"
+echo -e "${YELLOW}Run the project's documented bootstrap command inside the worktree if needed.${NC}"
 
 # Do not copy .env files automatically.
 # This keeps secret handling explicit and aligned with AGENTS.md rules.
@@ -63,7 +54,7 @@ echo -e "Path:   ${BLUE}${WT_DIR}${NC}"
 echo -e "Branch: ${BLUE}${BRANCH}${NC}"
 echo ""
 echo -e "${YELLOW}For Codex:${NC}"
-echo "  cd ${WT_DIR} && codex --full-auto"
+echo "  cd ${WT_DIR} && codex --sandbox workspace-write"
 echo ""
 echo -e "${YELLOW}For Claude Code:${NC}"
 echo "  cd ${WT_DIR} && claude"

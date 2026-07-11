@@ -3,3 +3,7 @@
 # macOS metadata
 .DS_Store
 **/.DS_Store
+
+# Generated artifacts
+repomix-*.txt
+repomix-*.xml

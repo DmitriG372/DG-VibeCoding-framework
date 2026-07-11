@@ -1,35 +1,35 @@
 # Codex Rules
 
-> Project details → `PROJECT.md` | Sprint → `sprint/sprint.json`
+> Project truth: `PROJECT.md` | Sprint contract: `sprint/sprint.json`
+> Execution rules: `EXECUTION_PROTOCOL.md`
 
-## Context Loading
+## Session loading
 
-1. Read `PROJECT.md` first
-2. Read `sprint/sprint.json` for assigned features
-3. Work only on features with `assigned_to: "cx"`
+1. Read `PROJECT.md` and `EXECUTION_PROTOCOL.md`.
+2. Read `sprint/sprint.json` and run its validator.
+3. Work only on a feature assigned to `cx`.
+4. Confirm the current branch and worktree match the feature branch.
 
 ## Workflow
 
-1. Read PROJECT.md for context
-2. Find your assigned features in sprint/sprint.json
-3. Implement on `cx/FXXX-<slug>` branch
-4. Run tests before marking complete
-5. Use /done to complete feature
+- Run `node scripts/validate-sprint.js sprint/sprint.json` before editing.
+- Non-trivial features require 5–10 steps and an explicit file corridor.
+- `sequential` mode is one agent at a time in one checkout.
+- Parallel CC/CX work always uses a dedicated Git worktree.
+- Follow the closest `AGENTS.md` and `PROJECT.md` conventions.
+- Write behavior tests before implementation and show real verification output.
 
-## Git
+## Completion
 
-- Branch: `cx/FXXX-<slug>` (e.g., `cx/F001-user-auth`)
-- Commit: `<type>(<scope>): <description>`
-- Never push to main/dev directly
+1. Stage only implementation and test files.
+2. Run `scripts/stub-check.sh --staged` and project tests.
+3. Create the implementation commit on `cx/FNNN-<slug>`.
+4. Update sprint state to `in_review`, record the implementation hash, validate
+   it, and create a separate `chore(sprint)` coordination commit.
 
-## Rules
+## Safety
 
-### Always
-- Follow PROJECT.md patterns
-- Run tests before completing
-- Use /done to update sprint state
-
-### Never
-- Modify files outside task scope
-- Skip tests
-- Touch `.env*` files or secrets
+- Never modify `.env*`, credentials, secrets, generated output, or `.git/` internals.
+- Never broaden feature scope silently or add dependencies without approval.
+- Never work directly on `main`/`dev`, bypass hooks, force Git operations, push,
+  merge, or deploy without explicit authorization.

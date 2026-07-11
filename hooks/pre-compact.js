@@ -81,13 +81,12 @@ process.stdin.on('end', () => {
     if (sprintState && sprintState.current_feature && sprintState.features) {
       const cf = sprintState.features.find(f => f.id === sprintState.current_feature);
       if (cf && cf.steps && cf.steps.length > 0) {
-        const inProgress = cf.steps.find(s => s.status === 'in_progress');
-        const nextPending = cf.steps.find(s => s.status === 'pending');
+        const nextPending = cf.steps.find(s => s && typeof s === 'object' && s.done === false);
         currentStep = {
           feature: cf.id,
-          current: inProgress ? inProgress.description : null,
-          next: nextPending ? nextPending.description : null,
-          progress: `${cf.steps.filter(s => s.status === 'done').length}/${cf.steps.length}`
+          current: nextPending ? nextPending.desc : null,
+          next: null,
+          progress: `${cf.steps.filter(s => s && typeof s === 'object' && s.done === true).length}/${cf.steps.length}`
         };
       }
     }
@@ -118,7 +117,7 @@ process.stdin.on('end', () => {
 
     // --- Update narrative SNAPSHOT.md timestamp (if exists) ---
     // We only touch the timestamp line — content sections are the agent's responsibility.
-    // The hook never auto-commits SNAPSHOT.md; that's a /finish concern, gated on repo_access.
+    // The hook never stages or commits SNAPSHOT.md; it remains local in every repo_access mode.
     if (fs.existsSync(NARRATIVE_SNAPSHOT_PATH)) {
       try {
         const content = fs.readFileSync(NARRATIVE_SNAPSHOT_PATH, 'utf8');

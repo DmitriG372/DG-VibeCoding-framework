@@ -20,11 +20,13 @@ Complete the current feature with mandatory testing, stub detection, and git com
 - If null → "No feature in progress. Use /feature to start."
 - Warn if `assigned_to` ≠ `$AGENT_ID`
 
-### Step 2: Verify acceptance criteria (if `feature.acceptance` exists)
-1. **Truths** — each `acceptance.truths[]` must be observable
-2. **Artifacts** — each `acceptance.artifacts[]` must exist on disk
-3. **Verify command** — run `acceptance.verify` if set
-4. Any failure → stop, report, do NOT proceed to tests
+### Step 2: Verify acceptance criteria
+1. Read every `feature.acceptance_criteria[]` item.
+2. Map each criterion to observable evidence: a command result, existing
+   artifact, or directly inspected behavior.
+3. Run the required verification and record the evidence in the completion
+   report.
+4. Any unmet criterion → stop, report it, and do not proceed to completion.
 
 This is goal-backward verification — check the OUTCOME, not just the process.
 
@@ -40,6 +42,8 @@ This is goal-backward verification — check the OUTCOME, not just the process.
 > KEELATUD: claiming "tests pass" without real output. Execution-integrity Rule 3.
 
 ### Step 4: Stub detection (MANDATORY unless `--skip-stubs`)
+Stage only the feature implementation and test files before running the check.
+Do not stage sprint state yet.
 Run the shared script — it handles the grep patterns, exit codes, and block mode:
 
 ```bash
@@ -90,6 +94,17 @@ Set at root:
 
 `sprint/sprint.md` is regenerated automatically by the `sprint-sync` hook — do not edit manually.
 
+Validate the state, then create a separate coordination commit:
+
+```bash
+node scripts/validate-sprint.js sprint/sprint.json --write-stats
+git add sprint/sprint.json
+git commit -m "chore(sprint): record F<ID> implementation state"
+```
+
+The implementation hash is recorded after the implementation commit. A commit
+cannot contain its own hash, so sprint state is intentionally a later commit.
+
 ### Step 7: Show next feature + NotebookLM sync reminder
 1. Find next `pending` feature, display summary
 2. If `.claude/notebook.json` exists, check commits since `last_sync_commit`:
@@ -110,7 +125,7 @@ Set at root:
 ## Rules
 
 1. Tests are mandatory — the runner must have executed and shown output
-2. One commit per feature — atomic git history
+2. One implementation commit plus one explicit sprint coordination commit
 3. `sprint.json` is the single source of truth — atomic writes
 4. `/done` → `in_review`; `/peer-review` → `completed`
 5. `last_updated_by` must reflect the acting agent

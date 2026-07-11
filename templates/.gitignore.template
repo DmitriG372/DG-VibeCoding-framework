@@ -9,12 +9,15 @@
 *.p12
 credentials.json
 secrets/
-*secret*
 
 # Local agent settings + private notes
 .claude/settings.local.json
 .claude/notebook.json
 .claude/.tool-counter
+.claude/.last-test-run
+.claude/context-snapshot.json
+.claude/SNAPSHOT.md
+.claude/usage.log
 .claude/logs/
 CLAUDE.local.md
 
@@ -49,11 +52,6 @@ playwright-report/
 .nyc_output/
 *.log
 
-# >>> framework-public-ignore
-# Uncomment these lines when repo_access=public or private-shared (scripts/switch-repo-access.sh handles this automatically)
-# .claude/
-# CLAUDE.md
-# AGENTS.md
-# manifest.md
-# sprint/
-# <<< framework-public-ignore
+# Local repository-access policy; team guidance and sprint state remain tracked.
+manifest.md
+.dg-framework-backup-*/

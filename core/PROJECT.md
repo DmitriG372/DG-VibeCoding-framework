@@ -157,7 +157,7 @@ Skills in `.claude/skills/*/SKILL.md` auto-activate based on task context:
 - `testing/SKILL.md` — Writing tests
 - `api/SKILL.md` — Building APIs
 
-→ See `.claude/skills/` for all 22 skills
+→ See `.claude/skills/` for the installed core and project-specific skills
 → Claude auto-activates relevant skills based on task keywords
 → v2.4 requires subdirectory format: `.claude/skills/<name>/SKILL.md`
 

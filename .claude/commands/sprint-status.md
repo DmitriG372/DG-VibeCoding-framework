@@ -67,11 +67,11 @@ For each feature in sprint.json with `status: "in_progress"`:
 # Check if feature branch exists
 git branch --list "<feature.branch>"
 
-# Count commits ahead of main
-git rev-list --count main..<feature.branch> 2>/dev/null || echo "0"
+# Count commits ahead of the sprint base branch
+git rev-list --count <base_branch>..<feature.branch> 2>/dev/null || echo "0"
 
 # Check merge status (can it merge cleanly?)
-git merge-tree $(git merge-base main <feature.branch>) main <feature.branch> 2>/dev/null
+git merge-tree $(git merge-base <base_branch> <feature.branch>) <base_branch> <feature.branch> 2>/dev/null
 ```
 
 For each feature with `status: "completed"` (or legacy `status: "done"`):
@@ -86,8 +86,8 @@ git branch --merged main | grep "<feature.branch>" 2>/dev/null
 ```markdown
 ## Sprint Status
 
-**Sprint:** <sprint.meta.id> — <sprint.meta.goal>
-**Created:** <sprint.meta.created>
+**Sprint:** <sprint.sprint_id>
+**Created:** <sprint.created>
 **Last updated by:** <sprint.last_updated_by>
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

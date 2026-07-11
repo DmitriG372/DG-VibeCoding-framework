@@ -1,6 +1,6 @@
 # Claude Code Rules — {{PROJECT_NAME}}
 
-> **Framework:** DG-VibeCoding v7.0.0
+> **Framework:** DG-VibeCoding (version: see `framework.json`)
 > **Single source of truth:** `PROJECT.md`
 > **Sprint state:** `sprint/sprint.json`
 > **Rules:** `.claude/rules/`

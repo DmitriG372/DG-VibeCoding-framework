@@ -42,7 +42,9 @@ echo ""
 echo "✅ Migration complete!"
 echo ""
 echo "Skills structure:"
-find "$SKILLS_DIR" -name "SKILL.md" -exec dirname {} \; | xargs -I {} basename {}
+find "$SKILLS_DIR" -name "SKILL.md" -exec sh -c '
+  for skill_file do basename "$(dirname "$skill_file")"; done
+' sh {} +
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "📝 v${VERSION} Recommendation: Add 'context: fork' to token-intensive skills"

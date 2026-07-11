@@ -13,8 +13,14 @@ RED='\033[0;31m'
 NC='\033[0m'
 
 BRANCH="${1:?Usage: $0 <branch-name>}"
-PROJECT_NAME=$(basename "$(pwd)")
-WT_DIR="../${PROJECT_NAME}-wt-${BRANCH//\//-}"
+if ! git check-ref-format --branch "$BRANCH" >/dev/null 2>&1; then
+    echo "worktree-cleanup: invalid branch name: $BRANCH" >&2
+    exit 64
+fi
+ROOT="$(git rev-parse --show-toplevel)"
+PROJECT_NAME="$(basename "$ROOT")"
+WT_DIR="$(dirname "$ROOT")/${PROJECT_NAME}-wt-${BRANCH//\//-}"
+cd "$ROOT"
 
 echo -e "${BLUE}Cleaning up worktree for branch: ${BRANCH}${NC}"
 echo ""
@@ -43,7 +49,7 @@ git worktree remove "$WT_DIR" --force 2>/dev/null && \
     echo -e "${YELLOW}Worktree already removed${NC}"
 
 # Optionally delete branch (only if merged)
-if git branch --merged | grep -q "$BRANCH"; then
+if git branch --merged --format='%(refname:short)' | grep -Fxq "$BRANCH"; then
     git branch -d "$BRANCH" 2>/dev/null && \
         echo -e "${GREEN}✓${NC} Branch deleted: ${BRANCH}" || true
 else

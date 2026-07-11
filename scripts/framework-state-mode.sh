@@ -2,12 +2,8 @@
 #
 # Framework state mode helper
 #
-# Centralizes repo_access decisions for framework-managed files:
-# - .claude/
-# - CLAUDE.md
-# - manifest.md
-# - AGENTS.md
-# - sprint/
+# Centralizes repo_access decisions for local/private framework state.
+# Team guidance and sprint contracts stay tracked in every mode.
 #
 # This script is intentionally dependency-light so hooks can call it.
 #
@@ -39,7 +35,14 @@ is_shared_mode() {
 }
 
 list_framework_paths() {
-    printf '%s\n' ".claude" "CLAUDE.md" "manifest.md" "AGENTS.md" "sprint"
+    printf '%s\n' \
+        ".claude/settings.local.json" \
+        ".claude/notebook.json" \
+        ".claude/SNAPSHOT.md" \
+        ".claude/context-snapshot.json" \
+        ".claude/usage.log" \
+        ".claude/logs" \
+        "manifest.md"
 }
 
 list_tracked_framework_paths() {
@@ -47,15 +50,18 @@ list_tracked_framework_paths() {
         return 0
     fi
 
-    git ls-files -- .claude CLAUDE.md manifest.md AGENTS.md sprint 2>/dev/null || true
+    git ls-files -- \
+        .claude/settings.local.json \
+        .claude/notebook.json \
+        .claude/SNAPSHOT.md \
+        .claude/context-snapshot.json \
+        .claude/usage.log \
+        .claude/logs \
+        manifest.md 2>/dev/null || true
 }
 
 should_commit_framework_state() {
-    if is_shared_mode; then
-        printf 'false\n'
-    else
-        printf 'true\n'
-    fi
+    printf 'false\n'
 }
 
 check_safe_mode() {
@@ -63,15 +69,11 @@ check_safe_mode() {
         return 0
     fi
 
-    if ! is_shared_mode; then
-        return 0
-    fi
-
     local tracked
     tracked="$(list_tracked_framework_paths)"
     if [ -n "$tracked" ]; then
         echo "framework-state: BLOCKER"
-        echo "repo_access=$(get_repo_access), but framework files are still tracked:"
+        echo "repo_access=$(get_repo_access), but local framework state files are still tracked:"
         echo "$tracked"
         echo "Run: scripts/switch-repo-access.sh $(get_repo_access)"
         return 2
@@ -89,7 +91,7 @@ Commands:
   is-shared-mode                 Exit 0 if repo_access is public/private-shared
   should-commit-framework-state  Print true/false (used by hooks)
   tracked-framework-paths        List currently tracked framework files
-  check-safe-mode                Exit 2 if shared/public mode has tracked framework files
+  check-safe-mode                Exit 2 if any always-local framework state is tracked
 EOF
 }
 

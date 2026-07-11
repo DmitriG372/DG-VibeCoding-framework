@@ -44,9 +44,10 @@ Examples:
 ### Step 3: Gather changes
 For branch review:
 ```bash
-git log main..<branch> --oneline
-git diff main...<branch> --stat
-git diff main...<branch>
+BASE_BRANCH=$(node -e "const s=require('./sprint/sprint.json'); process.stdout.write(s.base_branch)")
+git log "$BASE_BRANCH"..<branch> --oneline
+git diff "$BASE_BRANCH"...<branch> --stat
+git diff "$BASE_BRANCH"...<branch>
 ```
 For path review, read files directly.
 
@@ -95,7 +96,7 @@ Then read `/tmp/review-report.json` and format the same JSON contract.
 4. Set root `last_updated_by: "$AGENT_ID"`
 5. Write sprint.json
 
-If no matching feature → skip silently.
+If no matching feature → stop and report a sprint/branch contract mismatch.
 
 ### Step 8: Offer auto-fix
 For non-blocker issues: "Fix these? [Y/n]". If yes, use Edit tool and re-run review to verify.

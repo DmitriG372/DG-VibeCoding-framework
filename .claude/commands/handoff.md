@@ -48,6 +48,9 @@ Consult the partnership routing matrix in `.claude/skills/partnership/SKILL.md`.
 - `name`: short English slug
 - `description`: full text from arguments
 - `acceptance_criteria`: 2–4 testable criteria derived from description
+- `steps`: 5–10 structured `{ id, desc, done }` steps
+- `corridor`: explicit allowed and forbidden file globs
+- `trivial`: true only for a below-50-LOC change
 - `complexity`: estimate from scope
 - `status`: `"pending"`
 - Update `stats.total`, `stats.pending`
@@ -59,22 +62,19 @@ Update the feature:
 - `last_updated_by: "$AGENT_ID"`
 - `last_updated`: ISO timestamp
 
-Create the branch per `branch_strategy`:
-
-**`branch_strategy: "main"`**
-```bash
-git branch "$TARGET/<id>-<slug>" 2>/dev/null || true
-```
+Parallel handoff always uses a worktree. `sequential` mode must be changed to
+`worktree` in sprint state before handoff.
 
 **`branch_strategy: "worktree"`**
 ```bash
-PROJECT=$(basename "$(pwd)")
-BR="$TARGET/<id>-<slug>"
-git worktree add "../${PROJECT}-wt-${BR//\//-}" -b "$BR" 2>/dev/null \
-  || git worktree add "../${PROJECT}-wt-${BR//\//-}" "$BR"
+scripts/handoff-worktree.sh "<feature-id>" "$TARGET"
 ```
 
-### Step 6: Write sprint.json (atomic)
+### Step 6: Validate and write sprint.json
+
+Run `node scripts/validate-sprint.js sprint/sprint.json --write-stats`, stage
+only `sprint/sprint.json`, and let `handoff-worktree.sh` create the dedicated
+coordination commit before the worktree.
 
 ### Step 7: Show handoff summary
 ```
@@ -88,10 +88,10 @@ Acceptance:
   - <criterion 2>
 
 Launch $TARGET:
-  cd <path>  &&  <codex --full-auto | claude>
+  cd <path>  &&  <codex --sandbox workspace-write | claude>
 ```
 
-For worktree strategy, `<path>` is `../<project>-wt-<target>-<id>-<slug>/`. For main, it's the project root.
+`<path>` is the worktree path printed by `scripts/handoff-worktree.sh`.
 
 ## Rules
 

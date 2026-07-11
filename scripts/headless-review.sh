@@ -1,308 +1,162 @@
-#!/bin/bash
-# DG-VibeCoding-Framework — Headless Review Script
-# Invokes claude -p or codex exec for automated code review.
-#
-# Usage: ./scripts/headless-review.sh [OPTIONS] [target]
-#
-# Options:
-#   --tool claude|codex   Review tool (default: claude)
-#   --mode quick|full     Review depth (default: quick)
-#   --branch <name>       Review branch diff vs main
-#   --staged              Review staged changes only
-#   --output <path>       Save report to file (default: stdout)
-#
-# Examples:
-#   ./scripts/headless-review.sh --branch cx/F003-add-auth-api
-#   ./scripts/headless-review.sh --tool codex --staged
-#   ./scripts/headless-review.sh --mode full src/services/
+#!/usr/bin/env bash
+# Secure headless code review with Claude Code or Codex.
+# Usage: headless-review.sh [--tool claude|codex] [--mode quick|full]
+#        [--branch name|--staged|target] [--output path]
 
 set -euo pipefail
 
-# ── Defaults ──────────────────────────────────────────────
 TOOL="claude"
 MODE="quick"
 BRANCH=""
 STAGED=false
 OUTPUT=""
 TARGET=""
-DIFF_LIMIT=10000
+BYTE_LIMIT="${REVIEW_BYTE_LIMIT:-1000000}"
+CLAUDE_BIN="${CLAUDE_BIN:-claude}"
+CODEX_BIN="${CODEX_BIN:-codex}"
 
-# ── Parse arguments ───────────────────────────────────────
+usage() {
+  sed -n '2,/^$/p' "$0" | sed 's/^# \?//'
+}
+
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --tool)   TOOL="$2"; shift 2 ;;
-    --mode)   MODE="$2"; shift 2 ;;
-    --branch) BRANCH="$2"; shift 2 ;;
+    --tool) [[ $# -ge 2 ]] || { echo 'Missing --tool value' >&2; exit 64; }; TOOL="$2"; shift 2 ;;
+    --mode) [[ $# -ge 2 ]] || { echo 'Missing --mode value' >&2; exit 64; }; MODE="$2"; shift 2 ;;
+    --branch) [[ $# -ge 2 ]] || { echo 'Missing --branch value' >&2; exit 64; }; BRANCH="$2"; shift 2 ;;
     --staged) STAGED=true; shift ;;
-    --output) OUTPUT="$2"; shift 2 ;;
-    --help|-h)
-      sed -n '2,/^$/p' "$0" | sed 's/^# \?//'
-      exit 0
-      ;;
-    -*)
-      echo "Error: Unknown option $1" >&2
-      exit 1
-      ;;
-    *)
-      TARGET="$1"; shift ;;
+    --output) [[ $# -ge 2 ]] || { echo 'Missing --output value' >&2; exit 64; }; OUTPUT="$2"; shift 2 ;;
+    --help|-h) usage; exit 0 ;;
+    -*) echo "Unknown option: $1" >&2; exit 64 ;;
+    *) [[ -z "$TARGET" ]] || { echo 'Only one target is supported' >&2; exit 64; }; TARGET="$1"; shift ;;
   esac
 done
 
-# ── Validate tool ─────────────────────────────────────────
-resolve_tool() {
-  if [[ "$TOOL" == "claude" ]]; then
-    if command -v claude &>/dev/null; then return 0; fi
-    echo "Warning: claude not found, trying codex fallback..." >&2
-    if command -v codex &>/dev/null && [[ -n "${OPENAI_API_KEY:-}" ]]; then
-      TOOL="codex"; return 0
-    fi
-    echo "Error: Neither claude nor codex available" >&2; exit 1
-  elif [[ "$TOOL" == "codex" ]]; then
-    if command -v codex &>/dev/null && [[ -n "${OPENAI_API_KEY:-}" ]]; then return 0; fi
-    echo "Warning: codex not available, trying claude fallback..." >&2
-    if command -v claude &>/dev/null; then
-      TOOL="claude"; return 0
-    fi
-    echo "Error: Neither codex nor claude available" >&2; exit 1
-  else
-    echo "Error: --tool must be 'claude' or 'codex'" >&2; exit 1
-  fi
-}
-resolve_tool
+[[ "$TOOL" =~ ^(claude|codex)$ ]] || { echo "--tool must be claude or codex" >&2; exit 64; }
+[[ "$MODE" =~ ^(quick|full)$ ]] || { echo "--mode must be quick or full" >&2; exit 64; }
+[[ "$BYTE_LIMIT" =~ ^[0-9]+$ ]] || { echo 'REVIEW_BYTE_LIMIT must be numeric' >&2; exit 64; }
+[[ -z "$BRANCH" || -z "$TARGET" ]] || { echo 'Use either --branch or a path target' >&2; exit 64; }
 
-# ── Gather diff / code ────────────────────────────────────
-DIFF_CONTENT=""
-DIFF_TRUNCATED=false
-
-gather_diff() {
-  local raw_diff=""
-
-  if [[ -n "$BRANCH" ]]; then
-    raw_diff=$(git diff "main...$BRANCH" 2>/dev/null || git diff "main..$BRANCH" 2>/dev/null || echo "")
-    if [[ -z "$raw_diff" ]]; then
-      echo "Error: Cannot compute diff for branch '$BRANCH'" >&2
-      exit 1
-    fi
-  elif [[ "$STAGED" == true ]]; then
-    raw_diff=$(git diff --cached)
-  elif [[ -n "$TARGET" ]]; then
-    # Target is file or directory — read contents
-    if [[ -d "$TARGET" ]]; then
-      raw_diff=$(find "$TARGET" -type f \( -name '*.ts' -o -name '*.tsx' -o -name '*.js' -o -name '*.jsx' -o -name '*.py' -o -name '*.rs' -o -name '*.go' -o -name '*.java' -o -name '*.md' -o -name '*.sh' -o -name '*.yaml' -o -name '*.yml' -o -name '*.json' -o -name '*.toml' -o -name '*.sql' -o -name '*.css' -o -name '*.html' -o -name '*.svelte' -o -name '*.vue' \) -exec sh -c 'echo "=== {} ==="; cat "{}"' \;)
-    elif [[ -f "$TARGET" ]]; then
-      raw_diff=$(cat "$TARGET")
-    else
-      echo "Error: Target '$TARGET' not found" >&2
-      exit 1
-    fi
-  else
-    # Default: uncommitted changes
-    raw_diff=$(git diff)
-    if [[ -z "$raw_diff" ]]; then
-      raw_diff=$(git diff --cached)
-    fi
-    if [[ -z "$raw_diff" ]]; then
-      echo "Error: No uncommitted or staged changes found" >&2
-      exit 1
-    fi
-  fi
-
-  # Truncate if too large
-  local line_count
-  line_count=$(echo "$raw_diff" | wc -l | tr -d ' ')
-  if [[ "$line_count" -gt "$DIFF_LIMIT" ]]; then
-    DIFF_TRUNCATED=true
-    local stat_summary=""
-    if [[ -n "$BRANCH" ]]; then
-      stat_summary=$(git diff "main...$BRANCH" --stat 2>/dev/null || echo "")
-    elif [[ "$STAGED" == true ]]; then
-      stat_summary=$(git diff --cached --stat)
-    else
-      stat_summary=$(git diff --stat)
-    fi
-    DIFF_CONTENT="NOTE: Diff truncated from $line_count to $DIFF_LIMIT lines.
-
---- STAT SUMMARY ---
-$stat_summary
-
---- TRUNCATED DIFF (first $DIFF_LIMIT lines) ---
-$(echo "$raw_diff" | head -n "$DIFF_LIMIT")"
-  else
-    DIFF_CONTENT="$raw_diff"
-  fi
-}
-gather_diff
-
-# ── Build checklist ───────────────────────────────────────
-QUICK_CHECKLIST='Code Quality (5): readability, function length <50 lines, nesting <4 levels, naming conventions, DRY compliance.
-Security (5): no hardcoded secrets, input validation, no injection vulnerabilities, auth/authz checks, data sanitization.
-Performance (4): algorithm complexity, memory management, async patterns, database queries.
-Patterns (3): project consistency, architecture compliance, no anti-patterns.'
-
-FULL_CHECKLIST="$QUICK_CHECKLIST
-Documentation (5): README, API docs, inline comments, types, changelog.
-Test Coverage (5): unit tests, integration tests, edge cases, error paths, >=70% coverage.
-Dependencies (4): vulnerabilities, outdated, unused, license compliance.
-Tech Debt (4): TODOs resolved, no deprecated APIs, reasonable complexity, no duplication."
-
-if [[ "$MODE" == "full" ]]; then
-  CHECKLIST="$FULL_CHECKLIST"
-  MAX_SCORE=35
+if [[ "$TOOL" == codex ]]; then
+  command -v "$CODEX_BIN" >/dev/null 2>&1 || { echo "Codex executable not found: $CODEX_BIN" >&2; exit 1; }
 else
-  CHECKLIST="$QUICK_CHECKLIST"
-  MAX_SCORE=17
+  command -v "$CLAUDE_BIN" >/dev/null 2>&1 || { echo "Claude executable not found: $CLAUDE_BIN" >&2; exit 1; }
 fi
 
-# ── Determine target label ────────────────────────────────
-TARGET_LABEL="${BRANCH:-${TARGET:-uncommitted}}"
+ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || { echo 'Not inside a Git repository' >&2; exit 1; }
+cd "$ROOT"
+TMP_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/dg-review-XXXXXX")"
+trap 'rm -rf "$TMP_ROOT"' EXIT
+RAW="$TMP_ROOT/raw.txt"
+LIMITED="$TMP_ROOT/limited.txt"
+PROMPT="$TMP_ROOT/prompt.txt"
+MODEL_TEXT="$TMP_ROOT/model.txt"
+EVENTS="$TMP_ROOT/events.jsonl"
+LAST_MESSAGE="$TMP_ROOT/last-message.txt"
+: > "$RAW"
 
-# ── Build prompt ──────────────────────────────────────────
-PROMPT="You are a strict code reviewer. Review the following code/diff.
-
-## Review Checklist ($MODE mode, max $MAX_SCORE points)
-$CHECKLIST
-
-## Scoring
-Award points per item (1 = pass, 0 = fail).
-$(if [[ "$MODE" == "full" ]]; then
-echo "Verdicts: score 28-35 = PASS, score 20-27 = NEEDS_ATTENTION, score 0-19 = FAIL."
-else
-echo "Verdicts: score 15-17 = PASS, score 10-14 = NEEDS_CHANGES, score 0-9 = FAIL."
-fi)
-
-## IMPORTANT: Output ONLY valid JSON
-Respond with ONLY a JSON object (no markdown fences, no extra text):
-{
-  \"target\": \"$TARGET_LABEL\",
-  \"mode\": \"$MODE\",
-  \"score\": <number>,
-  \"max_score\": $MAX_SCORE,
-  \"verdict\": \"$(if [[ "$MODE" == "full" ]]; then echo "PASS|NEEDS_ATTENTION|FAIL"; else echo "PASS|NEEDS_CHANGES|FAIL"; fi)\",
-  \"issues\": [
-    {
-      \"severity\": \"CRITICAL|MAJOR|MINOR\",
-      \"file\": \"<path>\",
-      \"line\": <number or null>,
-      \"category\": \"<security|quality|performance|patterns|docs|tests|deps|debt>\",
-      \"description\": \"<what is wrong>\",
-      \"suggestion\": \"<how to fix>\"
-    }
-  ],
-  \"summary\": \"<1-2 sentence summary>\"
+is_secret_path() {
+  local lower
+  lower="$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')"
+  [[ "$lower" =~ (^|/)(\.env($|\.)|credentials([^/]*\.)?json$|secrets?(/|$)) ]] ||
+    [[ "$lower" =~ \.(pem|key|p12)$ ]]
 }
 
-## Code to Review
-$DIFF_CONTENT"
+append_tracked_file() {
+  local file="$1"
+  is_secret_path "$file" && { echo "Refusing secret-like review path: $file" >&2; return 2; }
+  case "$file" in
+    *.ts|*.tsx|*.js|*.jsx|*.py|*.rs|*.go|*.java|*.md|*.sh|*.yaml|*.yml|*.json|*.toml|*.sql|*.css|*.html|*.svelte|*.vue)
+      printf '=== %s ===\n' "$file" >> "$RAW"
+      cat -- "$file" >> "$RAW"
+      printf '\n' >> "$RAW"
+      ;;
+  esac
+}
 
-# ── Execute headless review ───────────────────────────────
-RAW_RESPONSE=""
+reject_secret_paths() {
+  local file
+  while IFS= read -r -d '' file; do
+    if is_secret_path "$file"; then
+      echo "Refusing secret-like changed path: $file" >&2
+      return 1
+    fi
+  done
+}
 
-run_claude() {
-  RAW_RESPONSE=$(claude -p "$PROMPT" --output-format json --max-turns 1 2>/dev/null) || {
-    echo "Error: claude -p failed" >&2
+if [[ -n "$BRANCH" ]]; then
+  BASE_BRANCH="main"
+  if [[ -f sprint/sprint.json ]]; then
+    BASE_BRANCH="$(node -e "const s=require('./sprint/sprint.json'); process.stdout.write(s.base_branch || 'main')")"
+  fi
+  git rev-parse --verify "$BRANCH" >/dev/null 2>&1 || { echo "Unknown branch: $BRANCH" >&2; exit 1; }
+  reject_secret_paths < <(git diff --name-only -z "$BASE_BRANCH...$BRANCH")
+  git diff "$BASE_BRANCH...$BRANCH" > "$RAW"
+elif [[ "$STAGED" == true ]]; then
+  reject_secret_paths < <(git diff --cached --name-only -z)
+  git diff --cached > "$RAW"
+elif [[ -n "$TARGET" ]]; then
+  if [[ -f "$TARGET" ]]; then
+    git ls-files --error-unmatch -- "$TARGET" >/dev/null 2>&1 || { echo "Target must be Git-tracked: $TARGET" >&2; exit 1; }
+    append_tracked_file "$TARGET"
+  elif [[ -d "$TARGET" ]]; then
+    found=false
+    while IFS= read -r -d '' file; do
+      found=true
+      append_tracked_file "$file"
+    done < <(git ls-files -z -- "$TARGET")
+    [[ "$found" == true ]] || { echo "No tracked reviewable files in: $TARGET" >&2; exit 1; }
+  else
+    echo "Target not found: $TARGET" >&2
     exit 1
-  }
-}
-
-run_codex() {
-  RAW_RESPONSE=$(codex exec --json --sandbox read-only "$PROMPT" 2>/dev/null) || {
-    echo "Error: codex exec failed" >&2
-    exit 1
-  }
-}
-
-if [[ "$TOOL" == "claude" ]]; then
-  run_claude
-else
-  run_codex
-fi
-
-# ── Parse response ────────────────────────────────────────
-# Extract JSON review from the response.
-# claude -p --output-format json wraps in {"type":"result","result":"<text>"}
-# codex exec --json returns array of items.
-# We need to extract the inner JSON review object.
-
-extract_review_json() {
-  local input="$1"
-
-  # Try: direct JSON parse (already valid review object)
-  if echo "$input" | python3 -c "import sys,json; d=json.load(sys.stdin); assert all(k in d for k in ('verdict','score','issues'))" 2>/dev/null; then
-    echo "$input"
-    return 0
   fi
-
-  # Try: claude -p format — extract .result field, then parse inner JSON
-  local inner
-  inner=$(echo "$input" | python3 -c "
-import sys, json, re
-data = json.load(sys.stdin)
-text = data.get('result', '') if isinstance(data, dict) else str(data)
-# Find JSON object in text
-match = re.search(r'\{[\s\S]*\"verdict\"[\s\S]*\}', text)
-if match:
-    obj = json.loads(match.group())
-    print(json.dumps(obj))
-else:
-    sys.exit(1)
-" 2>/dev/null) && { echo "$inner"; return 0; }
-
-  # Try: codex format — find last completed message
-  inner=$(echo "$input" | python3 -c "
-import sys, json, re
-data = json.load(sys.stdin)
-text = ''
-if isinstance(data, list):
-    for item in reversed(data):
-        if isinstance(item, dict):
-            text = item.get('agent_message', item.get('content', item.get('text', '')))
-            if text: break
-elif isinstance(data, dict):
-    text = json.dumps(data)
-match = re.search(r'\{[\s\S]*\"verdict\"[\s\S]*\}', str(text))
-if match:
-    obj = json.loads(match.group())
-    print(json.dumps(obj))
-else:
-    sys.exit(1)
-" 2>/dev/null) && { echo "$inner"; return 0; }
-
-  # Try: raw text contains JSON somewhere
-  inner=$(echo "$input" | python3 -c "
-import sys, json, re
-text = sys.stdin.read()
-match = re.search(r'\{[\s\S]*\"verdict\"[\s\S]*\}', text)
-if match:
-    obj = json.loads(match.group())
-    print(json.dumps(obj))
-else:
-    sys.exit(1)
-" 2>/dev/null) && { echo "$inner"; return 0; }
-
-  return 1
-}
-
-REVIEW_JSON=$(extract_review_json "$RAW_RESPONSE") || {
-  echo "Error: Could not parse review JSON from $TOOL response" >&2
-  echo "Raw response (first 500 chars):" >&2
-  echo "$RAW_RESPONSE" | head -c 500 >&2
-  exit 1
-}
-
-# ── Add tool metadata ─────────────────────────────────────
-FINAL_JSON=$(echo "$REVIEW_JSON" | python3 -c "
-import sys, json
-review = json.load(sys.stdin)
-review['tool'] = '$TOOL'
-if $DIFF_TRUNCATED:
-    review['warning'] = 'Diff was truncated to $DIFF_LIMIT lines'
-print(json.dumps(review, indent=2))
-")
-
-# ── Output ────────────────────────────────────────────────
-if [[ -n "$OUTPUT" ]]; then
-  echo "$FINAL_JSON" > "$OUTPUT"
-  echo "Review saved to $OUTPUT" >&2
 else
-  echo "$FINAL_JSON"
+  reject_secret_paths < <(git diff --name-only -z)
+  git diff > "$RAW"
+  if [[ ! -s "$RAW" ]]; then
+    reject_secret_paths < <(git diff --cached --name-only -z)
+    git diff --cached > "$RAW"
+  fi
 fi
+
+[[ -s "$RAW" ]] || { echo 'No review content found' >&2; exit 1; }
+TRUNCATED=false
+bytes="$(wc -c < "$RAW" | tr -d ' ')"
+if (( bytes > BYTE_LIMIT )); then
+  dd if="$RAW" of="$LIMITED" bs=1 count="$BYTE_LIMIT" 2>/dev/null
+  TRUNCATED=true
+else
+  cp "$RAW" "$LIMITED"
+fi
+
+if [[ "$MODE" == full ]]; then MAX_SCORE=35; else MAX_SCORE=17; fi
+if [[ -n "$BRANCH" ]]; then TARGET_LABEL="$BRANCH"
+elif [[ -n "$TARGET" ]]; then TARGET_LABEL="$TARGET"
+elif [[ "$STAGED" == true ]]; then TARGET_LABEL="staged"
+else TARGET_LABEL="uncommitted"
+fi
+cat > "$PROMPT" <<EOF
+You are a strict code reviewer. Review the supplied content.
+Mode: $MODE. Maximum score: $MAX_SCORE.
+Return only JSON matching the supplied output schema.
+Check correctness, security, readability, maintainability, tests, documentation,
+dependencies, performance, and operational safety in proportion to the mode.
+Target label: $TARGET_LABEL
+
+--- REVIEW CONTENT ---
+EOF
+cat "$LIMITED" >> "$PROMPT"
+
+if [[ "$TOOL" == codex ]]; then
+  "$CODEX_BIN" exec --json --sandbox read-only \
+    --output-schema "$ROOT/templates/review-output.schema.json" \
+    --output-last-message "$LAST_MESSAGE" - < "$PROMPT" > "$EVENTS"
+  if [[ -s "$LAST_MESSAGE" ]]; then cp "$LAST_MESSAGE" "$MODEL_TEXT";
+  else node scripts/parse-codex-jsonl.js < "$EVENTS" > "$MODEL_TEXT"; fi
+else
+  "$CLAUDE_BIN" -p --output-format json --max-turns 1 < "$PROMPT" > "$MODEL_TEXT"
+fi
+
+if [[ -z "$OUTPUT" ]]; then OUTPUT="$TMP_ROOT/review.json"; PRINT_STDOUT=true; else PRINT_STDOUT=false; fi
+node scripts/normalize-review.js "$MODEL_TEXT" "$OUTPUT" "$TOOL" "$TARGET_LABEL" "$MODE" "$TRUNCATED"
+if [[ "$PRINT_STDOUT" == true ]]; then cat "$OUTPUT"; else echo "Review saved to $OUTPUT" >&2; fi

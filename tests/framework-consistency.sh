@@ -38,18 +38,43 @@ hook_count="$(find hooks -maxdepth 1 -type f -name '*.js' | wc -l | tr -d ' ')"
 [ "$skill_count" = "8" ] || fail "Expected 8 skills, found $skill_count"
 [ "$agent_count" = "6" ] || fail "Expected 6 agents, found $agent_count"
 [ "$command_count" = "12" ] || fail "Expected 12 commands, found $command_count"
-[ "$hook_count" = "13" ] || fail "Expected 13 hooks, found $hook_count"
+[ "$hook_count" = "15" ] || fail "Expected 15 hooks, found $hook_count"
 
 assert_contains '- **8 core skills**' README.md
 assert_contains '- **6 starter agents**' README.md
-assert_contains '- **13 hooks**' README.md
+assert_contains '- **15 hooks**' README.md
 assert_contains '| Skills    | 8' GUIDE.md
 assert_contains '| Agents    | 6' GUIDE.md
-assert_contains '| Hooks     | 13' GUIDE.md
+assert_contains '| Hooks     | 15' GUIDE.md
 
 assert_not_contains 'Read: agents/' .claude/commands/orchestrate.md
 assert_not_contains 'Read: agents/' .claude/commands/review.md
 assert_not_contains 'Touch .env files' templates/project-init/AGENTS.md
+assert_contains '"schema_version": "sprint-v3"' templates/sprint.template.json
+assert_contains '"branch_strategy": "sequential"' templates/sprint.template.json
+assert_contains 'codex --sandbox workspace-write' .claude/commands/handoff.md
+assert_contains 'hooks/lib/hook-input.js' framework.json
+assert_contains 'core/codex-hooks.template.json' framework.json
+assert_contains "Ei stage'i, commit'i ega push'i midagi." .claude/rules/context-management.md
+assert_contains 'tiimi juhised ja sprint jäävad tracked.' .claude/skills/housekeeping/SKILL.md
+assert_not_contains 'git add -u' .claude/rules/context-management.md
+assert_not_contains "EI commit'i raamistiku faile" .claude/rules/context-management.md
+
+if grep -R -n -E 'sprint-v2|codex --full-auto|git add \.( |$)|--no-verify' \
+  .claude/commands .claude/skills templates/project-init GUIDE.md README.md \
+  core/AGENTS.md core/CLAUDE.md core/HOOKS.md core/PROJECT.md 2>/dev/null; then
+  fail "Active documentation contains legacy or unsafe workflow guidance"
+fi
+
+for source in $(ROOT_DIR="$ROOT_DIR" node - <<'NODE'
+const fs = require('node:fs');
+const root = process.env.ROOT_DIR;
+const framework = JSON.parse(fs.readFileSync(`${root}/framework.json`, 'utf8'));
+for (const entry of framework.install.entries) process.stdout.write(`${entry.from}\n`);
+NODE
+); do
+  [ -e "$source" ] || fail "Install manifest source missing: $source"
+done
 
 ROOT_DIR="$ROOT_DIR" VERSION="$version" python3 - <<'PY'
 import json

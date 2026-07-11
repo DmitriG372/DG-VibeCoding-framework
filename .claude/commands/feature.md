@@ -36,6 +36,8 @@ Store as `$AGENT_ID` for branch naming and sprint.json updates.
 
 ### Step 3: Update sprint.json
 
+- Run `node scripts/validate-sprint.js sprint/sprint.json` before changing state
+- Refuse to start a non-trivial feature that does not contain 5–10 structured steps
 - Set selected feature `status: "in_progress"`
 - Set `assigned_to: "$AGENT_ID"`
 - Set `current_feature: "<feature-id>"`
@@ -48,7 +50,7 @@ Store as `$AGENT_ID` for branch naming and sprint.json updates.
 ### Step 4: Create Feature Branch
 
 1. Read `branch_strategy` and `base_branch` from sprint.json
-2. **If `branch_strategy == "main"`:**
+2. **If `branch_strategy == "sequential"`:**
    ```bash
    git checkout -b $AGENT_ID/<feature-id>-<slug>
    ```
@@ -66,6 +68,9 @@ Store as `$AGENT_ID` for branch naming and sprint.json updates.
    git checkout -b $AGENT_ID/<feature-id>-<slug>
    ```
 
+Parallel CC/CX execution is forbidden in `sequential` mode. Use `/handoff`,
+which creates and launches a dedicated worktree, for parallel partner work.
+
 ### Step 5: Display Feature Details
 
 - Show name, description, acceptance criteria
@@ -74,7 +79,7 @@ Store as `$AGENT_ID` for branch naming and sprint.json updates.
 
 ### Step 6: Activate Appropriate Agents
 
-- Complex feature (`high`): planner -> architect -> implementer
+- Complex feature (`high`): plan-checker -> orchestrator -> implementer
 - Simple feature (`low`): implementer directly
 - Medium feature: implementer -> tester
 
@@ -96,7 +101,7 @@ Acceptance Criteria:
   - User can login
   - JWT token is returned
 
-Agent Flow: planner -> implementer -> tester
+Agent Flow: plan-checker -> implementer -> tester
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 When implementation is complete and tested:

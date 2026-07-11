@@ -17,10 +17,13 @@ level: "1"
 
 ```bash
 # Tuvasta projekti tüüp ja jooksuta vastav käsk
-if [ -f "package.json" ]; then
-  npm test 2>&1 | tail -30
-elif [ -f "pnpm-lock.yaml" ]; then
+set -o pipefail
+if [ -f "pnpm-lock.yaml" ]; then
   pnpm test 2>&1 | tail -30
+elif [ -f "yarn.lock" ]; then
+  yarn test 2>&1 | tail -30
+elif [ -f "package.json" ]; then
+  npm test 2>&1 | tail -30
 elif [ -f "pyproject.toml" ] || [ -f "pytest.ini" ]; then
   python3 -m pytest tests/ 2>&1 | tail -30
 fi
@@ -61,22 +64,11 @@ Sektsioonid:
 - **Järgmised sammud:** mida järgmises sessioonis teha
 - **Last update:** uus timestamp
 
-### 5. Commit SNAPSHOT (kui repo_access lubab)
+### 5. Hoia SNAPSHOT lokaalsena
 
-```bash
-if [ -x scripts/framework-state-mode.sh ]; then
-  if [ "$(scripts/framework-state-mode.sh should-commit-framework-state)" = "true" ]; then
-    git add .claude/SNAPSHOT.md
-    git diff --cached --quiet || git commit -m "docs: update SNAPSHOT after session"
-  else
-    echo "SNAPSHOT kept local (repo_access=$(scripts/framework-state-mode.sh repo-access))"
-  fi
-else
-  # Fallback: kui skript pole olemas, käituma nagu private-solo
-  git add .claude/SNAPSHOT.md
-  git diff --cached --quiet || git commit -m "docs: update SNAPSHOT after session"
-fi
-```
+`.claude/SNAPSHOT.md` on kõigis repo_access režiimides lokaalne sessioonimälu.
+Ära stage'i ega commit'i seda. Tiimiga jagatav tööseis kuulub valideeritud
+`sprint/sprint.json` coordination commit'i.
 
 ### 6. Lõpeta sessiooni-logi
 
@@ -108,6 +100,6 @@ Hash'id: <commit hash list>
 
 ## Kontekst
 
-- Vahepealne checkpoint sessiooni jooksul: `context-management.md` "iga 20 tool call'i" reegel
+- Vahepealne checkpoint sessiooni jooksul: `context-management.md` regulaarne olekukontroll
 - Feature'i lõpp: `/done` (mitte `/finish`)
 - Sessiooni lõpp: `/finish` (see fail)

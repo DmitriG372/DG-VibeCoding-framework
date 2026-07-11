@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["target", "mode", "score", "max_score", "verdict", "issues", "summary"],
+  "properties": {
+    "target": { "type": "string" },
+    "mode": { "enum": ["quick", "full"] },
+    "score": { "type": "number" },
+    "max_score": { "enum": [17, 35] },
+    "verdict": { "enum": ["PASS", "NEEDS_CHANGES", "NEEDS_ATTENTION", "FAIL"] },
+    "issues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["severity", "file", "line", "category", "description", "suggestion"],
+        "properties": {
+          "severity": { "enum": ["CRITICAL", "MAJOR", "MINOR"] },
+          "file": { "type": "string" },
+          "line": { "type": ["integer", "null"] },
+          "category": { "type": "string" },
+          "description": { "type": "string" },
+          "suggestion": { "type": "string" }
+        }
+      }
+    },
+    "summary": { "type": "string" }
+  }
+}

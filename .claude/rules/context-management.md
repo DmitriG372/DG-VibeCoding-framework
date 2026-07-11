@@ -10,15 +10,17 @@ Konteksti degradeerumine algab juba 50-60% akna täitumise juures. Compaction'i 
 
 ### Regulaarne oleku salvestamine
 
-Iga olulise tööploki järel (vähemalt iga 20 tool call'i — see vastab `context-monitor.js` hoogu sisendile):
+Iga olulise tööploki järel või `context-monitor.js` hoiatuse korral:
 
 1. **Kontrolli:** kas on commit'imata muudatusi?
    ```bash
    git status --short
    ```
-2. **Kui jah:** `git add <konkreetsed failid>` + `git commit -m "..."`
-3. **Uuenda SNAPSHOT.md**, kui projekti olek on muutunud (mis tehtud, järgmised sammud)
-4. **Uuenda sprint.json** `last_updated` timestamp, kui mõni feature liikus
+2. **Uuenda `.claude/SNAPSHOT.md`**, kui projekti olek on muutunud (mis tehtud,
+   järgmised sammud). See jääb alati lokaalseks.
+3. **Uuenda ja valideeri `sprint.json`**, kui mõni feature päriselt liikus.
+4. Commit'i ainult aktiivse töövoo ja kasutaja antud Git-volituse järgi;
+   compaction ise ei anna commit'i tegemiseks luba.
 
 ### Degradeerumise märgid
 
@@ -32,36 +34,44 @@ Kui märkad endas:
 1. Loe `.claude/SNAPSHOT.md` (kui olemas)
 2. Loe `PROJECT.md`
 3. Loe `sprint/sprint.json` — eriti `current_feature` ja status
-4. `git log --oneline -20` — taasta krooonoloogia
+4. `git log --oneline -20` — taasta kronoloogia
 5. Kui see ei aita — käivita `/context-refresh`
 
 > Vastab `execution-integrity.md` Rule 6 (Session Health Check) — kui health check näitab probleemi, kasuta seda taasteketi.
 
-### Ära kogu commit'imata muudatusi
+### Hoia muudatuste ulatus arusaadav
 
-Suur kogus commit'imata muudatusi = suur risk compaction'i ajal kaotada. Commit'i tihti, atomaarselt.
+Suur segatud diff raskendab taastamist ja review'd. Hoia loogilised muudatused
+eraldi ning kontrolli `git status --short`; ära tee konteksti haldamise nimel
+automaatselt commit'i.
 
 ## Pre-compaction protokoll
 
 Enne compaction'it käivitub automaatselt `hooks/pre-compact.js`, mis teeb:
 
-1. **`git add -u` + commit** tracked muudatuste jaoks (untracked faile EI lisata teadlikult — turvalisus)
-2. **Uuendab timestamp'i** SNAPSHOT.md-s
-3. **Repo_access kontroll** (v7.1+): kui re­žiim on `public` või `private-shared`, EI commit'i raamistiku faile (`.claude/`, `sprint/`, `manifest.md`, `CLAUDE.md`, `AGENTS.md`)
+1. Kirjutab lokaalse `.claude/context-snapshot.json` faili.
+2. Uuendab olemasoleva lokaalse `.claude/SNAPSHOT.md` timestamp'i.
+3. Salvestab lugemiseks projekti, Giti ja sprindi hetkeseisu.
+4. Ei stage'i, commit'i ega push'i midagi.
 
-**Mida hook EI tee** (sinu vastutus rakkenduses):
+Kõigis `repo_access` režiimides jäävad lokaalseks settings, logid, snapshotid
+ja `manifest.md`. Tiimi juhised (`PROJECT.md`, `AGENTS.md`, `CLAUDE.md`) ning
+`sprint/sprint.json` jäävad jälgitavaks.
+
+**Mida hook EI tee** (sinu vastutus rakenduses):
 - Ei uuenda SNAPSHOT.md sisukaid sektsioone (Mis tehtud, Mis ootel, Järgmised sammud)
-- Ei lisa uusi untracked faile
+- Ei lisa faile Git indexisse
 - Ei lahenda merge konflikte
 
-Seega uuenda SNAPSHOT.md **enne** compaction'it — regulaarsete commit'ide raames (iga 20 tool call'i). Kui agent uuendab SNAPSHOT'i jooksvalt, hook lihtsalt fikseerib viimase oleku.
+Seega uuenda SNAPSHOT.md sisulisi sektsioone **enne** compaction'it. Hook
+fikseerib ainult hetkeseisu ja timestamp'i.
 
 ## Post-compaction protokoll
 
 Pärast compaction'it käivitub automaatselt `hooks/context-reload.js`, mis:
 
 1. Kuvab git context'i (HEAD, status, viimased commitid)
-2. **(v7.1+)** Kuvab `.claude/SNAPSHOT.md` sisu, kui olemas
+2. Kuvab `.claude/SNAPSHOT.md` sisu, kui olemas
 3. Toob esile, kas on commit'imata muudatusi
 
 **Sinu sammud pärast compaction'it:**
@@ -74,14 +84,17 @@ Pärast compaction'it käivitub automaatselt `hooks/context-reload.js`, mis:
 ## Reegel pikkadele sessioonidele
 
 Töötamisel > 30 min:
-- **Iga 15 min:** commit + SNAPSHOT update
+- **Regulaarselt:** kontrolli diffi ulatust ja uuenda lokaalset SNAPSHOT-i
 - **Enne iga suurt task'i:** kontrolli SNAPSHOT.md värskust
-- **Pärast iga agendi käivitamist:** täielik tsükkel (commit + SNAPSHOT update + sprint.json update) — vt `delegation.md`
+- **Pärast iga agendi käivitamist:** valideeri tulemus, uuenda sprinti ja järgi
+  `delegation.md` commit-poliitikat
 
 ## Konteksti eelarve
 
 Vt `vibecoding/SKILL.md`:
-- Iga plaanile lisatud samm tarbib konteksti jälgimiseks
-- Eelista 3-sammulist plaani 7-sammulisele
-- `execution-integrity.md` Rule 1: max 5 sammu plaanis
+- Iga interaktiivsele täitmisplaanile lisatud samm tarbib jälgimiskonteksti
+- Hoia täitmisplaan 5–7 kõrgtaseme sammu piires; sprindi feature'i 5–10
+  tehnilist dekompositsioonisammu on eraldi leping
+- `execution-integrity.md` Rule 1 kirjeldab täitmisplaani, sprint-v3 skeem
+  kirjeldab feature'i tööjaotust
 - Pärast compaction'it loe alati sprint.json enne jätkamist

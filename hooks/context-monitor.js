@@ -19,7 +19,8 @@ process.stdin.on('data', chunk => input += chunk);
 process.stdin.on('end', () => {
   try {
     const data = JSON.parse(input);
-    const sessionId = data.session_id || 'unknown';
+    const sessionId = data.session_id || null;
+    if (!sessionId) process.exit(0);
 
     // Try to read context usage from bridge file
     const bridgePath = `/tmp/claude-ctx-${sessionId}.json`;

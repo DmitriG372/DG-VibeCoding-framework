@@ -1,56 +1,61 @@
-# Claude Code Hooks
+# Hooks — DG-VibeCoding Framework v8.0
 
-> **Hooks** = commands that run before/after Claude executes tools
+> Hook'id lisavad Operating Protocoli guardrail'e Claude Code'i ja Codexi tasandil. Claude konfiguratsioon: `.claude/settings.local.json`; Codex konfiguratsioon: `.codex/hooks.json`. Allikas: `hooks/*.js` (15 hook'i).
 
----
+## Eesmärk
 
-## Quick Reference
+Hook'id ei ole "nice-to-have" automatika — nad teisendavad Operating Protocoli reeglid **jõustatavateks piiranguteks**. Manuaalne distsipliin ei skaleeru; hook'id skaleeruvad.
 
-| Hook Type | When | Can Block? | Use Case |
-|-----------|------|------------|----------|
-| Pre-tool use | Before execution | ✅ Yes | Block sensitive files, validate actions |
-| Post-tool use | After execution | ❌ No | Type checking, format, sprint sync, telemetry |
+| Operating Protocol reegel | Jõustav hook |
+|---|---|
+| Rule 1 — Dekomponeeri enne tegutsemist | `decomposition-guard.js` |
+| Rule 4 — Kirurgilised muudatused | `scope-guard.js` |
+| Rule 5 — Eesmärgipõhine täitmine (ei stub'e committi) | `completion-guard.js` |
 
----
+## Hook'id raamistuse järgi
 
-## Hook Configuration Locations
+### PreToolUse (võivad blokeerida, exit 2 = hard block)
 
-Hooks can be defined in three locations (priority order):
+| Hook | Matcher | Mida teeb |
+|------|---------|-----------|
+| `block-env.js` | `Read\|Grep` | Blokeerib `.env*` failide lugemise |
+| `decomposition-guard.js` | `Edit\|Write\|MultiEdit` | Blokeerib editi kui aktiivne feature ei ole dekomponeeritud (`steps` puudub + `trivial:true` puudub) |
+| `test-dir-protection.js` | `Edit\|Write\|MultiEdit` | Kaitseb testkausta läbimõtlematu muutuse eest |
+| `completion-guard.js` | `Bash` | Blokeerib `git commit` kui `scripts/stub-check.sh` leiab stub'e |
 
-```
-1. ~/.claude/settings.json          # Global (all projects)
-2. .claude/settings.json            # Project (committed, shared with team)
-3. .claude/settings.local.json      # Project local (installed by this framework)
-```
+### PostToolUse (ainult tagasiside, ei blokeeri)
 
-**Command:** Use `/hooks` inside Claude Code to configure interactively.
+| Hook | Matcher | Mida teeb |
+|------|---------|-----------|
+| `scope-guard.js` | `Edit\|Write\|MultiEdit` | Hoiatab kui muudetud fail langeb feature `corridor.forbidden` alla |
+| `type-check.js` | `Edit\|Write\|MultiEdit` | Käivitab `tsc --noEmit` muudetud TS-failidele |
+| `auto-format.js` | `Edit\|Write\|MultiEdit` | Vormindab (prettier / projekti formatter) |
+| `sprint-sync.js` | `Edit\|Write\|MultiEdit` | Sünkib `sprint/sprint.json` ↔ `sprint.md` |
+| `test-output-filter.js` | `Bash` | Filtreerib testijooksu väljundit kompaktsemaks |
+| `usage-tracker.js` | `Skill\|SlashCommand\|Task` | Logib agentide ja skillide kasutust |
+| `context-monitor.js` | `.*` | Jälgib kontekstiakna kasutust |
+| `plan-to-sprint.js` | `ExitPlanMode` | Teisendab plaani `sprint/sprint.json`-iks |
 
----
+### Muud raamistused
 
-## Configuration Format
+| Hook | Sündmus | Mida teeb |
+|------|---------|-----------|
+| `pre-compact.js` | `PreCompact` | Salvestab konteksti-snapshot enne kompaktimist |
+| `git-context.js` | `SessionStart` (once) | Laadib git branch + ahead/behind sessiooni algul |
+| `context-reload.js` | `SessionStart` (matcher: compact) | Taastab konteksti pärast compactimist |
+
+## Konfiguratsioon
+
+`setup-project.sh` paigaldab konfiguratsiooni `.claude/settings.local.json`-i. Vorm:
 
 ```json
 {
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Read|Grep",
+        "matcher": "Edit|Write|MultiEdit",
         "hooks": [
-          {
-            "type": "command",
-            "command": "node ./hooks/block-env.js"
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ./hooks/type-check.js"
-          }
+          { "type": "command", "command": "node ./hooks/decomposition-guard.js" }
         ]
       }
     ]
@@ -58,563 +63,65 @@ Hooks can be defined in three locations (priority order):
 }
 ```
 
-### Hook Types (Events)
+Täielik vaikimisi seadistus: `core/settings.template.json` (kopeeritakse setup'i 6. sammus).
 
-| Event | Purpose |
-|-------|---------|
-| `PreToolUse` | Before tool execution (can block) |
-| `PostToolUse` | After successful tool execution |
-| `PostToolUseFailure` | After failed tool execution |
-| `UserPromptSubmit` | When user submits prompt |
-| `SessionStart` | When session starts |
-| `SessionEnd` | When session ends |
-| `Notification` | On notifications |
-| `Stop` | When stop is triggered |
-| `SubagentStart` | When subagent starts |
-| `SubagentStop` | When subagent stops |
-| `PreCompact` | Before context compaction |
-| `PermissionRequest` | On permission requests |
+## Hook'i kontraktid
 
-### Hook Execution Types
+Iga hook saab stdin'i kaudu JSON-payload'i:
 
 ```json
 {
-  "type": "command",
-  "command": "node ./hooks/my-hook.js",
-  "timeout": 30,
-  "statusMessage": "Running validation..."
+  "tool_name": "Edit",
+  "tool_input": { "file_path": "src/foo.ts", "old_string": "...", "new_string": "..." },
+  "cwd": "/path/to/project"
 }
 ```
 
-| Type | Description |
-|------|-------------|
-| `command` | Execute shell command |
-| `prompt` | LLM prompt evaluation |
-| `agent` | Agentic verifier |
+Exit-koodid:
+- **0** — õnnestus, jätka
+- **1** — soft fail (logitakse, ei blokeeri)
+- **2** — hard block (PreToolUse hook'idel — tööriist ei käivitu, mudel saab stderr-i)
 
-### Matcher Syntax
+Stderr → Claude'i kontekst (mudel näeb feedback'i).
+Stdout → kasutaja konsool (debug).
 
-- Single tool: `"Read"`
-- Multiple tools: `"Read|Grep|Edit"` (pipe-separated)
-- Tool names are **case-sensitive** (use exact tool names: `Read`, `Edit`, `Grep`, `Write`, `Bash`)
+## Debugimine
 
----
-
-## Exit Codes
-
-| Code | Meaning | Effect |
-|------|---------|--------|
-| 0 | Allow | Tool call proceeds |
-| 2 | Block | Tool call blocked (pre-tool only) |
-
-- **stdout** → ignored
-- **stderr** → sent to Claude as feedback
-
----
-
-## Tool Call Data
-
-Hook receives JSON via stdin:
-
-```json
-{
-  "session_id": "abc123",
-  "tool_name": "read",
-  "tool_input": {
-    "file_path": "/project/.env"
-  }
-}
-```
-
----
-
-## Useful Hooks
-
-### 1. Block Sensitive Files (Pre-tool)
-
-Prevents Claude from reading `.env`, credentials, secrets.
-
-**`hooks/block-env.js`:**
-
-```javascript
-#!/usr/bin/env node
-const fs = require('fs');
-
-// Read tool call from stdin
-let input = '';
-process.stdin.on('data', chunk => input += chunk);
-process.stdin.on('end', () => {
-  const data = JSON.parse(input);
-  const filePath = data.tool_input?.file_path || data.tool_input?.path || '';
-
-  const blocked = ['.env', 'credentials', 'secrets', '.pem', '.key'];
-  const isBlocked = blocked.some(b => filePath.toLowerCase().includes(b));
-
-  if (isBlocked) {
-    console.error(`⛔ Blocked: ${filePath} contains sensitive data`);
-    process.exit(2);
-  }
-
-  process.exit(0);
-});
-```
-
-**Config:**
-```json
-{
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Read|Grep",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ./hooks/block-env.js"
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
----
-
-### 2. TypeScript Type Checker (Post-tool)
-
-Run `tsc --no-emit` after TypeScript file edits, feed errors to Claude.
-
-**`hooks/type-check.js`:**
-
-```javascript
-#!/usr/bin/env node
-const { execSync } = require('child_process');
-const fs = require('fs');
-
-let input = '';
-process.stdin.on('data', chunk => input += chunk);
-process.stdin.on('end', () => {
-  const data = JSON.parse(input);
-  const filePath = data.tool_input?.file_path || '';
-
-  // Only check TypeScript files
-  if (!filePath.match(/\.(ts|tsx)$/)) {
-    process.exit(0);
-  }
-
-  try {
-    execSync('npx tsc --noEmit', {
-      stdio: ['ignore', 'pipe', 'pipe'],
-      timeout: 30000
-    });
-    process.exit(0);
-  } catch (error) {
-    // Send type errors to Claude for fixing
-    console.error(`⚠️ TypeScript errors found:\n${error.stderr?.toString() || error.stdout?.toString()}`);
-    process.exit(0); // Don't block, just inform
-  }
-});
-```
-
----
-
-### 3. Auto-Format After Edit (Post-tool)
-
-Run Prettier/ESLint after file edits.
-
-**`hooks/auto-format.js`:**
-
-```javascript
-#!/usr/bin/env node
-const { execSync } = require('child_process');
-
-let input = '';
-process.stdin.on('data', chunk => input += chunk);
-process.stdin.on('end', () => {
-  const data = JSON.parse(input);
-  const filePath = data.tool_input?.file_path || '';
-
-  // Only format JS/TS files
-  if (!filePath.match(/\.(js|jsx|ts|tsx|json)$/)) {
-    process.exit(0);
-  }
-
-  try {
-    execSync(`npx prettier --write "${filePath}"`, { stdio: 'ignore' });
-  } catch (e) {
-    // Ignore formatting errors
-  }
-
-  process.exit(0);
-});
-```
-
----
-
-## Framework Integration
-
-### Recommended Hooks for VibeCoding
-
-Add to `.claude/settings.local.json`:
-
-```json
-{
-  "permissions": {
-    "allow": ["...existing..."]
-  },
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Read|Grep",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ./hooks/block-env.js"
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ./hooks/type-check.js"
-          },
-          {
-            "type": "command",
-            "command": "node ./hooks/auto-format.js"
-          }
-        ]
-      },
-      {
-        "matcher": "Skill|SlashCommand|Task",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ./hooks/usage-tracker.js"
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
-### Directory Structure
-
-```
-project/
-├── .claude/
-│   ├── settings.local.json    # Hook configuration
-│   ├── commands/              # Slash commands
-│   ├── skills/*/SKILL.md      # Skills (v2.4 subdirectory format)
-│   └── usage.log              # Usage tracking output
-├── hooks/                     # Hook scripts
-│   ├── block-env.js           # Block sensitive file access
-│   ├── type-check.js          # TypeScript error detection
-│   ├── auto-format.js         # Auto-format on edit
-│   └── usage-tracker.js       # Track skill/command/agent usage
-└── ...
-```
-
----
-
-### 5. Git Context on Session Start
-
-Auto-loads recent git history when Claude starts a session.
-
-**`hooks/git-context.js`** — Shows branch, uncommitted files, last 20 commits.
-
-**Config:** (already in settings.template.json)
-```json
-"SessionStart": [{
-  "hooks": [{
-    "type": "command",
-    "command": "node ./hooks/git-context.js",
-    "once": true
-  }]
-}]
-```
-
-**Timeout:** 5 seconds per git command (exits gracefully if exceeded).
-**Failure modes:** Silently exits 0 if git commands fail or repo is missing (non-blocking).
-
-**Output (to stderr → Claude):**
-```
-=== Git Context ===
-Branch: feat/user-auth
-Uncommitted: 2 files
-
-Recent commits:
-[a1b2c3d] 2026-02-12 feat(auth): add login form
-[d4e5f6a] 2026-02-11 fix(api): handle null response
-=================
-```
-
----
-
-### 4. Usage Tracker (Post-tool)
-
-Track when skills, slash commands, and agents are used. Helps verify framework components work.
-
-**`hooks/usage-tracker.js`:**
-
-```javascript
-#!/usr/bin/env node
-const fs = require('fs');
-const path = require('path');
-
-const LOG_FILE = '.claude/usage.log';
-
-let input = '';
-process.stdin.on('data', chunk => input += chunk);
-process.stdin.on('end', () => {
-  const data = JSON.parse(input);
-  const toolName = data.tool_name || 'unknown';
-  const toolInput = data.tool_input || {};
-
-  let usage = '';
-  const timestamp = new Date().toISOString();
-
-  switch (toolName) {
-    case 'Skill':
-      usage = `SKILL: ${toolInput.skill || 'unknown'}`;
-      break;
-    case 'SlashCommand':
-      usage = `COMMAND: ${toolInput.command || 'unknown'}`;
-      break;
-    case 'Task':
-      usage = `AGENT: ${toolInput.subagent_type || 'general'}`;
-      break;
-  }
-
-  fs.appendFileSync(LOG_FILE, `${timestamp} | ${usage}\n`);
-  console.error(`📊 Tracked: ${usage}`);
-  process.exit(0);
-});
-```
-
-**Config:**
-```json
-{
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Skill|SlashCommand|Task",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ./hooks/usage-tracker.js"
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
-**View usage:**
 ```bash
-cat .claude/usage.log
+# Käivita hook käsitsi
+echo '{"tool_name":"Edit","tool_input":{"file_path":"src/main.ts"}}' | node ./hooks/decomposition-guard.js
+echo $?  # exit code
+
+# Kontrolli kas hook'id on registreeritud
+cat .claude/settings.local.json | grep -A 2 '"matcher"'
+
+# Hook'i logifail (kui hook seda kasutab — vt hook'i lähtekoodist)
+ls -la .claude/hook-logs/ 2>/dev/null
 ```
 
----
+## Hook'ide väljalülitamine
 
-### 6. Context Preservation on Compact (PreCompact)
+Soovitatav **mitte** hook'e välja lülitada — nad jõustavad protocoli. Aga vajaduse korral (nt CI):
 
-Saves critical project state before session compaction so it can be recovered.
-
-**`hooks/pre-compact.js`** — Triggered automatically before context compaction.
-
-**What it saves (to `.claude/context-snapshot.json`):**
-- PROJECT.md sections: Rules, Patterns, Stack, Commands, Tech Stack, Current Sprint
-- Git state: branch, uncommitted count, last 5 commits
-- Sprint state: `sprint/sprint.json` (if exists)
-
-**Config:**
-```json
-"PreCompact": [{
-  "hooks": [{
-    "type": "command",
-    "command": "node ./hooks/pre-compact.js",
-    "statusMessage": "Saving context snapshot..."
-  }]
-}]
-```
-
-**Failure mode:** Fail-open (exit 0). Logs error to stderr but never blocks compaction.
-
-**Output:** Creates `.claude/context-snapshot.json` with timestamped snapshot.
-
----
-
-### 7. Context Recovery After Compact (SessionStart)
-
-Recovers project context after session compaction using the saved snapshot.
-
-**`hooks/context-reload.js`** — Triggered by SessionStart with `matcher: "compact"`.
-
-**What it recovers:**
-- PROJECT.md rules and patterns
-- Git branch and recent commits
-- Sprint state (sprint_id, current_feature, progress, branch_strategy)
-
-**Config:**
-```json
-"SessionStart": [{
-  "matcher": "compact",
-  "hooks": [{
-    "type": "command",
-    "command": "node ./hooks/context-reload.js",
-    "statusMessage": "Recovering project context..."
-  }]
-}]
-```
-
-**Output:** JSON to stdout with `additionalContext` that gets injected into Claude's context.
-
-**Fallback:** If no snapshot exists, provides basic git context and instructs Claude to read PROJECT.md manually.
-
-**Testing:**
 ```bash
-echo '{"session_id":"test","source":"compact"}' | node hooks/context-reload.js
+# Ühe hook'i mööda
+mv hooks/decomposition-guard.js hooks/decomposition-guard.js.disabled
+
+# Kõik hook'id
+mv .claude/settings.local.json .claude/settings.local.json.bak
 ```
 
----
+## Versioonid
 
-### 8. Sprint Sync (PostToolUse)
+| Framework | Hook'ide arv | Märkused |
+|-----------|--------------|----------|
+| 6.x | 8 | Algne süsteem |
+| 7.x | 11 | Lisati `context-monitor`, `usage-tracker`, `plan-to-sprint` |
+| 8.0 | 15 | Lisati `decomposition-guard`, `scope-guard`, `completion-guard` (Operating Protocol jõustamine) |
 
-Regenerates `sprint/sprint.md` after every Edit/Write to `sprint/sprint.json`.
+## Lingid
 
-**`hooks/sprint-sync.js`** — Generates human-readable sprint overview.
-
-**What it does:**
-1. Reads `sprint/sprint.json` after modification
-2. Generates `sprint/sprint.md` with progress bar, feature table, activity log
-3. Writes the markdown file to the same directory
-
-**Config:** (added to existing Edit|Write PostToolUse chain)
-```json
-{
-  "type": "command",
-  "command": "node ./hooks/sprint-sync.js",
-  "statusMessage": "Syncing sprint.md..."
-}
-```
-
-**Exit code:** Always 0 (warnings via stderr, never blocks).
-
-**Scope:** Only activates for files matching `sprint/**/sprint.json`. Ignores all other files.
-
----
-
-### 9. Plan-to-Sprint (PostToolUse)
-
-Automatically triggers `/sprint-init` when Plan Mode is exited (plan approved).
-
-**`hooks/plan-to-sprint.js`** — Bridges Plan Mode and sprint workflow.
-
-**What it does:**
-1. Detects `ExitPlanMode` tool call
-2. Checks if a sprint is already active (skips if features are in_progress)
-3. Injects `additionalContext` prompting Claude to parse the approved plan into sprint.json
-
-**Config:**
-```json
-{
-  "matcher": "ExitPlanMode",
-  "hooks": [{
-    "type": "command",
-    "command": "node ./hooks/plan-to-sprint.js",
-    "statusMessage": "Converting plan to sprint..."
-  }]
-}
-```
-
-**Exit code:** Always 0 (never blocks).
-
-**Safety:** If a sprint with in_progress features exists, the hook warns but does not trigger auto-init.
-
----
-
-## Important Notes
-
-1. **Restart required** — Restart Claude Code after hook changes
-2. **Performance** — Hooks add latency; use sparingly on critical paths
-3. **Debugging** — Test hooks manually: `echo '{"tool_name":"read","tool_input":{"file_path":".env"}}' | node ./hooks/block-env.js`
-4. **Exit codes** — Only `2` blocks (pre-tool only); `0` allows, anything else allows with warning
-
----
-
-## CC 2.1.0 New Features (v2.6)
-
-### `once: true` — Run Hook Only Once
-
-New in CC 2.1.0: hooks can run only once per session.
-
-```json
-{
-  "hooks": {
-    "SessionStart": [{
-      "hooks": [{
-        "type": "command",
-        "command": "node ./hooks/git-context.js",
-        "once": true
-      }]
-    }]
-  }
-}
-```
-
-**Use cases:**
-- Session initialization (load context, check environment)
-- One-time validation (verify dependencies)
-- Startup notifications (remind about pending tasks)
-
-### Hooks in Skill/Command Frontmatter
-
-New in CC 2.1.0: define hooks directly in skill or command YAML frontmatter.
-
-```yaml
----
-name: security
-description: "Security review patterns"
-hooks:
-  PostToolUse:
-    - matcher: "Edit"
-      command: "node ./hooks/security-scan.js"
----
-```
-
-**Benefits:**
-- Skill-specific validation
-- No need for global hook configuration
-- Hooks activate only when skill is used
-
-### YAML-Style `allowed-tools`
-
-New in CC 2.1.0: use YAML lists for cleaner frontmatter.
-
-```yaml
----
-name: database
-allowed-tools:
-  - Read
-  - Write
-  - Edit
-  - Bash
-  - mcp__plugin_supabase_supabase__*
----
-```
-
-**Note:** Wildcard `*` works for MCP tool namespaces.
-
----
-
-## References
-
-- Claude Code `/hooks` command for interactive setup
-- [Anthropic Docs: Claude Code Hooks](https://docs.anthropic.com/en/docs/claude-code/hooks)
-- CC 2.1.0 Changelog: `once: true`, frontmatter hooks, YAML allowed-tools
+- Framework juur: `~/_VibeCoding/_tools/DG-VibeCoding-framework/`
+- Hook'ide lähtekood: `hooks/*.js`
+- Settings template: `core/settings.template.json`
+- Operating Protocol: `~/.claude/CLAUDE.md` sektsioon "Operating Protocol"

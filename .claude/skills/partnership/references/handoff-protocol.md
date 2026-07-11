@@ -6,14 +6,14 @@
 
 1. Ensure feature exists in `sprint/sprint.json` (use `/sprint-init` if missing)
 2. Set `assigned_to: "cx"` on the target feature
-3. Optionally create worktree:
+3. Commit the validated sprint coordination update and create a worktree:
    ```bash
    scripts/worktree-setup.sh cx/FXXX-<slug>
    ```
-4. Start CX in the worktree (or same repo if no worktree):
+4. Start CX in the worktree:
    ```bash
    cd ../<project>-wt-cx-<branch>/
-   codex --full-auto
+   codex --sandbox workspace-write
    ```
 5. CX reads `sprint/sprint.json` on session start and picks up assigned features
 
@@ -33,20 +33,20 @@ Use `/handoff` command to automate steps 1–4.
 
 ## CX Background Launch Variants
 
-### Full auto mode (CX decides everything)
+### Interactive worktree mode
 ```bash
 cd ../<project>-wt-cx-<branch>/
-codex --full-auto
+codex --sandbox workspace-write
 ```
 
 ### Scoped to specific sprint features
 ```bash
-codex exec --full-auto "Read sprint/sprint.json, complete features assigned to CX"
+codex exec --sandbox workspace-write "Read sprint/sprint.json, complete features assigned to CX"
 ```
 
 ### With explicit feature list
 ```bash
-codex exec --full-auto "Implement F003 and F004 from sprint/sprint.json"
+codex exec --sandbox workspace-write "Implement F003 and F004 from sprint/sprint.json"
 ```
 
 ## Rules

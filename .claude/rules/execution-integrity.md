@@ -2,12 +2,15 @@
 
 > Need reeglid neutraliseerivad tuntud LLM nõrkusi planeerimisel ja täitmisel. KOHUSTUSLIKUD.
 
-## Rule 1: Max 5 Steps Per Plan
+## Rule 1: Max 5–7 High-Level Steps Per Execution Plan
 
 Ära loo plaani rohkem kui 5-7 järjestikuse sammuga. Kui ülesanne nõuab rohkem:
 - Jaota alamplaanideks (5 sammu igaüks)
 - Lõpeta alamplaan 1 enne alamplaani 2 loomist
 - Iga alamplaan peab olema iseseisvalt kontrollitav
+
+See piirang kehtib agendi nähtavale täitmisplaanile. Sprint-v3 feature'i 5–10
+tehnilist `steps` kirjet on detailsem tööleping, mitte sama checklist.
 
 ## Rule 2: Explicit Step Tracking
 

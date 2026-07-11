@@ -2,6 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+TMP_ROOT=""
 
 fail() {
   echo "FAIL: $*" >&2
@@ -102,15 +103,14 @@ PY
 }
 
 main() {
-  local tmp_root
-  tmp_root="$(mktemp -d "${TMPDIR:-/tmp}/dg-vibe-smoke-XXXXXX")"
-  trap "rm -rf '$tmp_root'" EXIT
+  TMP_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/dg-vibe-smoke-XXXXXX")"
+  trap 'rm -rf "$TMP_ROOT"' EXIT
 
-  local setup_project="$tmp_root/setup-project"
+  local setup_project="$TMP_ROOT/setup-project"
   "$ROOT_DIR/setup-project.sh" "$setup_project" >/dev/null
   check_generated_project "$setup_project"
 
-  local migrate_project="$tmp_root/migrate-project"
+  local migrate_project="$TMP_ROOT/migrate-project"
   mkdir -p "$migrate_project/.tasks" "$migrate_project/.claude/commands" "$migrate_project/hooks"
   printf '# legacy board\n' >"$migrate_project/.tasks/board.md"
   printf 'legacy\n' >"$migrate_project/.claude/commands/sync-tasks.md"

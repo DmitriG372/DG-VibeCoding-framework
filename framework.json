@@ -1,7 +1,7 @@
 {
-  "version": "7.1.0",
+  "version": "8.0.0",
   "name": "DG-VibeCoding-Framework",
-  "description": "Universal framework for CC + CX equal partnership development — modern agent frontmatter, progressive skills, rules-based architecture, repo_access modes",
+  "description": "Disciplined agent framework — decomposition + surgical execution enforced via hooks (Karpathy-style minimal CLAUDE.md, sprint.json as contract)",
 
   "core": {
     "skills": [
@@ -35,6 +35,11 @@
       "tester",
       "debugger",
       "plan-checker"
+    ],
+    "hooks_critical": [
+      "decomposition-guard",
+      "scope-guard",
+      "completion-guard"
     ]
   },
 
@@ -47,9 +52,15 @@
     "hooks_compact": "hooks/pre-compact.js",
     "hooks_recovery": "hooks/context-reload.js",
     "hooks_sprint_sync": "hooks/sprint-sync.js",
+    "hooks_decomposition": "hooks/decomposition-guard.js",
+    "hooks_scope": "hooks/scope-guard.js",
+    "hooks_completion": "hooks/completion-guard.js",
+    "hooks_library": "hooks/lib/hook-input.js",
     "settings": ".claude/settings.local.json",
     "headless_review": "scripts/headless-review.sh",
     "sprint": "sprint/sprint.json",
+    "sprint_schema": "templates/sprint.schema.json",
+    "execution_protocol": "EXECUTION_PROTOCOL.md",
     "codex_config": "AGENTS.md"
   },
 
@@ -61,6 +72,42 @@
   "review": {
     "tool": "claude",
     "mode": "quick"
+  },
+
+  "install": {
+    "entries": [
+      { "from": "templates/project-init/PROJECT.md", "to": "PROJECT.md" },
+      { "from": "templates/project-init/CLAUDE.md", "to": "CLAUDE.md" },
+      { "from": "templates/project-init/AGENTS.md", "to": "AGENTS.md" },
+      { "from": "core/EXECUTION_PROTOCOL.md", "to": "EXECUTION_PROTOCOL.md" },
+      { "from": "core/HOOKS.md", "to": "HOOKS.md" },
+      { "from": "core/settings.template.json", "to": ".claude/settings.local.json" },
+      { "from": "core/codex-hooks.template.json", "to": ".codex/hooks.json" },
+      { "from": "framework.json", "to": "framework.json" },
+      { "from": "templates/.gitignore.template", "to": ".gitignore" },
+      { "from": "templates/manifest.md.template", "to": "manifest.md" },
+      { "from": "templates/SNAPSHOT.md.template", "to": ".claude/SNAPSHOT.md" },
+      { "from": "templates/SNAPSHOT.md.template", "to": "templates/SNAPSHOT.md.template" },
+      { "from": "templates/sprint.template.json", "to": "sprint/sprint.json" },
+      { "from": "templates/sprint.schema.json", "to": "templates/sprint.schema.json" },
+      { "from": "templates/review-output.schema.json", "to": "templates/review-output.schema.json" },
+      { "from": ".claude/skills", "to": ".claude/skills" },
+      { "from": ".claude/commands", "to": ".claude/commands" },
+      { "from": ".claude/agents", "to": ".claude/agents" },
+      { "from": ".claude/rules", "to": ".claude/rules" },
+      { "from": "hooks", "to": "hooks" },
+      { "from": "scripts/validate-sprint.js", "to": "scripts/validate-sprint.js", "executable": true },
+      { "from": "scripts/verify-install.js", "to": "scripts/verify-install.js", "executable": true },
+      { "from": "scripts/stub-check.sh", "to": "scripts/stub-check.sh", "executable": true },
+      { "from": "scripts/framework-state-mode.sh", "to": "scripts/framework-state-mode.sh", "executable": true },
+      { "from": "scripts/switch-repo-access.sh", "to": "scripts/switch-repo-access.sh", "executable": true },
+      { "from": "scripts/worktree-setup.sh", "to": "scripts/worktree-setup.sh", "executable": true },
+      { "from": "scripts/worktree-cleanup.sh", "to": "scripts/worktree-cleanup.sh", "executable": true },
+      { "from": "scripts/handoff-worktree.sh", "to": "scripts/handoff-worktree.sh", "executable": true },
+      { "from": "scripts/headless-review.sh", "to": "scripts/headless-review.sh", "executable": true },
+      { "from": "scripts/parse-codex-jsonl.js", "to": "scripts/parse-codex-jsonl.js", "executable": true },
+      { "from": "scripts/normalize-review.js", "to": "scripts/normalize-review.js", "executable": true }
+    ]
   },
 
   "integrations": {

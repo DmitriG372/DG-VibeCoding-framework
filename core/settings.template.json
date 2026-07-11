@@ -59,6 +59,11 @@
         "hooks": [
           {
             "type": "command",
+            "command": "node ./hooks/decomposition-guard.js",
+            "statusMessage": "Decomposition check..."
+          },
+          {
+            "type": "command",
             "command": "node ./hooks/test-dir-protection.js"
           }
         ]
@@ -66,8 +71,12 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "Edit|Write",
+        "matcher": "Edit|Write|MultiEdit",
         "hooks": [
+          {
+            "type": "command",
+            "command": "node ./hooks/scope-guard.js"
+          },
           {
             "type": "command",
             "command": "node ./hooks/type-check.js"
@@ -111,7 +120,7 @@
         ]
       },
       {
-        "matcher": "ExitPlanMode|exit_plan_mode|exit_plan|plan_complete",
+        "matcher": "ExitPlanMode",
         "hooks": [
           {
             "type": "command",

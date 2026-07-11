@@ -60,15 +60,15 @@ docs/description    # Documentation
 # Create feature branch
 git checkout -b feat/user-auth
 
-# Work on feature
-git add .
+# Stage only the feature files
+git add src/auth/login.ts tests/auth/login.test.ts
 git commit -m "feat(auth): implement login form"
 
 # Update from main
 git fetch origin
 git rebase origin/main
 
-# Push and create PR
+# Push only after explicit user authorization
 git push -u origin feat/user-auth
 ```
 

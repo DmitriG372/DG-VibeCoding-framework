@@ -5,6 +5,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { getToolExitCode, normalizeHookInput } = require('./lib/hook-input');
 
 let stdin = '';
 process.stdin.setEncoding('utf8');
@@ -13,15 +14,19 @@ process.stdin.on('end', () => {
   let payload;
   try { payload = JSON.parse(stdin || '{}'); } catch { process.exit(0); }
 
-  if (payload.tool_name !== 'Bash') return process.exit(0);
-  const cmd = (payload.tool_input && payload.tool_input.command) || '';
+  const normalized = normalizeHookInput(payload);
+  if (normalized.toolName !== 'Bash') return process.exit(0);
+  const cmd = normalized.command;
   if (!isTestCommand(cmd)) return process.exit(0);
 
   // Mark that a test run just happened. test-dir-protection reads this.
   try {
-    const dir = path.resolve(process.cwd(), '.claude');
+    const dir = path.resolve(normalized.cwd, '.claude');
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(path.join(dir, '.last-test-run'), String(Date.now()));
+    fs.writeFileSync(path.join(dir, '.last-test-run'), JSON.stringify({
+      timestamp: Date.now(),
+      exitCode: getToolExitCode(payload),
+    }));
   } catch { /* non-fatal */ }
 
   // Inspect last tool output (if available) and advise on noise

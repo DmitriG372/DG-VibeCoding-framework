@@ -1,194 +1,67 @@
-#!/bin/bash
-# DG-VibeCoding-Framework - Project Setup Script
-# Usage: ./setup-project.sh /path/to/your/project
+#!/usr/bin/env bash
+set -euo pipefail
 
-set -e
-
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
-
-# Get script directory (framework location)
 FRAMEWORK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_DIR="${1:-.}"
+FORCE=0
+PROJECT_ARG=""
 
-# Read version
-VERSION=$(cat "$FRAMEWORK_DIR/VERSION" 2>/dev/null || echo "5.1.0")
-
-echo -e "${BLUE}╔════════════════════════════════════════════════════╗${NC}"
-echo -e "${BLUE}║  DG-VibeCoding-Framework v${VERSION} - Project Setup      ║${NC}"
-echo -e "${BLUE}╚════════════════════════════════════════════════════╝${NC}"
-echo ""
-
-# Validate/create project directory
-if [ ! -d "$PROJECT_DIR" ]; then
-    echo -e "${YELLOW}Creating project directory: $PROJECT_DIR${NC}"
-    mkdir -p "$PROJECT_DIR"
-fi
-
-PROJECT_DIR="$(cd "$PROJECT_DIR" && pwd)"
-
-echo -e "${GREEN}Framework:${NC} $FRAMEWORK_DIR"
-echo -e "${GREEN}Project:${NC}   $PROJECT_DIR"
-echo ""
-
-# ─────────────────────────────────────────────────────────────
-# 1. Copy core files
-# ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[1/10] Copying core files...${NC}"
-
-cp "$FRAMEWORK_DIR/templates/project-init/PROJECT.md" "$PROJECT_DIR/PROJECT.md"
-cp "$FRAMEWORK_DIR/templates/project-init/CLAUDE.md" "$PROJECT_DIR/CLAUDE.md"
-
-echo -e "  ${GREEN}✓${NC} PROJECT.md, CLAUDE.md"
-
-# ─────────────────────────────────────────────────────────────
-# 2. Copy agents
-# ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[2/10] Copying agents...${NC}"
-
-mkdir -p "$PROJECT_DIR/.claude/agents"
-cp "$FRAMEWORK_DIR/.claude/agents/"*.md "$PROJECT_DIR/.claude/agents/"
-
-AGENT_COUNT=$(ls -1 "$PROJECT_DIR/.claude/agents/"*.md 2>/dev/null | wc -l | tr -d ' ')
-echo -e "  ${GREEN}✓${NC} $AGENT_COUNT agents copied"
-
-# ─────────────────────────────────────────────────────────────
-# 3. Copy commands
-# ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[3/10] Copying commands...${NC}"
-
-mkdir -p "$PROJECT_DIR/.claude/commands"
-cp "$FRAMEWORK_DIR/.claude/commands/"*.md "$PROJECT_DIR/.claude/commands/"
-
-COMMAND_COUNT=$(ls -1 "$PROJECT_DIR/.claude/commands/"*.md 2>/dev/null | wc -l | tr -d ' ')
-echo -e "  ${GREEN}✓${NC} $COMMAND_COUNT commands copied"
-
-# ─────────────────────────────────────────────────────────────
-# 4. Copy skills
-# ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[4/10] Copying skills...${NC}"
-
-mkdir -p "$PROJECT_DIR/.claude/skills"
-
-SKILL_COUNT=0
-for skill_dir in "$FRAMEWORK_DIR/.claude/skills"/*/; do
-    if [ -d "$skill_dir" ]; then
-        skill_name=$(basename "$skill_dir")
-        mkdir -p "$PROJECT_DIR/.claude/skills/$skill_name"
-        cp "$skill_dir"SKILL.md "$PROJECT_DIR/.claude/skills/$skill_name/" 2>/dev/null && ((SKILL_COUNT++)) || true
-    fi
+for arg in "$@"; do
+  case "$arg" in
+    --force) FORCE=1 ;;
+    -h|--help)
+      echo "Usage: setup-project.sh [--force] <project-dir>"
+      exit 0
+      ;;
+    -*) echo "Unknown option: $arg" >&2; exit 64 ;;
+    *)
+      if [[ -n "$PROJECT_ARG" ]]; then
+        echo "Only one project directory may be provided" >&2
+        exit 64
+      fi
+      PROJECT_ARG="$arg"
+      ;;
+  esac
 done
 
-echo -e "  ${GREEN}✓${NC} $SKILL_COUNT skills copied"
+PROJECT_ARG="${PROJECT_ARG:-.}"
 
-# ─────────────────────────────────────────────────────────────
-# 5. Copy hooks
-# ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[5/10] Copying hooks...${NC}"
+for tool in node git; do
+  command -v "$tool" >/dev/null 2>&1 || {
+    echo "setup-project: required tool not found: $tool" >&2
+    exit 1
+  }
+done
 
-mkdir -p "$PROJECT_DIR/hooks"
-cp "$FRAMEWORK_DIR/hooks/"*.js "$PROJECT_DIR/hooks/" 2>/dev/null || true
+mkdir -p "$PROJECT_ARG"
+PROJECT_DIR="$(cd "$PROJECT_ARG" && pwd)"
 
-HOOK_COUNT=$(ls -1 "$PROJECT_DIR/hooks/"*.js 2>/dev/null | wc -l | tr -d ' ')
-echo -e "  ${GREEN}✓${NC} $HOOK_COUNT hooks copied"
+has_content=0
+if find "$PROJECT_DIR" -mindepth 1 -maxdepth 1 ! -name '.dg-framework-backup-*' -print -quit | grep -q .; then
+  has_content=1
+fi
 
-# ─────────────────────────────────────────────────────────────
-# 6. Install framework runtime config
-# ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[6/10] Installing framework runtime config...${NC}"
+if [[ $has_content -eq 1 && $FORCE -ne 1 ]]; then
+  echo "setup-project: $PROJECT_DIR is not empty; use --force to back up and replace framework files" >&2
+  exit 1
+fi
 
-mkdir -p "$PROJECT_DIR/.claude"
-cp "$FRAMEWORK_DIR/core/settings.template.json" "$PROJECT_DIR/.claude/settings.local.json"
-cp "$FRAMEWORK_DIR/framework.json" "$PROJECT_DIR/framework.json"
+if [[ $has_content -eq 1 ]]; then
+  BACKUP_DIR="$(mktemp -d "$PROJECT_DIR/.dg-framework-backup-$(date +%Y%m%d-%H%M%S)-XXXXXX")"
+  for item in \
+    PROJECT.md CLAUDE.md AGENTS.md EXECUTION_PROTOCOL.md HOOKS.md framework.json \
+    manifest.md .gitignore .claude .codex hooks scripts templates sprint; do
+    if [[ -e "$PROJECT_DIR/$item" ]]; then
+      cp -R "$PROJECT_DIR/$item" "$BACKUP_DIR/"
+    fi
+  done
+  echo "setup-project: backup created at $BACKUP_DIR"
+fi
 
-echo -e "  ${GREEN}✓${NC} .claude/settings.local.json, framework.json"
+node "$FRAMEWORK_DIR/scripts/install-framework.js" "$FRAMEWORK_DIR" "$PROJECT_DIR"
+node "$FRAMEWORK_DIR/scripts/render-project-templates.js" "$PROJECT_DIR"
+node "$PROJECT_DIR/scripts/validate-sprint.js" "$PROJECT_DIR/sprint/sprint.json" >/dev/null
+node "$PROJECT_DIR/scripts/verify-install.js" "$PROJECT_DIR" >/dev/null
 
-# ─────────────────────────────────────────────────────────────
-# 7. Copy AGENTS.md (CX entry point)
-# ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[7/10] Copying AGENTS.md (CX entry point)...${NC}"
-
-cp "$FRAMEWORK_DIR/templates/project-init/AGENTS.md" "$PROJECT_DIR/AGENTS.md"
-
-echo -e "  ${GREEN}✓${NC} AGENTS.md"
-
-# ─────────────────────────────────────────────────────────────
-# 8. Create sprint directory with template
-# ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[8/10] Creating sprint directory...${NC}"
-
-mkdir -p "$PROJECT_DIR/sprint"
-cp "$FRAMEWORK_DIR/templates/sprint.template.json" "$PROJECT_DIR/sprint/sprint.json"
-
-echo -e "  ${GREEN}✓${NC} sprint/sprint.json (template — run /sprint-init to populate)"
-
-# ─────────────────────────────────────────────────────────────
-# 9. Copy helper scripts
-# ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[9/10] Copying helper scripts...${NC}"
-
-mkdir -p "$PROJECT_DIR/scripts"
-cp "$FRAMEWORK_DIR/scripts/worktree-setup.sh" "$PROJECT_DIR/scripts/"
-cp "$FRAMEWORK_DIR/scripts/worktree-cleanup.sh" "$PROJECT_DIR/scripts/"
-cp "$FRAMEWORK_DIR/scripts/headless-review.sh" "$PROJECT_DIR/scripts/"
-chmod +x "$PROJECT_DIR/scripts/worktree-setup.sh"
-chmod +x "$PROJECT_DIR/scripts/worktree-cleanup.sh"
-chmod +x "$PROJECT_DIR/scripts/headless-review.sh"
-
-echo -e "  ${GREEN}✓${NC} worktree-setup.sh, worktree-cleanup.sh, headless-review.sh"
-
-# ─────────────────────────────────────────────────────────────
-# 10. Install helper docs
-# ─────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[10/10] Installing helper docs...${NC}"
-
-cp "$FRAMEWORK_DIR/core/HOOKS.md" "$PROJECT_DIR/HOOKS.md"
-
-echo -e "  ${GREEN}✓${NC} HOOKS.md"
-
-# ─────────────────────────────────────────────────────────────
-# Summary
-# ─────────────────────────────────────────────────────────────
-echo ""
-echo -e "${GREEN}╔════════════════════════════════════════════════════╗${NC}"
-echo -e "${GREEN}║  Setup Complete!                                   ║${NC}"
-echo -e "${GREEN}╚════════════════════════════════════════════════════╝${NC}"
-echo ""
-echo -e "Project: ${BLUE}$PROJECT_DIR${NC}"
-echo ""
-echo -e "${YELLOW}Next steps:${NC}"
-echo "  1. Edit PROJECT.md with your project details"
-echo "  2. Run 'cd $PROJECT_DIR && claude' to start"
-echo "  3. Use Plan Mode to create a plan → auto-triggers /sprint-init"
-echo ""
-echo -e "${YELLOW}Core commands:${NC}"
-echo "  /sprint-init      - Initialize sprint from plan"
-echo "  /feature          - Start new feature"
-echo "  /done             - Complete (test + commit)"
-echo "  /review           - Code review"
-echo "  /fix              - Fix issues"
-echo "  /orchestrate      - Multi-agent workflow"
-echo "  /handoff          - Hand off task to partner"
-echo "  /peer-review      - Peer code review"
-echo "  /sprint-status    - Sprint state and branches"
-echo "  /framework-update - Check updates"
-echo ""
-echo -e "${YELLOW}Structure:${NC}"
-echo "  $PROJECT_DIR/"
-echo "  ├── PROJECT.md           # Project context (single source of truth)"
-echo "  ├── CLAUDE.md            # CC entry point"
-echo "  ├── AGENTS.md            # CX entry point"
-echo "  ├── framework.json       # Framework runtime config"
-echo "  ├── HOOKS.md             # Hook setup guide"
-echo "  ├── sprint/sprint.json   # Sprint state (shared CC + CX)"
-echo "  ├── .claude/settings.local.json  # Hook + permission config"
-echo "  ├── .claude/commands/    # Slash commands"
-echo "  ├── .claude/skills/      # Auto-activated skills"
-echo "  ├── .claude/agents/      # Agent definitions"
-echo "  ├── scripts/             # Worktree + review scripts"
-echo "  └── hooks/               # Automation hooks"
-echo ""
+VERSION="$(tr -d '\n' < "$FRAMEWORK_DIR/VERSION")"
+echo "DG-VibeCoding Framework v$VERSION installed in $PROJECT_DIR"
+echo "Next: edit PROJECT.md, initialize Git if needed, then run /sprint-init."

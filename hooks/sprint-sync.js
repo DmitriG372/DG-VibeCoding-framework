@@ -5,6 +5,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { escapeMarkdownCell, normalizeHookInput } = require('./lib/hook-input');
 
 function readFileSafe(filePath) {
   try {
@@ -14,7 +15,7 @@ function readFileSafe(filePath) {
 
 function progressBar(completed, total, width = 20) {
   if (total === 0) return '[' + '░'.repeat(width) + '] 0%';
-  const ratio = completed / total;
+  const ratio = Math.max(0, Math.min(1, completed / total));
   const filled = Math.round(ratio * width);
   const empty = width - filled;
   const pct = Math.round(ratio * 100);
@@ -34,9 +35,17 @@ function statusIcon(status) {
 
 function generateSprintMd(sprint) {
   const lines = [];
-  const stats = sprint.stats || {};
-  const total = stats.total || sprint.features.length;
-  const completed = stats.completed || sprint.features.filter(f => f.status === 'done' || f.status === 'completed').length;
+  const features = Array.isArray(sprint.features) ? sprint.features : [];
+  const stats = {
+    total: features.length,
+    pending: features.filter(f => f.status === 'pending').length,
+    in_progress: features.filter(f => f.status === 'in_progress').length,
+    in_review: features.filter(f => f.status === 'in_review').length,
+    completed: features.filter(f => f.status === 'completed').length,
+    blocked: features.filter(f => f.status === 'blocked').length,
+  };
+  const total = stats.total;
+  const completed = stats.completed;
 
   lines.push(`# Sprint ${sprint.sprint_id}`);
   lines.push('');
@@ -73,20 +82,20 @@ function generateSprintMd(sprint) {
   lines.push('| ID | Name | Status | Assigned | Branch | Tested | Commit |');
   lines.push('|----|------|--------|----------|--------|--------|--------|');
 
-  for (const f of sprint.features) {
+  for (const f of features) {
     const icon = statusIcon(f.status);
     const assigned = f.assigned_to || '—';
     const branch = f.branch || '—';
     const tested = f.tested ? '✓' : '—';
     const commit = f.git && f.git.hash ? f.git.hash.substring(0, 7) : '—';
     const review = f.review && f.review.verdict ? ` (${f.review.verdict})` : '';
-    lines.push(`| ${f.id} | ${f.name} | ${icon} ${f.status}${review} | ${assigned} | ${branch} | ${tested} | ${commit} |`);
+    lines.push(`| ${escapeMarkdownCell(f.id)} | ${escapeMarkdownCell(f.name)} | ${icon} ${escapeMarkdownCell(f.status)}${escapeMarkdownCell(review)} | ${escapeMarkdownCell(assigned)} | ${escapeMarkdownCell(branch)} | ${tested} | ${escapeMarkdownCell(commit)} |`);
   }
 
   lines.push('');
 
   // Activity log — show completed features with timestamps
-  const completedFeatures = sprint.features.filter(f => f.completed_at);
+  const completedFeatures = features.filter(f => f.completed_at);
   if (completedFeatures.length > 0) {
     lines.push('## Activity Log');
     lines.push('');
@@ -117,19 +126,21 @@ process.stdin.on('data', chunk => input += chunk);
 process.stdin.on('end', () => {
   try {
     const data = input ? JSON.parse(input) : {};
-    const filePath = data.tool_input?.file_path || '';
+    const normalized = normalizeHookInput(data);
+    const filePath = normalized.filePaths.find(candidate => /(^|\/)sprint\/sprint\.json$/.test(candidate)) || '';
 
     // Only trigger on sprint.json files
-    if (!filePath.includes('sprint.json') || !filePath.includes('sprint')) {
+    if (!filePath) {
       process.exit(0);
     }
 
     // Read sprint.json
-    if (!fs.existsSync(filePath)) {
+    const absolutePath = path.resolve(normalized.cwd, filePath);
+    if (!fs.existsSync(absolutePath)) {
       process.exit(0);
     }
 
-    const sprintContent = readFileSafe(filePath);
+    const sprintContent = readFileSafe(absolutePath);
     if (!sprintContent) {
       process.exit(0);
     }
@@ -138,7 +149,7 @@ process.stdin.on('end', () => {
     try {
       sprint = JSON.parse(sprintContent);
     } catch (e) {
-      process.stderr.write(`⚠️ sprint-sync.js: invalid JSON in ${filePath}\n`);
+      process.stderr.write(`⚠️ sprint-sync.js: invalid JSON in ${absolutePath}\n`);
       process.exit(0);
     }
 
@@ -146,7 +157,7 @@ process.stdin.on('end', () => {
     const sprintMd = generateSprintMd(sprint);
 
     // Write to sprint/sprint.md (same directory as sprint.json)
-    const sprintDir = path.dirname(filePath);
+    const sprintDir = path.dirname(absolutePath);
     const mdPath = path.join(sprintDir, 'sprint.md');
     fs.writeFileSync(mdPath, sprintMd);
 

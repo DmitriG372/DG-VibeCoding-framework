@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // DG-VibeCoding-Framework — Plan-to-Sprint Hook
 // PostToolUse hook: triggers /sprint-init after plan approval.
-// Works with both CC (ExitPlanMode) and CX (plan-related tools).
+// Claude Code ExitPlanMode integration. Codex uses AGENTS.md + explicit sprint validation.
 // Injects additionalContext prompting the agent to parse the approved plan
 // into sprint/sprint.json automatically.
 
@@ -10,9 +10,6 @@ const fs = require('fs');
 // Tool names that indicate plan approval across different agents
 const PLAN_EXIT_TOOLS = [
   'ExitPlanMode',      // Claude Code (CC)
-  'exit_plan_mode',    // Possible Codex variant
-  'exit_plan',         // Possible Codex variant
-  'plan_complete',     // Possible Codex variant
 ];
 
 function readFileSafe(filePath) {
@@ -92,6 +89,7 @@ process.stdin.on('end', () => {
     // Output additionalContext for the agent
     const output = {
       hookSpecificOutput: {
+        hookEventName: 'PostToolUse',
         additionalContext: prompt,
       },
     };
