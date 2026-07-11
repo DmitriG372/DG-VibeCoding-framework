@@ -7,3 +7,6 @@
 # Generated artifacts
 repomix-*.txt
 repomix-*.xml
+
+# Local development worktrees
+.worktrees/
