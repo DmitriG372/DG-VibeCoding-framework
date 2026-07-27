@@ -18,7 +18,10 @@ const BLOCKED_EXTENSIONS = /\.(pem|key|p12|pfx|jks|keystore)$/;
 // Basenames that are secret files. `.env.example` and friends stay readable —
 // they are templates and are the normal way to learn what a project needs.
 const BLOCKED_BASENAMES = [
-  /^\.env(\.|$)(?!example|template|sample|dist)/,
+  // The suffix is anchored: `.env.example` is a template, `.env.examplefoo` and
+  // `.env.example.bak` are not.
+  /^\.env(\.|$)(?!(example|template|sample|dist)$)/,
+  /^\.envrc$/,
   /^credentials(\.(json|ya?ml|ini|toml))?$/,
   /^id_(rsa|dsa|ecdsa|ed25519)$/,
   /^\.npmrc$/,

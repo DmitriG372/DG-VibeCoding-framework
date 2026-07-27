@@ -13,9 +13,10 @@ default path is now: understand, change, run the narrowest real check, report.
 > **Anything an agent must know lives in `AGENTS.md`. Agent-specific surfaces
 > add convenience, never capability.**
 
-Codex reads `AGENTS.md` natively. `CLAUDE.md` is a one-line `@AGENTS.md` import,
-the interop mechanism Anthropic documents. That is what makes CC/CX parity
-structural rather than a synchronisation chore — and it is enforced by
+Codex reads `AGENTS.md` natively. `CLAUDE.md` opens with an `@AGENTS.md` import —
+the interop mechanism Anthropic documents — and adds only Claude-specific
+conveniences below it. That is what makes CC/CX parity structural rather than a
+synchronisation chore — and it is enforced by
 `tests/parity.test.js`, not by discipline.
 
 The framework therefore ships **no** `.claude/rules/` and **no** `.claude/skills/`:
@@ -94,12 +95,16 @@ user's call.
 
 ## Runtime hooks
 
+In an installed project:
+
 - Claude Code: `.claude/settings.local.json`
 - Codex: `.codex/hooks.json`
 - Shared implementation: `hooks/*.js`
 
-Both files wire the same five hooks; `tests/parity.test.js` fails if they drift
-or if any hook is ever wired on an edit. Hooks are guardrails, not a security
+Both are generated from `core/settings.template.json` and
+`core/codex-hooks.template.json`, which wire the same five hooks;
+`tests/parity.test.js` compares those two templates and fails if they drift or if
+any hook is ever wired on an edit. Hooks are guardrails, not a security
 sandbox — deterministic validators, Git protections, tests, and OS permissions
 remain authoritative.
 

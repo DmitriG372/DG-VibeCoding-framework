@@ -12,7 +12,7 @@ Tests use `node:test` and plain shell. Nothing is installed to run them.
 
 | Path | Contents |
 |---|---|
-| `core/` | The templates that ship: `AGENTS.md`, `CLAUDE.md`, both hook configs, `PROJECT.md` |
+| `core/` | The templates that ship: `AGENTS.md`, `CLAUDE.md`, and both hook configs |
 | `.claude/` | This repo's own commands and subagents |
 | `hooks/` | The five lifecycle hooks, shared by both runtimes |
 | `scripts/` | Install, validation, review, and worktree tools |

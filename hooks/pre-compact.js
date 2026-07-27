@@ -76,18 +76,20 @@ process.stdin.on('end', () => {
       if (sprintJson) sprintState = JSON.parse(sprintJson);
     } catch { /* ignore parse errors */ }
 
-    // --- Extract current step info ---
-    let currentStep = null;
-    if (sprintState && sprintState.current_feature && sprintState.features) {
-      const cf = sprintState.features.find(f => f.id === sprintState.current_feature);
-      if (cf && cf.steps && cf.steps.length > 0) {
-        const nextPending = cf.steps.find(s => s && typeof s === 'object' && s.done === false);
-        currentStep = {
-          feature: cf.id,
-          current: nextPending ? nextPending.desc : null,
-          next: null,
-          progress: `${cf.steps.filter(s => s && typeof s === 'object' && s.done === true).length}/${cf.steps.length}`
-        };
+    // --- Extract the tasks still in flight (schema v4) ---
+    let activeTasks = null;
+    if (sprintState && Array.isArray(sprintState.tasks)) {
+      const open = sprintState.tasks.filter(
+        task => task && typeof task === 'object' && task.status !== 'done'
+      );
+      if (open.length > 0) {
+        activeTasks = open.map(task => ({
+          id: task.id,
+          title: task.title,
+          assigned_to: task.assigned_to,
+          status: task.status,
+          branch: task.branch,
+        }));
       }
     }
 
@@ -102,7 +104,7 @@ process.stdin.on('end', () => {
       },
       git: gitState,
       sprint: sprintState,
-      currentStep: currentStep,
+      activeTasks: activeTasks,
     };
 
     // --- Ensure .claude/ directory exists ---

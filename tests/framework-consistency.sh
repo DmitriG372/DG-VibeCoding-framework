@@ -44,10 +44,31 @@ assert_contains '"schema_version": 4' templates/sprint.template.json
 assert_contains 'core/codex-hooks.template.json' framework.json
 assert_contains 'core/AGENTS.md' framework.json
 
-if grep -R -n -E 'sprint-v[23]|codex --full-auto|git add \.( |$)' \
-  .claude/commands templates/project-init GUIDE.md README.md \
-  core/AGENTS.md core/CLAUDE.md core/PROJECT.md 2>/dev/null; then
+# Legacy-guidance guard. The scan set is listed explicitly and every path is
+# asserted to exist first: `2>/dev/null` on the grep would let this whole check
+# pass vacuously the moment a file is renamed.
+# CHANGELOG.md is deliberately absent: it names what was removed, which is the
+# one place these patterns belong.
+legacy_scan=(
+  .claude/commands .claude/agents templates GUIDE.md README.md
+  PROJECT.md core/AGENTS.md core/CLAUDE.md hooks scripts
+)
+for path in "${legacy_scan[@]}" CHANGELOG.md; do
+  [ -e "$path" ] || fail "legacy-guidance guard points at a missing path: $path"
+done
+
+if grep -R -n -E 'sprint-v[23]|codex --full-auto|git add \.( |$)' "${legacy_scan[@]}"; then
   fail "Active documentation contains legacy or unsafe workflow guidance"
+fi
+
+# Retired v8 contract shapes must not survive in live code or shipped templates.
+# hooks/ and scripts/ were outside the old scan set, which is how two hooks kept
+# reading the deleted sprint-v3 fields after the v9 release.
+retired_shapes='current_feature|branch_strategy|acceptance_criteria|corridor|sprint\.md|EXECUTION_PROTOCOL|\.claude/rules|/sprint-init|/peer-review|test-dir-protection|decomposition-guard'
+if grep -R -n -E "$retired_shapes" \
+  hooks scripts templates .claude/commands .claude/agents core/AGENTS.md core/CLAUDE.md \
+  --exclude-dir=archive 2>&1 | grep -v '^grep:'; then
+  fail "Live code or templates still reference a retired v8 contract shape"
 fi
 
 # The contract must carry the safety rules itself — nothing else reaches Codex.
@@ -86,8 +107,16 @@ PY
 
 # Version-leak guard: VERSION is the single source of truth. Outside the
 # whitelist (VERSION, README.md, GUIDE.md, framework.json, this script), no
-# active framework file may hardcode the current vX.Y.Z string.
-leak_paths=$(grep -rEl "v${version//./\\.}" core .claude hooks scripts templates 2>/dev/null || true)
+# active framework file may hardcode the current version. Both the bare and the
+# v-prefixed form count, and tests/ is in scope — a hardcoded version in a test
+# fails on the next release for the wrong reason.
+leak_scan=(core .claude hooks scripts templates tests)
+for path in "${leak_scan[@]}"; do
+  [ -e "$path" ] || fail "version-leak guard points at a missing path: $path"
+done
+# grep -l exits 1 when nothing matches, which is the success case here.
+leak_paths=$(grep -rEl "v?${version//./\\.}" "${leak_scan[@]}" || true)
+leak_paths=$(printf '%s\n' "$leak_paths" | grep -v '^tests/framework-consistency.sh$' || true)
 if [ -n "$leak_paths" ]; then
   echo "FAIL: hardcoded current version v$version found outside the whitelist:" >&2
   printf '%s\n' "$leak_paths" >&2

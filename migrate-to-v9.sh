@@ -8,23 +8,47 @@
 set -euo pipefail
 
 FRAMEWORK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_DIR="${1:-}"
 DRY_RUN=0
-[[ "${2:-}" == "--dry-run" ]] && DRY_RUN=1
+PROJECT_ARG=""
 
-if [[ -z "$PROJECT_DIR" || ! -d "$PROJECT_DIR" ]]; then
+# Unknown arguments are rejected rather than ignored: this script deletes files,
+# so a typo such as `--dryrun` must never silently become a real migration.
+for arg in "$@"; do
+  case "$arg" in
+    --dry-run) DRY_RUN=1 ;;
+    -h|--help) echo "Usage: migrate-to-v9.sh <project-path> [--dry-run]"; exit 0 ;;
+    -*) echo "migration: unknown option: $arg" >&2; exit 64 ;;
+    *)
+      if [[ -n "$PROJECT_ARG" ]]; then
+        echo "migration: only one project directory may be provided" >&2
+        exit 64
+      fi
+      PROJECT_ARG="$arg"
+      ;;
+  esac
+done
+
+if [[ -z "$PROJECT_ARG" || ! -d "$PROJECT_ARG" ]]; then
   echo "Usage: migrate-to-v9.sh <project-path> [--dry-run]" >&2
   exit 64
 fi
-PROJECT_DIR="$(cd "$PROJECT_DIR" && pwd)"
+PROJECT_DIR="$(cd "$PROJECT_ARG" && pwd)"
 
 command -v node >/dev/null 2>&1 || { echo "migration: missing tool node" >&2; exit 1; }
 
-# A worktree shares its branch with the main checkout; migrating one would land
-# framework files on a feature branch and fight the next merge.
-if [[ -f "$PROJECT_DIR/.git" ]]; then
-  echo "migration: $PROJECT_DIR is a git worktree; migrate the main checkout instead" >&2
-  exit 1
+# A worktree shares its object store with the main checkout; migrating one would
+# land framework files on a feature branch and fight the next merge. Comparing
+# the two git dirs is exact — a `.git` *file* also means a submodule, and a
+# subdirectory of a worktree has no `.git` entry of its own at all.
+if git -C "$PROJECT_DIR" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  # Both resolved the same way: --absolute-git-dir resolves symlinks while a
+  # plain `pwd` does not, and on macOS /var is a symlink to /private/var.
+  GIT_DIR="$(cd "$PROJECT_DIR" && cd "$(git rev-parse --git-dir)" && pwd -P)"
+  GIT_COMMON_DIR="$(cd "$PROJECT_DIR" && cd "$(git rev-parse --git-common-dir)" && pwd -P)"
+  if [[ "$GIT_DIR" != "$GIT_COMMON_DIR" ]]; then
+    echo "migration: $PROJECT_DIR is a git worktree; migrate the main checkout instead" >&2
+    exit 1
+  fi
 fi
 
 RETIRED_RULES=(autonomy components context-management delegation execution-integrity
@@ -39,10 +63,14 @@ RETIRED_ROOT=(EXECUTION_PROTOCOL.md HOOKS.md)
 
 if [[ $DRY_RUN -eq 1 ]]; then
   echo "migration dry-run: $PROJECT_DIR"
-  echo "  would remove ${#RETIRED_RULES[@]} rules, ${#RETIRED_SKILLS[@]} skills, ${#RETIRED_COMMANDS[@]} commands, ${#RETIRED_AGENTS[@]} agents, ${#RETIRED_HOOKS[@]} hooks"
-  echo "  would remove ${RETIRED_ROOT[*]} and .tasks/"
-  echo "  would replace AGENTS.md and CLAUDE.md with the v9 contract (originals go to the backup)"
-  echo "  would keep custom skills, agents, commands, hooks, settings, PROJECT.md and sprint/"
+  echo "  back up everything listed below to .dg-framework-backup-* first"
+  echo "  DELETE by name: ${#RETIRED_RULES[@]} rules, ${#RETIRED_SKILLS[@]} skills, ${#RETIRED_COMMANDS[@]} commands, ${#RETIRED_AGENTS[@]} agents, ${#RETIRED_HOOKS[@]} hooks"
+  echo "  DELETE: ${RETIRED_ROOT[*]}, .tasks/, hooks/lib/hook-input.js, sprint/sprint.md"
+  echo "  OVERWRITE: AGENTS.md, CLAUDE.md, framework.json, the 4 commands, the 2 agents, the 5 hooks"
+  echo "  REWRITE: .claude/settings.local.json and .codex/hooks.json (retired wirings stripped, v9 merged in)"
+  echo "  APPEND:  .gitignore patterns that are missing"
+  echo "  ARCHIVE: sprint/sprint.json to sprint/archive/ if it does not satisfy schema v4"
+  echo "  KEEP:    PROJECT.md, and every custom skill, agent, command, hook, rule and setting"
   exit 0
 fi
 
@@ -60,8 +88,10 @@ for name in "${RETIRED_COMMANDS[@]}"; do rm -f  "$PROJECT_DIR/.claude/commands/$
 for name in "${RETIRED_AGENTS[@]}";   do rm -f  "$PROJECT_DIR/.claude/agents/$name.md"; done
 for name in "${RETIRED_HOOKS[@]}";    do rm -f  "$PROJECT_DIR/hooks/$name.js"; done
 for name in "${RETIRED_ROOT[@]}";     do rm -f  "$PROJECT_DIR/$name"; done
-rm -rf "$PROJECT_DIR/.tasks" "$PROJECT_DIR/hooks/lib"
-rmdir "$PROJECT_DIR/.claude/rules" "$PROJECT_DIR/.claude/skills" 2>/dev/null || true
+rm -rf "$PROJECT_DIR/.tasks"
+rm -f "$PROJECT_DIR/sprint/sprint.md"          # v8 generated overview; nothing regenerates it
+rm -f "$PROJECT_DIR/hooks/lib/hook-input.js"   # by name — a project's own hooks/lib survives
+rmdir "$PROJECT_DIR/hooks/lib" "$PROJECT_DIR/.claude/rules" "$PROJECT_DIR/.claude/skills" 2>/dev/null || true
 
 # --- strip the retired wirings out of both settings files ---------------------
 for config in "$PROJECT_DIR/.claude/settings.local.json" "$PROJECT_DIR/.codex/hooks.json"; do
@@ -113,7 +143,9 @@ else
 fi
 
 cp "$FRAMEWORK_DIR/templates/sprint.schema.json" "$PROJECT_DIR/templates/sprint.schema.json"
+cp "$FRAMEWORK_DIR/templates/sprint.template.json" "$PROJECT_DIR/templates/sprint.template.json"
 cp "$FRAMEWORK_DIR/templates/review-output.schema.json" "$PROJECT_DIR/templates/review-output.schema.json"
+[[ -f "$PROJECT_DIR/manifest.md" ]] || cp "$FRAMEWORK_DIR/templates/manifest.md.template" "$PROJECT_DIR/manifest.md"
 
 runtime_scripts=(
   validate-sprint.js verify-install.js stub-check.sh framework-state-mode.sh
@@ -130,7 +162,9 @@ done
 SPRINT="$PROJECT_DIR/sprint/sprint.json"
 if [[ -f "$SPRINT" ]] && ! node "$FRAMEWORK_DIR/scripts/validate-sprint.js" "$SPRINT" >/dev/null 2>&1; then
   mkdir -p "$PROJECT_DIR/sprint/archive"
-  ARCHIVED="$PROJECT_DIR/sprint/archive/pre-v9-$(date +%Y%m%d-%H%M%S).json"
+  # mktemp, not a bare timestamp: two runs in the same second must not silently
+  # overwrite the first archive.
+  ARCHIVED="$(mktemp "$PROJECT_DIR/sprint/archive/pre-v9-$(date +%Y%m%d-%H%M%S)-XXXXXX")"
   mv "$SPRINT" "$ARCHIVED"
   echo "migration: pre-v9 sprint state archived at $ARCHIVED"
   echo "migration: sprint/sprint.json is optional in v9 — recreate it only for parallel CC/CX work"

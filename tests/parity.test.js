@@ -84,7 +84,10 @@ test('installed commands delegate to a section that exists in the contract', () 
   );
 
   for (const name of readJson('framework.json').core.commands) {
-    const body = read(`.claude/commands/${name}.md`);
+    const file = `.claude/commands/${name}.md`;
+    assert.ok(fs.existsSync(path.join(ROOT, file)),
+      `framework.json declares /${name} but ${file} does not exist`);
+    const body = read(file);
     const referenced = [...body.matchAll(/`## ([^`]+)`/g)].map(match => match[1].trim());
     assert.ok(referenced.length > 0, `/${name} must delegate to an AGENTS.md section`);
     for (const section of referenced) {
@@ -106,6 +109,23 @@ test('the install manifest ships nothing Codex cannot read', () => {
     'a framework-level skill is capability Codex would not have');
 });
 
+test('shipped subagents reference only components that exist', () => {
+  // An agent whose frontmatter names an archived skill silently resolves to
+  // nothing, and one that delegates to a removed agent sends work nowhere.
+  const shipped = new Set(readJson('framework.json').core.agents);
+  const retiredAgents = ['orchestrator', 'implementer', 'tester', 'plan-checker'];
+
+  for (const name of shipped) {
+    const body = read(`.claude/agents/${name}.md`);
+    assert.doesNotMatch(body, /^skills:/m,
+      `${name}.md declares skills, but the framework ships none`);
+    for (const retired of retiredAgents) {
+      assert.ok(!body.includes(retired),
+        `${name}.md references the removed "${retired}" agent`);
+    }
+  }
+});
+
 test('the retired v8 machinery is gone from the live tree', () => {
   const retired = [
     'hooks/decomposition-guard.js',
@@ -114,8 +134,14 @@ test('the retired v8 machinery is gone from the live tree', () => {
     'hooks/plan-to-sprint.js',
     'hooks/context-monitor.js',
     'hooks/sprint-sync.js',
+    'hooks/lib/hook-input.js',
     'core/EXECUTION_PROTOCOL.md',
     'core/HOOKS.md',
+    'core/PROJECT.md',
+    'templates/CLAUDE.md.template',
+    'templates/SNAPSHOT.md.template',
+    'scripts/migrate-sprint-v3.js',
+    'migrate-v7-to-v8.sh',
   ];
   for (const file of retired) {
     assert.ok(!fs.existsSync(path.join(ROOT, file)), `${file} should be archived, not live`);

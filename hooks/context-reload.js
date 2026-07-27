@@ -62,34 +62,14 @@ process.stdin.on('end', () => {
         context += '\n';
       }
 
-      // --- Sprint state ---
-      if (snapshot.sprint) {
-        context += '--- SPRINT STATE ---\n';
-        if (snapshot.sprint.sprint_id) {
-          context += `Sprint: ${snapshot.sprint.sprint_id}\n`;
-        }
-        if (snapshot.sprint.current_feature) {
-          context += `Current feature: ${snapshot.sprint.current_feature}\n`;
-        }
-        if (snapshot.sprint.branch_strategy) {
-          context += `Branch strategy: ${snapshot.sprint.branch_strategy}\n`;
-        }
-        if (snapshot.sprint.stats) {
-          const s = snapshot.sprint.stats;
-          context += `Progress: ${s.completed || 0}/${s.total || 0} completed`;
-          if (s.in_progress > 0) context += `, ${s.in_progress} in progress`;
-          if (s.in_review > 0) context += `, ${s.in_review} in review`;
+      // --- Parallel CC/CX coordination, when there is any (schema v4) ---
+      if (Array.isArray(snapshot.activeTasks) && snapshot.activeTasks.length > 0) {
+        context += '--- TASKS IN FLIGHT ---\n';
+        for (const task of snapshot.activeTasks) {
+          context += `${task.id}: ${task.title} (${task.status})`;
+          if (task.assigned_to) context += ` [${task.assigned_to}]`;
+          if (task.branch) context += ` [branch: ${task.branch}]`;
           context += '\n';
-        }
-        // Show current feature details
-        if (snapshot.sprint.current_feature && snapshot.sprint.features) {
-          const cf = snapshot.sprint.features.find(f => f.id === snapshot.sprint.current_feature);
-          if (cf) {
-            context += `Feature ${cf.id}: ${cf.name} (${cf.status})`;
-            if (cf.assigned_to) context += ` [assigned: ${cf.assigned_to}]`;
-            if (cf.branch) context += ` [branch: ${cf.branch}]`;
-            context += '\n';
-          }
         }
         context += '\n';
       }
@@ -105,7 +85,7 @@ process.stdin.on('end', () => {
       }
 
       context += '=== END RECOVERY ===\n\n';
-      context += 'MANDATORY: Read PROJECT.md and sprint/sprint.json NOW to refresh full context.\n';
+      context += 'Read PROJECT.md if you need project facts. Continue the work in progress.\n';
 
       process.stderr.write('🔄 Context recovered from pre-compaction snapshot\n');
     } else {
@@ -125,7 +105,7 @@ process.stdin.on('end', () => {
         context += `Recent commits:\n${log}\n`;
       }
       context += '\n=== END RECOVERY ===\n\n';
-      context += 'MANDATORY: Read PROJECT.md and sprint/sprint.json NOW to refresh full context.\n';
+      context += 'Read PROJECT.md if you need project facts. Continue the work in progress.\n';
       context += '(No pre-compaction snapshot was found — context may be incomplete.)\n';
 
       process.stderr.write('⚠️ No snapshot found, providing basic git context\n');
@@ -146,7 +126,7 @@ process.stdin.on('end', () => {
     const fallback = {
       hookSpecificOutput: {
         hookEventName: 'SessionStart',
-        additionalContext: 'Context recovery failed. MANDATORY: Read PROJECT.md and sprint/sprint.json NOW.',
+        additionalContext: 'Context recovery failed. Read PROJECT.md and check `git status` before continuing.',
       },
     };
     process.stdout.write(JSON.stringify(fallback));

@@ -58,6 +58,49 @@ test('rejects a status outside the four allowed values', () => {
   assert.ok(result.errors.some(error => error.includes('status')));
 });
 
+test('accepts every documented status and both agents', () => {
+  // Without this, renaming a single enum member — say in_review → review —
+  // passes the whole suite while breaking every real coordination file.
+  for (const status of ['planned', 'in_progress', 'in_review', 'done']) {
+    const result = validateSprint(sprint([task({ status })]));
+    assert.equal(result.valid, true, `status "${status}" must be valid: ${result.errors.join(', ')}`);
+  }
+  for (const assigned_to of ['cc', 'cx']) {
+    const result = validateSprint(sprint([task({ assigned_to })]));
+    assert.equal(result.valid, true, `assigned_to "${assigned_to}" must be valid`);
+  }
+});
+
+test('the validator and the published schema agree on every enum', () => {
+  const schema = JSON.parse(
+    fs.readFileSync(path.resolve(__dirname, '../templates/sprint.schema.json'), 'utf8')
+  );
+  const taskProps = schema.properties.tasks.items.properties;
+
+  for (const status of taskProps.status.enum) {
+    assert.equal(validateSprint(sprint([task({ status })])).valid, true,
+      `schema allows status "${status}" but the validator rejects it`);
+  }
+  for (const agent of taskProps.assigned_to.enum) {
+    assert.equal(validateSprint(sprint([task({ assigned_to: agent })])).valid, true,
+      `schema allows assigned_to "${agent}" but the validator rejects it`);
+  }
+  assert.equal(schema.properties.schema_version.const, 4);
+  assert.deepEqual(
+    [...schema.properties.tasks.items.required].sort(),
+    ['assigned_to', 'branch', 'id', 'status', 'title']
+  );
+});
+
+test('reports malformed tasks without crashing or inventing a duplicate', () => {
+  for (const tasks of [[null, null], [{}, {}], [1, 2], [undefined, undefined]]) {
+    const result = validateSprint(sprint(tasks));
+    assert.equal(result.valid, false);
+    assert.ok(!result.errors.some(error => error.includes('duplicate')),
+      `malformed tasks must not report a duplicate id: ${result.errors.join(', ')}`);
+  }
+});
+
 test('rejects duplicate task ids', () => {
   const result = validateSprint(sprint([task(), task({ title: 'Duplicate' })]));
   assert.ok(result.errors.some(error => error.includes('duplicate task id T1')));

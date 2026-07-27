@@ -42,10 +42,15 @@ function validateSprint(sprint) {
   if (!Array.isArray(sprint.tasks)) errors.push('tasks must be an array');
   tasks.forEach((task, index) => validateTask(task, index, errors));
 
+  // Only well-formed ids take part: a malformed task has already been reported,
+  // and `undefined === undefined` would otherwise invent a duplicate — or crash
+  // on `task.id` when the task itself is null.
   const seen = new Set();
   for (const task of tasks) {
-    if (seen.has(task?.id)) errors.push(`duplicate task id ${task.id}`);
-    seen.add(task?.id);
+    const id = task && typeof task === 'object' ? task.id : undefined;
+    if (!isNonEmptyString(id)) continue;
+    if (seen.has(id)) errors.push(`duplicate task id ${id}`);
+    seen.add(id);
   }
 
   return { valid: errors.length === 0, errors };

@@ -20,6 +20,9 @@ printf '%s\n' '# framework agent'   > "$PROJECT/.claude/agents/plan-checker.md"
 printf '%s\n' '# custom command'    > "$PROJECT/.claude/commands/custom.md"
 printf '%s\n' '# framework command' > "$PROJECT/.claude/commands/sprint-init.md"
 printf '%s\n' 'module.exports = 1;' > "$PROJECT/hooks/custom-hook.js"
+printf '%s\n' 'module.exports = 1;' > "$PROJECT/hooks/lib/my-lib.js"
+printf '%s\n' 'module.exports = 1;' > "$PROJECT/hooks/lib/hook-input.js"
+printf '%s\n' '# generated overview'  > "$PROJECT/sprint/sprint.md"
 printf '%s\n' 'module.exports = 1;' > "$PROJECT/hooks/decomposition-guard.js"
 printf '%s\n' 'module.exports = 1;' > "$PROJECT/hooks/type-check.js"
 printf '%s\n' '# v4 entry point'    > "$PROJECT/AGENTS.md"
@@ -111,7 +114,7 @@ head -n 1 "$PROJECT/CLAUDE.md" | grep -Fxq '@AGENTS.md' || {
   echo 'FAIL: CLAUDE.md does not import the shared contract' >&2; exit 1
 }
 grep -Fq '## Done' "$PROJECT/AGENTS.md"
-grep -Fq '"version": "9.0.0"' "$PROJECT/framework.json"
+grep -Fq "\"version\": \"$(tr -d '\n' < "$ROOT_DIR/VERSION")\"" "$PROJECT/framework.json"
 [[ -f "$PROJECT/.codex/hooks.json" ]]
 [[ -f "$PROJECT/.claude/commands/done.md" ]]
 
@@ -122,16 +125,40 @@ grep -Fq 'v4 entry point' "$backup_dir/AGENTS.md"
 
 # The non-conforming sprint is archived, not silently converted or kept.
 [[ ! -f "$PROJECT/sprint/sprint.json" ]] || { echo 'FAIL: invalid sprint kept in place' >&2; exit 1; }
-find "$PROJECT/sprint/archive" -name 'pre-v9-*.json' | grep -q . || {
+find "$PROJECT/sprint/archive" -name 'pre-v9-*' -type f | grep -q . || {
   echo 'FAIL: pre-v9 sprint was not archived' >&2; exit 1
 }
+if [[ -f "$PROJECT/sprint/sprint.md" ]]; then
+  echo 'FAIL: the v8 generated sprint.md survived' >&2
+  exit 1
+fi
 
-# A worktree must be refused.
-WORKTREE="$TMP_ROOT/worktree"
-mkdir -p "$WORKTREE"
-printf 'gitdir: /elsewhere\n' > "$WORKTREE/.git"
-if "$ROOT_DIR/migrate-to-v9.sh" "$WORKTREE" >/dev/null 2>&1; then
+# A project's own hooks/lib must survive; only the framework file goes.
+[[ -f "$PROJECT/hooks/lib/my-lib.js" ]] || { echo 'FAIL: custom hooks/lib was destroyed' >&2; exit 1; }
+
+# An unknown flag must never be read as "not a dry run".
+if "$ROOT_DIR/migrate-to-v9.sh" "$PROJECT" --dryrun >/dev/null 2>&1; then
+  echo 'FAIL: migration accepted an unknown option' >&2
+  exit 1
+fi
+
+# A real worktree must be refused; its main checkout must not be.
+MAIN="$TMP_ROOT/main-checkout"
+mkdir -p "$MAIN"
+git -C "$MAIN" init -q
+git -C "$MAIN" config user.name 'Framework Test'
+git -C "$MAIN" config user.email 'framework-test@example.invalid'
+printf '# main\n' > "$MAIN/README.md"
+git -C "$MAIN" add README.md
+git -C "$MAIN" commit -qm 'test: base'
+git -C "$MAIN" worktree add -q "$TMP_ROOT/wt-feature" -b feature
+
+if "$ROOT_DIR/migrate-to-v9.sh" "$TMP_ROOT/wt-feature" --dry-run >/dev/null 2>&1; then
   echo 'FAIL: migration ran inside a worktree' >&2
+  exit 1
+fi
+if ! "$ROOT_DIR/migrate-to-v9.sh" "$MAIN" --dry-run >/dev/null 2>&1; then
+  echo 'FAIL: migration refused the main checkout' >&2
   exit 1
 fi
 

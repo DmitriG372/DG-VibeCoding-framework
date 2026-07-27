@@ -41,9 +41,9 @@ process.stdin.on('end', () => {
     const out = (err.stdout || '').toString();
     process.stderr.write(
       '\n[completion-guard] Stub code detected in staged files. ' +
-      'Resolve these before committing (execution-integrity Rule 3).\n' +
+      'Resolve these before committing.\n' +
       (out ? out + '\n' : '') +
-      'Override with `--skip-stubs` on /done only when truly WIP.\n'
+      'If the stub is deliberate work-in-progress, unstage that file and commit the rest.\n'
     );
     process.exit(2);
   }

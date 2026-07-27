@@ -37,6 +37,10 @@ node -e "const r=require(process.argv[1]); if(r.verdict!=='PASS'||r.tool!=='code
 unset OPENAI_API_KEY || true
 PATH="$SYSTEM_PATH" CODEX_BIN="$BIN/codex" scripts/headless-review.sh \
   --tool codex --mode quick --output "$TMP_ROOT/review-no-key.json" src >/dev/null
+# The run without an API key must still produce a valid report, not an empty
+# file left behind by a half-finished run.
+node -e "const r=require(process.argv[1]); if(r.verdict!=='PASS'||r.tool!=='codex') process.exit(1)" \
+  "$TMP_ROOT/review-no-key.json"
 
 printf '%s\n' \
   '{"type":"thread.started"}' \

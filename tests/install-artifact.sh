@@ -26,6 +26,8 @@ required=(
   scripts/switch-repo-access.sh
   scripts/handoff-worktree.sh
   templates/sprint.schema.json
+  templates/sprint.template.json
+  manifest.md
 )
 
 for relative in "${required[@]}"; do

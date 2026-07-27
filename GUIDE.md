@@ -10,7 +10,8 @@
 | Hooks    | 5 | Ainult pöördumatute tegevuste guardrail'id |
 
 Invariant: **kõik, mida agent peab teadma, on `AGENTS.md`-is.** Codex loeb seda
-natiivselt, `CLAUDE.md` on üherealine `@AGENTS.md` import. Seetõttu on CC ja CX
+natiivselt; `CLAUDE.md` algab `@AGENTS.md` impordiga ja lisab alla ainult
+Claude'i-spetsiifilised mugavused. Seetõttu on CC ja CX
 pariteet struktuurne, mitte sünkroniseerimise küsimus — ja seda kontrollib
 `tests/parity.test.js`, mitte distsipliin.
 

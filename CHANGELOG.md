@@ -9,8 +9,8 @@ spawned seven node processes per edit. None of its 12 commands, 8 skills,
 
 **Breaking**
 
-- Made `AGENTS.md` the single shared contract and `CLAUDE.md` a one-line
-  `@AGENTS.md` import, so both agents load identical behaviour.
+- Made `AGENTS.md` the single shared contract and `CLAUDE.md` an `@AGENTS.md`
+  import plus a short Claude-only section, so both agents load identical behaviour.
 - Replaced the sprint-v3 contract with schema v4: five fields per task, unknown
   keys ignored. `sprint/sprint.json` is no longer installed and is never a
   precondition for writing code.
@@ -31,8 +31,12 @@ spawned seven node processes per edit. None of its 12 commands, 8 skills,
   `scope-guard`, `sprint-sync`, `plan-to-sprint`, `context-monitor`,
   `usage-tracker`, `test-dir-protection`, `test-output-filter`. No hook now runs
   on an edit; typecheck and formatting belong in `make pre-commit` or CI.
-- All 8 skills, 4 of 6 subagents, and 8 of 12 commands. The framework ships no
-  skills and no rules at all, because Codex can read neither.
+- All 8 skills, 4 of 6 subagents, and 9 of 12 commands — `done`, `handoff` and
+  `review` survived, and `/sprint` is new. The framework ships no skills and no
+  rules at all, because Codex can read neither.
+- `core/PROJECT.md` and six stale v8 templates (`CLAUDE.md.template`,
+  `SNAPSHOT.md.template`, `PROJECT.md.template`, and the agent/skill/command
+  scaffolds), plus the orphaned `migrate-sprint-v3.js` and `migrate-skills.sh`.
 - The generated `sprint/sprint.md`, session logs, and SNAPSHOT rituals.
 
 **Fixed**

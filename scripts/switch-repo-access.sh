@@ -15,7 +15,9 @@ done
 ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 MANIFEST="$ROOT/manifest.md"
 GITIGNORE="$ROOT/.gitignore"
-[[ -f "$MANIFEST" ]] || { echo "manifest.md not found" >&2; exit 1; }
+# manifest.md is local, gitignored state — a project may simply not have one yet.
+# Create it rather than refusing to run; the awk pass below fills in the mode.
+[[ -f "$MANIFEST" ]] || printf '# Local project manifest\n\nrepo_access=private-solo\n' > "$MANIFEST"
 [[ -f "$GITIGNORE" ]] || { echo ".gitignore not found" >&2; exit 1; }
 
 if git -C "$ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
