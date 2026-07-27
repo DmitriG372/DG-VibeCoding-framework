@@ -12,16 +12,13 @@ required=(
   PROJECT.md
   CLAUDE.md
   AGENTS.md
-  EXECUTION_PROTOCOL.md
-  HOOKS.md
   framework.json
   .gitignore
   .claude/settings.local.json
-  .claude/rules/execution-integrity.md
-  .claude/skills/partnership/references/handoff-protocol.md
-  .claude/skills/testing/references/patterns.md
+  .claude/commands/done.md
+  .claude/agents/reviewer.md
   .codex/hooks.json
-  hooks/lib/hook-input.js
+  hooks/block-env.js
   scripts/validate-sprint.js
   scripts/verify-install.js
   scripts/stub-check.sh
@@ -29,8 +26,6 @@ required=(
   scripts/switch-repo-access.sh
   scripts/handoff-worktree.sh
   templates/sprint.schema.json
-  templates/SNAPSHOT.md.template
-  sprint/sprint.json
 )
 
 for relative in "${required[@]}"; do
@@ -40,12 +35,28 @@ for relative in "${required[@]}"; do
   fi
 done
 
-node "$PROJECT/scripts/validate-sprint.js" "$PROJECT/sprint/sprint.json" >/dev/null
-node "$PROJECT/scripts/verify-install.js" "$PROJECT" >/dev/null
-if grep -R -n '{{[A-Z_][A-Z_]*}}' "$PROJECT/manifest.md" "$PROJECT/.claude/SNAPSHOT.md"; then
-  echo 'FAIL: generated local templates still contain placeholders' >&2
+# v9 installs nothing Codex cannot read, and nothing that presumes a sprint.
+forbidden=(
+  .claude/rules
+  .claude/skills
+  EXECUTION_PROTOCOL.md
+  HOOKS.md
+  sprint/sprint.json
+)
+
+for relative in "${forbidden[@]}"; do
+  if [[ -e "$PROJECT/$relative" ]]; then
+    echo "FAIL: generated project must not contain $relative" >&2
+    exit 1
+  fi
+done
+
+head -n 1 "$PROJECT/CLAUDE.md" | grep -Fxq '@AGENTS.md' || {
+  echo 'FAIL: installed CLAUDE.md does not import the shared contract' >&2
   exit 1
-fi
+}
+
+node "$PROJECT/scripts/verify-install.js" "$PROJECT" >/dev/null
 
 printf 'sentinel\n' > "$PROJECT/PROJECT.md"
 if "$ROOT_DIR/setup-project.sh" "$PROJECT" >/dev/null 2>&1; then

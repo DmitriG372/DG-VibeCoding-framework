@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-FEATURE_ID="${1:-}"
+TASK_ID="${1:-}"
 TARGET_AGENT="${2:-}"
-if [[ ! "$FEATURE_ID" =~ ^F[0-9]{3,}$ ]] || [[ ! "$TARGET_AGENT" =~ ^(cc|cx)$ ]]; then
-  echo "Usage: handoff-worktree.sh <FNNN> <cc|cx>" >&2
+if [[ -z "$TASK_ID" ]] || [[ ! "$TARGET_AGENT" =~ ^(cc|cx)$ ]]; then
+  echo "Usage: handoff-worktree.sh <task-id> <cc|cx>" >&2
   exit 64
 fi
 
@@ -13,18 +13,17 @@ ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || {
   exit 1
 }
 cd "$ROOT"
-node scripts/validate-sprint.js sprint/sprint.json --write-stats >/dev/null
+node scripts/validate-sprint.js sprint/sprint.json >/dev/null
 
-BRANCH="$(node - "$FEATURE_ID" "$TARGET_AGENT" <<'NODE'
+BRANCH="$(node - "$TASK_ID" "$TARGET_AGENT" <<'NODE'
 const fs = require('node:fs');
-const [featureId, target] = process.argv.slice(2);
+const [taskId, target] = process.argv.slice(2);
 const sprint = JSON.parse(fs.readFileSync('sprint/sprint.json', 'utf8'));
-if (sprint.branch_strategy !== 'worktree') throw new Error('branch_strategy must be worktree for parallel handoff');
-const feature = sprint.features.find(item => item.id === featureId);
-if (!feature) throw new Error(`feature ${featureId} not found`);
-if (feature.assigned_to !== target) throw new Error(`feature ${featureId} must be assigned_to ${target}`);
-if (!feature.branch) throw new Error(`feature ${featureId} has no branch`);
-process.stdout.write(`${feature.branch}\n`);
+const task = sprint.tasks.find(item => item.id === taskId);
+if (!task) throw new Error(`task ${taskId} not found`);
+if (task.assigned_to !== target) throw new Error(`task ${taskId} must be assigned_to ${target}`);
+if (!task.branch) throw new Error(`task ${taskId} has no branch`);
+process.stdout.write(`${task.branch}\n`);
 NODE
 )" || exit 1
 if ! git check-ref-format --branch "$BRANCH" >/dev/null 2>&1; then
@@ -44,7 +43,7 @@ if git diff --cached --quiet; then
   echo "handoff-worktree: sprint state has no staged changes" >&2
   exit 1
 fi
-git commit -m "chore(sprint): hand off $FEATURE_ID to $TARGET_AGENT"
+git commit -m "chore(sprint): hand off $TASK_ID to $TARGET_AGENT"
 
 PROJECT_NAME="$(basename "$ROOT")"
 WORKTREE="$(dirname "$ROOT")/${PROJECT_NAME}-wt-${BRANCH//\//-}"

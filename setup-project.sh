@@ -59,9 +59,9 @@ fi
 
 node "$FRAMEWORK_DIR/scripts/install-framework.js" "$FRAMEWORK_DIR" "$PROJECT_DIR"
 node "$FRAMEWORK_DIR/scripts/render-project-templates.js" "$PROJECT_DIR"
-node "$PROJECT_DIR/scripts/validate-sprint.js" "$PROJECT_DIR/sprint/sprint.json" >/dev/null
 node "$PROJECT_DIR/scripts/verify-install.js" "$PROJECT_DIR" >/dev/null
 
 VERSION="$(tr -d '\n' < "$FRAMEWORK_DIR/VERSION")"
 echo "DG-VibeCoding Framework v$VERSION installed in $PROJECT_DIR"
-echo "Next: edit PROJECT.md, initialize Git if needed, then run /sprint-init."
+echo "Next: edit PROJECT.md, initialize Git if needed, then just start working."
+echo "sprint/sprint.json is optional and only needed to run CC and CX in parallel."

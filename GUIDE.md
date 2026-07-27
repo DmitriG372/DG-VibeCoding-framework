@@ -1,17 +1,21 @@
-# DG-VibeCoding-Framework v8.0.0 — Kasutusjuhend
+# DG-VibeCoding-Framework v9.0.0 — Kasutusjuhend
 
 ## 1. Komponendid
 
 | Komponent | Arv | Roll |
 |---|---:|---|
-| Skills    | 8 | Korduvkasutatavad töövood |
-| Commands  | 12 | Sprint, review, handoff ja kontekst |
-| Agents    | 6 | Spetsialiseeritud Claude Code rollid |
-| Hooks     | 15 | Deterministlikud guardrail’id |
+| Leping   | 1 | `AGENTS.md` — jagatud käitumisleping, alla 150 rea |
+| Commands | 4 | `/done`, `/review`, `/handoff`, `/sprint` |
+| Agents   | 2 | `reviewer`, `debugger` |
+| Hooks    | 5 | Ainult pöördumatute tegevuste guardrail'id |
 
-Claude Code ja Codex on võrdsed partnerid ühise projekti- ja sprindilepingu
-tasandil. Runtime konfiguratsioon ei ole ühine: Claude kasutab `.claude/`
-seadistust ning Codex `.codex/hooks.json` faili.
+Invariant: **kõik, mida agent peab teadma, on `AGENTS.md`-is.** Codex loeb seda
+natiivselt, `CLAUDE.md` on üherealine `@AGENTS.md` import. Seetõttu on CC ja CX
+pariteet struktuurne, mitte sünkroniseerimise küsimus — ja seda kontrollib
+`tests/parity.test.js`, mitte distsipliin.
+
+Framework ei paigalda `.claude/rules/` ega `.claude/skills/` sisu: Codex ei loe
+kumbagi, seega ei tohi kummaski olla midagi vajalikku.
 
 ## 2. Uue projekti loomine
 
@@ -21,111 +25,103 @@ cd /path/to/new-project
 ```
 
 Setup töötab vaikimisi ainult tühjas kaustas. Olemasolevate framework-failide
-asendamine nõuab `--force`; enne kirjutamist luuakse projekti sisse ajatempliga
-backup.
+asendamine nõuab `--force`; enne kirjutamist luuakse ajatempliga backup.
 
-Täida pärast setup’i:
+Täida pärast setup'i:
 
 1. `PROJECT.md` — päris stack, struktuur, käsud ja konventsioonid.
-2. `AGENTS.md` — ainult püsivad Codexi repo-juhised.
-3. `CLAUDE.md` — ainult püsivad Claude Code’i repo-juhised.
-4. Initsialiseeri Git, kui projekt ei ole veel repository.
-5. Käivita `/sprint-init`.
+2. Initsialiseeri Git, kui projekt ei ole veel repository.
+3. Alusta tööd.
 
-## 3. Sprint-v3
+`AGENTS.md` ja `CLAUDE.md` tulevad frameworkilt valmis kujul. Projektispetsiifiline
+info kuulub `PROJECT.md`-i, mitte juhisefaili.
 
-Sprindi tõeallikas on `sprint/sprint.json`. Kontroll:
+## 3. Vaiketsükkel
+
+```text
+mõista → muuda minimaalselt → jooksuta kitsaim päris kontroll → näita tõendit
+```
+
+Ei sprinti, ei plaani, ei feature'i seadistust, ei sammudevahelist küsimist.
+Peatu ainult `AGENTS.md` sektsioonis `## Approval gates` loetletud juhtudel:
+production deploy, hävitavad Git- või DB-operatsioonid, uus sõltuvus, väline
+kirjutamine.
+
+## 4. Sprint on valikuline
+
+`sprint/sprint.json` ei paigaldata ega nõuta. See eksisteerib ainult siis, kui
+CC ja CX töötavad paralleelselt.
+
+```json
+{ "schema_version": 4, "base_branch": "dev", "updated": "…",
+  "tasks": [{ "id": "T1", "title": "…", "assigned_to": "cx",
+              "status": "in_progress", "branch": "cx/t1-slug" }] }
+```
 
 ```bash
 node scripts/validate-sprint.js sprint/sprint.json
 ```
 
-Mitte-triviaalne feature sisaldab:
-
-- unikaalset `FNNN` ID-d;
-- selget eesmärki ja mõõdetavaid acceptance criteria’sid;
-- 5–10 `{ id, desc, done }` sammu;
-- `corridor.allowed` ja `corridor.forbidden` mustreid;
-- agenti, staatust, keerukust ja testitõendit.
-
-`stats` arvutatakse feature staatustest; seda ei käsitleta sõltumatu tõena.
-
-## 4. Järjestikune töö
-
-Kasuta `branch_strategy: "sequential"`, kui üks agent töötab korraga ühes
-checkout’is.
-
-```text
-/sprint-init
-/feature F001
-[test → implementatsioon → kontroll]
-/done
-/peer-review
-```
-
-`/done` loob ühe implementation commit’i ja seejärel eraldi sprint-state
-coordination commit’i.
+Viis välja ülesande kohta. `status` ∈ `planned` | `in_progress` | `in_review` |
+`done`. Tundmatuid võtmeid valideerija ignoreerib — range leping maksis varem
+ainult töötunde, kui käsitsi muudetud fail lakkas valideerumast.
 
 ## 5. Paralleelne CC + CX töö
 
-Paralleeltöö nõuab `branch_strategy: "worktree"`.
-
 ```text
-CC: /handoff F003
-    → sprint-state valideeritakse ja commit’itakse
-    → cx/F003-... worktree luuakse sellest commit’ist
-CX: cd <worktree>
-CX: codex --sandbox workspace-write
+CC: /handoff T1
+    → ülesanne valideeritakse ja commit'itakse
+    → cx/t1-... worktree luuakse sellest commit'ist
+CX: cd <worktree> && codex --sandbox workspace-write
 ```
 
-Ära käivita kahte agenti samas checkout’is. Git saab ühes tööpuus hoida korraga
-ainult üht checkoutitud haru.
+Ära käivita kahte agenti samas checkout'is. Git hoiab ühes tööpuus korraga
+ainult üht harul. Merge on alati kasutaja otsus.
 
 ## 6. Review
 
-Interaktiivne review:
-
 ```text
-/review src/
-/peer-review cx/F003-feature
+/review                 # reviewer subagent, värske kontekst
+/review src/            # kitsam skoop
 ```
-
-Headless review:
 
 ```bash
 scripts/headless-review.sh --tool claude --mode quick --staged
 scripts/headless-review.sh --tool codex --mode full src/ --output review.json
 ```
 
-Runner kasutab sprindi `base_branch` väärtust, Gitiga jälgitud faile,
-secret-path filtrit, sisendi byte-limitit ja struktureeritud väljundit. Codexi
-JSONL sündmused teisendatakse lõppvastuseks eraldi parseriga.
+Raporteeri ainult leiud, mis mõjutavad korrektsust või püstitatud nõuet.
+Reviewer, kellel kästakse leida puudusi, leiab neid alati; iga leiu jahtimine
+toodab kaitsvat koodi ja teste olukordadele, mida ei saa juhtuda.
 
-## 7. Migratsioon
-
-Alusta dry-run’iga:
+## 7. Migratsioon 4.x–8.x → v9
 
 ```bash
-./migrate-v7-to-v8.sh /path/to/project --dry-run
-./migrate-v7-to-v8.sh /path/to/project
+./migrate-to-v9.sh /path/to/project --dry-run
+./migrate-to-v9.sh /path/to/project
 ```
 
 Migratsioon:
 
-- teeb framework-state backup’i;
-- säilitab custom skill’id, agendid, käsud, hook’id ja settings’id;
-- merge’ib frameworki hallatud failid nime järgi;
-- teisendab sprindi ajutisse faili ja valideerib enne atomic rename’i;
-- ei kirjuta algset `sprint.json.v7.bak` faili korduskäivitusel üle.
+- teeb täieliku backup'i enne midagi muutmist;
+- eemaldab pensionile saadetud masinavärgi **nime järgi** — 7 reeglifaili,
+  8 skilli, 9 käsku, 4 agenti, 10 hooki, `EXECUTION_PROTOCOL.md`, `HOOKS.md`,
+  `.tasks/`;
+- säilitab projekti enda skillid, agendid, käsud, hookid ja settings'id;
+- eemaldab pensionil hookide wiring'u mõlemast settings-failist;
+- asendab triivinud `AGENTS.md` / `CLAUDE.md` v9 lepinguga (originaalid backup'is);
+- arhiveerib mittevastava sprint-faili, ei püüa seda konverteerida;
+- keeldub töötamast git worktree sees.
+
+Pärast migratsiooni: vaata `<backup>/CLAUDE.md` üle ja tõsta seal olnud
+projektifaktid `PROJECT.md`-i.
 
 ## 8. Repo access
 
 `repo_access` on lokaalne poliitika, mitte põhjus peita tiimilt arenduslepingut.
-Seetõttu jäävad `PROJECT.md`, `AGENTS.md`, `CLAUDE.md`, frameworki runtime ja
-sprindileping kõigis režiimides trackituks.
-
-Ignoreeritud on ainult lokaalsed settings’id, manifest, snapshotid, logid,
-credentials, environment failid, andmebaasid ja build output.
+`PROJECT.md`, `AGENTS.md`, `CLAUDE.md`, frameworki runtime ja `sprint/sprint.json`
+jäävad kõigis režiimides trackituks. Ignoreeritud on lokaalsed settings'id,
+logid, credentials, environment failid, andmebaasid ja build output.
 
 ```bash
 scripts/switch-repo-access.sh private-solo
@@ -135,15 +131,20 @@ scripts/switch-repo-access.sh public
 
 ## 9. Hookide käitumine
 
-- decomposition guard blokeerib ebapiisavalt jaotatud aktiivse feature’i;
-- scope guard hoiatab corridor’i rikkumisest;
-- completion guard kontrollib staged koodi stub’e;
-- test protection on pärast ebaõnnestunud testi advisory, mitte hard block;
-- formatter kasutab ainult lokaalset installitud binary’t;
-- typecheck ja formatter on debounce’itud;
-- puuduva session ID korral context-monitor ei loo jagatud `unknown` loendurit.
+| Hook | Sündmus | Mida teeb |
+|---|---|---|
+| `block-env` | PreToolUse `Read\|Grep` | Blokeerib (exit 2) secret-failid. Matchib failinime ja tervete teekomponentide järgi, seega `password-reset.ts` on loetav. |
+| `completion-guard` | PreToolUse `Bash` | Kontrollib staged koodis stub'e ainult `git commit` puhul. |
+| `git-context` | SessionStart | Näitab Giti hetkeseisu. |
+| `pre-compact` | PreCompact | Salvestab konteksti hetktõmmise. |
+| `context-reload` | SessionStart `compact` | Taastab konteksti pärast compaction'it. |
 
-Hookid on guardrail’id, mitte täielik turvasandbox.
+**Ükski hook ei käivitu muutmisel.** Typecheck ja formatter kuuluvad
+`make pre-commit`-i või CI-sse — korra commit'i kohta, mitte korra muudatuse
+kohta. `tests/parity.test.js` kukub läbi, kui hook seotakse `Edit`/`Write`/
+`apply_patch` matcheriga.
+
+Hookid on guardrail'id, mitte täielik turvasandbox.
 
 ## 10. Verifitseerimine
 
@@ -153,13 +154,13 @@ bash tests/run.sh
 
 Täiskomplekt kontrollib:
 
-- sprint-v3 valideerimist;
-- Claude/Codex hook payload’e;
-- setup artefakti täielikkust;
-- migratsiooni säilitavust ja idempotentsust;
-- worktree handoff’i;
-- ohtlikke failinimesid ja secret-path’e;
-- Codex JSONL review’d;
+- CC/CX pariteeti — identne hook-komplekt, import, lepingu pikkus, sektsioonid;
+- sprindi valideerimist ja skeemi v4;
+- hookide käitumist, sh secret-matcheri valepositiivseid;
+- setup artefakti täielikkust ja seda, et rules/skills ei paigaldata;
+- migratsiooni säilitavust ja worktree-keeldu;
+- worktree handoff'i;
+- Codex JSONL review'd;
 - versiooni, inventuuri ja dokumentatsiooni drifti.
 
-Enne avalikku release’i peab omanik lisama teadlikult valitud `LICENSE` faili.
+Enne avalikku release'i peab omanik lisama teadlikult valitud `LICENSE` faili.

@@ -10,96 +10,88 @@ fail() {
 }
 
 assert_file() {
-  local path="$1"
-  [ -f "$path" ] || fail "Missing file: $path"
+  [ -f "$1" ] || fail "Missing file: $1"
 }
 
 assert_contains() {
-  local pattern="$1"
-  local path="$2"
-  grep -Fq "$pattern" "$path" || fail "Expected '$pattern' in $path"
+  grep -Fq "$1" "$2" || fail "Expected '$1' in $2"
 }
 
 check_generated_project() {
   local project_dir="$1"
 
   assert_file "$project_dir/framework.json"
-  assert_file "$project_dir/HOOKS.md"
+  assert_file "$project_dir/AGENTS.md"
+  assert_file "$project_dir/CLAUDE.md"
   assert_file "$project_dir/.claude/settings.local.json"
+  assert_file "$project_dir/.codex/hooks.json"
   assert_file "$project_dir/scripts/headless-review.sh"
-  assert_file "$project_dir/.claude/commands/review.md"
-  assert_file "$project_dir/.claude/commands/orchestrate.md"
 
-  for hook in \
-    block-env.js \
-    type-check.js \
-    auto-format.js \
-    usage-tracker.js \
-    git-context.js \
-    context-monitor.js \
-    pre-compact.js \
-    context-reload.js \
-    sprint-sync.js \
-    plan-to-sprint.js
-  do
+  for command in 'done' 'review' 'handoff' 'sprint'; do
+    assert_file "$project_dir/.claude/commands/$command.md"
+  done
+
+  for hook in block-env.js completion-guard.js git-context.js pre-compact.js context-reload.js; do
     assert_file "$project_dir/hooks/$hook"
   done
 
-  assert_contains 'Read: .claude/agents/reviewer.md' "$project_dir/.claude/commands/review.md"
-  assert_contains 'Read: .claude/agents/orchestrator.md' "$project_dir/.claude/commands/orchestrate.md"
-  assert_contains 'scripts/headless-review.sh' "$project_dir/.claude/commands/peer-review.md"
+  # The shared contract must actually be shared, and must carry the workflows.
+  head -n 1 "$project_dir/CLAUDE.md" | grep -Fxq '@AGENTS.md' \
+    || fail "CLAUDE.md does not import AGENTS.md in $project_dir"
+  for section in '## Done' '## Review' '## Handoff' '## Sprint' '## Approval gates'; do
+    assert_contains "$section" "$project_dir/AGENTS.md"
+  done
 
   bash "$project_dir/scripts/headless-review.sh" --help >/dev/null
 
-  PROJECT_DIR="$project_dir" python3 - <<'PY'
-import json
-import os
-import pathlib
-import sys
-
-project = pathlib.Path(os.environ["PROJECT_DIR"])
-cfg = json.loads((project / ".claude/settings.local.json").read_text())
-commands = []
-for section in cfg.get("hooks", {}).values():
-    for matcher in section:
-        for hook in matcher.get("hooks", []):
-            commands.append(hook.get("command", ""))
-
-missing = []
-for command in commands:
-    if "node ./hooks/" not in command:
-        continue
-    suffix = command.split("node ./hooks/", 1)[1].split()[0]
-    hook_path = project / "hooks" / suffix
-    if not hook_path.exists():
-        missing.append(str(hook_path))
-
-if missing:
-    print("Missing hooks referenced by settings:", *missing, sep="\n", file=sys.stderr)
-    sys.exit(1)
-PY
+  # block-env is the one blocking guardrail; prove it blocks and does not
+  # block ordinary source files.
+  if printf '{"tool_input":{"file_path":".env"}}' | node "$project_dir/hooks/block-env.js" >/dev/null 2>&1; then
+    fail "block-env did not block .env"
+  fi
+  if ! printf '{"tool_input":{"file_path":"src/auth/password-reset.ts"}}' \
+    | node "$project_dir/hooks/block-env.js" >/dev/null 2>&1; then
+    fail "block-env blocked an ordinary source file"
+  fi
 
   PROJECT_DIR="$project_dir" python3 - <<'PY'
-import json
-import os
-import pathlib
+import json, os, pathlib, sys
 
 project = pathlib.Path(os.environ["PROJECT_DIR"])
 framework = json.loads((project / "framework.json").read_text())
 assert framework["version"], "framework.json version missing"
-assert framework["paths"]["settings"] == ".claude/settings.local.json"
+assert framework["paths"]["settings_claude"] == ".claude/settings.local.json"
+assert framework["paths"]["settings_codex"] == ".codex/hooks.json"
 assert framework["paths"]["headless_review"] == "scripts/headless-review.sh"
+assert framework["core"]["skills"] == [], "v9 ships no skills"
+
+def wired(relative):
+    config = json.loads((project / relative).read_text())
+    return sorted(
+        hook.get("command", "")
+        for groups in config.get("hooks", {}).values()
+        for group in groups
+        for hook in group.get("hooks", [])
+    )
+
+claude, codex = wired(".claude/settings.local.json"), wired(".codex/hooks.json")
+if claude != codex:
+    sys.exit(f"installed hook sets differ:\n  claude={claude}\n  codex={codex}")
+
+for command in claude:
+    if command.startswith("node ./hooks/"):
+        suffix = command.split("node ./hooks/", 1)[1].split()[0]
+        if not (project / "hooks" / suffix).exists():
+            sys.exit(f"settings reference missing hook: {suffix}")
 PY
 
-  local sprint_json="$project_dir/sprint/sprint.json"
-  local sprint_md="$project_dir/sprint/sprint.md"
-  printf '{"tool_input":{"file_path":"%s"}}' "$sprint_json" | node "$project_dir/hooks/sprint-sync.js" >/dev/null
-  assert_file "$sprint_md"
-  assert_contains 'Auto-generated from sprint.json' "$sprint_md"
-
-  local plan_output
-  plan_output="$(printf '{"tool_name":"ExitPlanMode"}' | node "$project_dir/hooks/plan-to-sprint.js")"
-  printf '%s' "$plan_output" | grep -Fq 'additionalContext' || fail "plan-to-sprint.js did not emit additionalContext"
+  # A generated project must not presume a sprint, and must not carry surfaces
+  # Codex cannot read.
+  for absent in sprint/sprint.json .claude/rules .claude/skills EXECUTION_PROTOCOL.md HOOKS.md; do
+    if [ -e "$project_dir/$absent" ]; then
+      fail "generated project must not contain $absent"
+    fi
+  done
 }
 
 main() {
@@ -110,14 +102,17 @@ main() {
   "$ROOT_DIR/setup-project.sh" "$setup_project" >/dev/null
   check_generated_project "$setup_project"
 
+  # A legacy .tasks-era project migrates through the same path.
   local migrate_project="$TMP_ROOT/migrate-project"
   mkdir -p "$migrate_project/.tasks" "$migrate_project/.claude/commands" "$migrate_project/hooks"
   printf '# legacy board\n' >"$migrate_project/.tasks/board.md"
-  printf 'legacy\n' >"$migrate_project/.claude/commands/sync-tasks.md"
-  printf 'legacy\n' >"$migrate_project/hooks/validate-board.js"
+  printf 'legacy\n'         >"$migrate_project/.claude/commands/sync-tasks.md"
+  printf 'legacy\n'         >"$migrate_project/hooks/validate-board.js"
 
   "$ROOT_DIR/migrate-project.sh" "$migrate_project" >/dev/null
   [ ! -d "$migrate_project/.tasks" ] || fail ".tasks directory still exists after migration"
+  assert_file "$migrate_project/.claude/commands/sync-tasks.md"
+  assert_file "$migrate_project/hooks/validate-board.js"
   check_generated_project "$migrate_project"
 
   echo "framework-smoke: ok"

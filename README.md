@@ -1,26 +1,36 @@
-# DG-VibeCoding-Framework v8.0.0
+# DG-VibeCoding-Framework v9.0.0
 
-> Disciplined Claude Code + Codex collaboration with validated sprint state.
+> One contract both Claude Code and Codex actually load. Guardrails only where
+> an action is irreversible.
 
-DG-VibeCoding-Framework gives Claude Code (CC) and Codex (CX) a shared project
-contract while keeping their runtime integrations platform-specific. The core
-model is simple: project rules live in Markdown, sprint coordination lives in a
-validated JSON contract, and deterministic hooks provide guardrails around
-edits, tests, reviews, and context recovery.
+v9 is a subtraction release. v8 made a small fix expensive: a hook denied every
+edit until the task carried five written steps, four more hooks fired on each
+edit, and finishing a 60-line change touched nine non-code artifacts. The
+default path is now: understand, change, run the narrowest real check, report.
+
+## The invariant
+
+> **Anything an agent must know lives in `AGENTS.md`. Agent-specific surfaces
+> add convenience, never capability.**
+
+Codex reads `AGENTS.md` natively. `CLAUDE.md` is a one-line `@AGENTS.md` import,
+the interop mechanism Anthropic documents. That is what makes CC/CX parity
+structural rather than a synchronisation chore — and it is enforced by
+`tests/parity.test.js`, not by discipline.
+
+The framework therefore ships **no** `.claude/rules/` and **no** `.claude/skills/`:
+Codex cannot read either, so neither may carry anything an agent needs.
 
 ## Current components
 
-- **8 core skills** — debugging, finish, git, housekeeping, partnership, start,
-  testing, vibecoding
-- **12 commands** — sprint-init, feature, done, review, fix, orchestrate,
-  peer-review, handoff, sprint-status, context-refresh, sync-notebook,
-  framework-update
-- **6 starter agents** — orchestrator, implementer, reviewer, tester, debugger,
-  plan-checker
-- **15 hooks** — security, decomposition, scope, validation, formatting,
-  context, sprint synchronization, test evidence, and completion guardrails
+- **1 shared contract** — `AGENTS.md`, under 150 lines
+- **4 commands** — `/done`, `/review`, `/handoff`, `/sprint`, each a pointer into
+  a section of the contract
+- **2 subagents** — `reviewer` (fresh-context review), `debugger`
+- **5 hooks** — `block-env`, `completion-guard`, `git-context`, `pre-compact`,
+  `context-reload`. None of them runs on an edit.
 - **2 runtime configurations** — Claude Code under `.claude/`, Codex under
-  `.codex/`
+  `.codex/`, wiring an identical hook set
 
 ## Quick start
 
@@ -30,85 +40,75 @@ New empty project:
 ./setup-project.sh /path/to/project
 ```
 
-Replace framework-managed files in an initialized project only after creating
-a backup:
+Replace framework-managed files in an initialized project, after a backup:
 
 ```bash
 ./setup-project.sh --force /path/to/project
 ```
 
-Existing framework project:
+Existing framework project (4.x–8.x):
 
 ```bash
-./migrate-v7-to-v8.sh /path/to/project --dry-run
-./migrate-v7-to-v8.sh /path/to/project
+./migrate-to-v9.sh /path/to/project --dry-run
+./migrate-to-v9.sh /path/to/project
 ```
 
-Both setup and migration verify the resulting artifact before reporting
-success.
+Migration removes the retired machinery by name, so custom skills, agents,
+commands, and hooks survive. It backs everything up first, replaces the drifted
+entry points with the v9 contract, and refuses to run inside a git worktree.
 
 ## Contracts
 
-| Contract | Purpose |
+| File | Purpose |
 |---|---|
-| `PROJECT.md` | Stack, architecture, commands, and project rules |
-| `AGENTS.md` | Durable Codex guidance |
-| `CLAUDE.md` | Durable Claude Code guidance |
-| `EXECUTION_PROTOCOL.md` | Shared execution and safety rules |
-| `sprint/sprint.json` | Mutable sprint-v3 coordination state |
-| `framework.json` | Framework inventory and installation manifest |
+| `PROJECT.md` | Stack, architecture, commands, project facts |
+| `AGENTS.md` | The shared agent contract — behaviour, gates, constraints |
+| `CLAUDE.md` | `@AGENTS.md` plus Claude-only conveniences |
+| `sprint/sprint.json` | Optional. Who is working on what, on which branch. |
+| `framework.json` | Inventory and installation manifest |
 
-Sprint state references `templates/sprint.schema.json` and is checked by:
+`sprint/sprint.json` is not installed and is never a precondition for writing
+code. It exists only to coordinate CC and CX working in parallel:
+
+```json
+{ "schema_version": 4, "base_branch": "dev", "updated": "…",
+  "tasks": [{ "id": "T1", "title": "…", "assigned_to": "cx",
+              "status": "in_progress", "branch": "cx/t1-slug" }] }
+```
 
 ```bash
 node scripts/validate-sprint.js sprint/sprint.json
 ```
 
-Non-trivial features require measurable acceptance criteria, 5–10 structured
-steps, and an explicit file corridor.
-
 ## Parallel work
 
-`branch_strategy: "sequential"` means one agent at a time in one checkout.
-Parallel CC/CX work always uses `branch_strategy: "worktree"`.
-
 ```bash
-/handoff F003
-# command validates and updates sprint state, then calls:
-scripts/handoff-worktree.sh F003 cx
+/handoff T1
+# updates the task, then:
+scripts/handoff-worktree.sh T1 cx
 ```
 
-The helper creates a dedicated sprint coordination commit before creating the
-partner worktree. Therefore the new worktree sees its assignment immediately.
-Implementation and sprint-state commits are separate because a commit cannot
-contain its own hash.
+The helper makes the coordination commit before creating the partner worktree,
+so the new worktree sees its assignment immediately. Merging is always the
+user's call.
 
 ## Runtime hooks
 
 - Claude Code: `.claude/settings.local.json`
 - Codex: `.codex/hooks.json`
-- Shared implementation: `hooks/*.js` and `hooks/lib/hook-input.js`
+- Shared implementation: `hooks/*.js`
 
-Hooks accept Claude edit payloads and Codex `apply_patch` payloads. They are
-guardrails rather than a complete security sandbox; deterministic validators,
-Git protections, tests, and normal OS permissions remain authoritative.
+Both files wire the same five hooks; `tests/parity.test.js` fails if they drift
+or if any hook is ever wired on an edit. Hooks are guardrails, not a security
+sandbox — deterministic validators, Git protections, tests, and OS permissions
+remain authoritative.
 
 ## Repository access modes
 
-Team guidance and sprint contracts stay tracked in every mode:
-
-- `PROJECT.md`, `AGENTS.md`, `CLAUDE.md`
-- `EXECUTION_PROTOCOL.md`, `framework.json`
-- `sprint/sprint.json`
-- reusable skills, commands, hooks, agents, and scripts
-
-Local/private state stays ignored in every mode:
-
-- local runtime settings and Notebook configuration
-- narrative/context snapshots, logs, usage markers
-- `manifest.md`, environment files, credentials, local databases, build output
-
-Change the local access declaration with:
+Team guidance stays tracked in every mode: `PROJECT.md`, `AGENTS.md`,
+`CLAUDE.md`, `framework.json`, `sprint/sprint.json`, and the reusable commands,
+hooks, agents, and scripts. Local runtime settings, logs, usage markers,
+environment files, credentials, and build output stay ignored in every mode.
 
 ```bash
 scripts/switch-repo-access.sh private-solo
@@ -123,37 +123,31 @@ scripts/headless-review.sh --tool claude --mode quick --staged
 scripts/headless-review.sh --tool codex --mode full src/ --output review.json
 ```
 
-The review runner reads Git-tracked files, rejects secret-like paths, sends
-large prompts over stdin, limits input bytes, parses Codex JSONL, and validates
-structured review output.
-
 ## Verification
 
 ```bash
 bash tests/run.sh
 ```
 
-The suite covers sprint validation, cross-runtime hooks, generated artifacts,
-migration preservation, worktree coordination, malicious filenames, headless
-review parsing, documentation drift, and end-to-end smoke behavior.
-
-Additional local checks:
+The suite covers CC/CX parity, sprint validation, hook behaviour, generated
+artifacts, migration preservation, worktree coordination, headless review
+parsing, documentation drift, and end-to-end smoke behaviour.
 
 ```bash
-shellcheck setup-project.sh migrate-project.sh migrate-v7-to-v8.sh scripts/*.sh tests/*.sh
+shellcheck setup-project.sh migrate-project.sh migrate-to-v9.sh scripts/*.sh tests/*.sh
 git diff --check
 ```
 
 ## Structure
 
 ```text
-core/                 Runtime templates and protocol documentation
-.claude/              Claude skills, commands, agents, and source settings
-hooks/                Shared deterministic lifecycle hooks
-scripts/              Validation, install, migration, review, and worktree tools
-templates/            Project, sprint, snapshot, and output schemas
-tests/                Dependency-light unit and integration suites
-archive/              Historical components not installed by default
+core/       Runtime templates: the shared contract and both hook configurations
+.claude/    Claude commands, subagents, and source settings
+hooks/      Shared deterministic lifecycle hooks
+scripts/    Validation, install, review, and worktree tools
+templates/  Project and schema templates
+tests/      Dependency-light unit and integration suites
+archive/    Retired components, kept for reference and recovery
 ```
 
 ## Release history

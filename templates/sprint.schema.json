@@ -1,154 +1,27 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://dg-vibecoding.dev/schemas/sprint-v3.json",
-  "title": "DG-VibeCoding sprint contract v3",
+  "$id": "https://dg-vibecoding.dev/schemas/sprint-v4.json",
+  "title": "CC/CX coordination file (v4)",
+  "description": "Optional. Says who is working on what, on which branch. Nothing else.",
   "type": "object",
-  "additionalProperties": false,
-  "required": [
-    "$schema",
-    "schema_version",
-    "sprint_id",
-    "created",
-    "branch_strategy",
-    "base_branch",
-    "current_feature",
-    "features",
-    "stats",
-    "last_updated",
-    "last_updated_by"
-  ],
+  "required": ["schema_version", "base_branch", "tasks"],
   "properties": {
-    "$schema": { "const": "../templates/sprint.schema.json" },
-    "schema_version": { "const": "sprint-v3" },
-    "sprint_id": { "type": "string", "pattern": "^S[0-9]{2,}$" },
-    "created": { "type": "string" },
-    "branch_strategy": { "enum": ["sequential", "worktree"] },
+    "schema_version": { "const": 4 },
     "base_branch": { "type": "string", "minLength": 1 },
-    "current_feature": {
-      "oneOf": [
-        { "type": "null" },
-        { "type": "string", "pattern": "^F[0-9]{3,}$" }
-      ]
-    },
-    "features": {
+    "updated": { "type": "string" },
+    "tasks": {
       "type": "array",
-      "items": { "$ref": "#/$defs/feature" }
-    },
-    "stats": { "$ref": "#/$defs/stats" },
-    "last_updated": { "type": "string" },
-    "last_updated_by": { "enum": ["cc", "cx", null] }
-  },
-  "$defs": {
-    "stats": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["total", "pending", "in_progress", "in_review", "completed", "blocked"],
-      "properties": {
-        "total": { "type": "integer", "minimum": 0 },
-        "pending": { "type": "integer", "minimum": 0 },
-        "in_progress": { "type": "integer", "minimum": 0 },
-        "in_review": { "type": "integer", "minimum": 0 },
-        "completed": { "type": "integer", "minimum": 0 },
-        "blocked": { "type": "integer", "minimum": 0 }
-      }
-    },
-    "step": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["id", "desc", "done"],
-      "properties": {
-        "id": { "type": "string", "pattern": "^S[0-9]+$" },
-        "desc": { "type": "string", "minLength": 1 },
-        "done": { "type": "boolean" }
-      }
-    },
-    "corridor": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["allowed", "forbidden"],
-      "properties": {
-        "allowed": {
-          "type": "array",
-          "items": { "type": "string", "minLength": 1 }
-        },
-        "forbidden": {
-          "type": "array",
-          "items": { "type": "string", "minLength": 1 }
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "assigned_to", "status", "branch"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "title": { "type": "string", "minLength": 1 },
+          "assigned_to": { "enum": ["cc", "cx"] },
+          "status": { "enum": ["planned", "in_progress", "in_review", "done"] },
+          "branch": { "type": "string", "minLength": 1 }
         }
       }
-    },
-    "feature": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "id",
-        "name",
-        "description",
-        "acceptance_criteria",
-        "steps",
-        "corridor",
-        "trivial",
-        "complexity",
-        "status",
-        "assigned_to",
-        "branch",
-        "tested",
-        "notes",
-        "git",
-        "completed_at",
-        "review"
-      ],
-      "properties": {
-        "id": { "type": "string", "pattern": "^F[0-9]{3,}$" },
-        "name": { "type": "string", "minLength": 1 },
-        "description": { "type": "string", "minLength": 1 },
-        "acceptance_criteria": {
-          "type": "array",
-          "minItems": 1,
-          "items": { "type": "string", "minLength": 1 }
-        },
-        "steps": {
-          "type": "array",
-          "maxItems": 10,
-          "items": { "$ref": "#/$defs/step" }
-        },
-        "corridor": { "$ref": "#/$defs/corridor" },
-        "trivial": { "type": "boolean" },
-        "complexity": { "enum": ["trivial", "low", "medium", "high"] },
-        "status": { "enum": ["pending", "in_progress", "in_review", "completed", "blocked"] },
-        "assigned_to": { "enum": ["cc", "cx", null] },
-        "branch": { "type": ["string", "null"] },
-        "tested": { "type": "boolean" },
-        "notes": { "type": "string" },
-        "git": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": ["hash", "message", "timestamp"],
-          "properties": {
-            "hash": { "type": ["string", "null"] },
-            "message": { "type": ["string", "null"] },
-            "timestamp": { "type": ["string", "null"] }
-          }
-        },
-        "completed_at": { "type": ["string", "null"] },
-        "review": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": ["score", "verdict", "reviewer"],
-          "properties": {
-            "score": { "type": ["number", "null"] },
-            "verdict": { "type": ["string", "null"] },
-            "reviewer": { "enum": ["cc", "cx", null] },
-            "notes": { "type": "string" }
-          }
-        }
-      },
-      "allOf": [
-        {
-          "if": { "properties": { "trivial": { "const": false } } },
-          "then": { "properties": { "steps": { "minItems": 5 } } }
-        }
-      ]
     }
   }
 }

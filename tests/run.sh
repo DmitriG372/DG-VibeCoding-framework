@@ -3,6 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
+node --test "$ROOT_DIR/tests/parity.test.js"
 node --test "$ROOT_DIR/tests/sprint-validator.test.js"
 node --test "$ROOT_DIR/tests/hooks.test.js"
 bash "$ROOT_DIR/tests/install-artifact.sh"

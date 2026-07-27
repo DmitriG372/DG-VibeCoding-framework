@@ -6,98 +6,133 @@ TMP_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/dg-migration-test-XXXXXX")"
 trap 'rm -rf "$TMP_ROOT"' EXIT
 PROJECT="$TMP_ROOT/project"
 
-mkdir -p "$PROJECT/.claude/skills/custom/references" \
-  "$PROJECT/.claude/agents" "$PROJECT/.claude/commands" \
-  "$PROJECT/hooks" "$PROJECT/sprint" "$PROJECT/.tasks"
-printf '%s\n' '# custom skill' > "$PROJECT/.claude/skills/custom/SKILL.md"
-printf '%s\n' 'custom reference' > "$PROJECT/.claude/skills/custom/references/info.md"
-printf '%s\n' '# custom agent' > "$PROJECT/.claude/agents/custom.md"
-printf '%s\n' '# custom command' > "$PROJECT/.claude/commands/custom.md"
-printf '%s\n' '# custom AGENTS rule' > "$PROJECT/AGENTS.md"
-printf '%s\n' 'custom-cache/' > "$PROJECT/.gitignore"
-printf '%s\n' 'legacy board' > "$PROJECT/.tasks/board.md"
-printf '%s\n' 'module.exports = true;' > "$PROJECT/hooks/custom-hook.js"
+# A v8-shaped project: framework machinery plus the project's own additions.
+mkdir -p "$PROJECT/.claude/skills/custom/references" "$PROJECT/.claude/skills/testing" \
+  "$PROJECT/.claude/rules" "$PROJECT/.claude/agents" "$PROJECT/.claude/commands" \
+  "$PROJECT/hooks/lib" "$PROJECT/sprint" "$PROJECT/.tasks"
+
+printf '%s\n' '# custom skill'      > "$PROJECT/.claude/skills/custom/SKILL.md"
+printf '%s\n' 'custom reference'    > "$PROJECT/.claude/skills/custom/references/info.md"
+printf '%s\n' '# framework skill'   > "$PROJECT/.claude/skills/testing/SKILL.md"
+printf '%s\n' '# framework rule'    > "$PROJECT/.claude/rules/execution-integrity.md"
+printf '%s\n' '# custom agent'      > "$PROJECT/.claude/agents/custom.md"
+printf '%s\n' '# framework agent'   > "$PROJECT/.claude/agents/plan-checker.md"
+printf '%s\n' '# custom command'    > "$PROJECT/.claude/commands/custom.md"
+printf '%s\n' '# framework command' > "$PROJECT/.claude/commands/sprint-init.md"
+printf '%s\n' 'module.exports = 1;' > "$PROJECT/hooks/custom-hook.js"
+printf '%s\n' 'module.exports = 1;' > "$PROJECT/hooks/decomposition-guard.js"
+printf '%s\n' 'module.exports = 1;' > "$PROJECT/hooks/type-check.js"
+printf '%s\n' '# v4 entry point'    > "$PROJECT/AGENTS.md"
+printf '%s\n' '# v7 entry point'    > "$PROJECT/CLAUDE.md"
+printf '%s\n' '# project facts'     > "$PROJECT/PROJECT.md"
+printf '%s\n' 'legacy protocol'     > "$PROJECT/EXECUTION_PROTOCOL.md"
+printf '%s\n' 'legacy hooks doc'    > "$PROJECT/HOOKS.md"
+printf '%s\n' 'custom-cache/'       > "$PROJECT/.gitignore"
+printf '%s\n' 'legacy board'        > "$PROJECT/.tasks/board.md"
 
 printf '%s\n' '{
   "permissions": { "allow": ["Bash(git status)"] },
   "custom_setting": true,
   "hooks": {
     "PreToolUse": [
-      { "matcher": "Custom", "hooks": [{ "type": "command", "command": "node ./hooks/custom-hook.js" }] }
+      { "matcher": "Custom", "hooks": [{ "type": "command", "command": "node ./hooks/custom-hook.js" }] },
+      { "matcher": "Edit|Write", "hooks": [{ "type": "command", "command": "node ./hooks/decomposition-guard.js" }] }
+    ],
+    "PostToolUse": [
+      { "matcher": "Edit|Write", "hooks": [{ "type": "command", "command": "node ./hooks/type-check.js" }] }
     ]
   }
 }' > "$PROJECT/.claude/settings.local.json"
 
-# Literal JSON fixture intentionally contains the $schema key.
-# shellcheck disable=SC2016
+# A non-conforming pre-v9 sprint file, as found in the wild.
 printf '%s\n' '{
-  "$schema": "sprint-v2",
-  "sprint_id": "S01",
-  "created": "2026-01-01T00:00:00Z",
-  "branch_strategy": "main",
-  "base_branch": "main",
-  "current_feature": "F001",
-  "features": [{
-    "id": "F001",
-    "name": "Legacy feature",
-    "description": "Preserve and migrate this feature.",
-    "acceptance_criteria": ["Legacy behavior remains represented."],
-    "complexity": "medium",
-    "status": "in_progress",
-    "assigned_to": "cc",
-    "branch": "cc/F001-legacy",
-    "tested": false,
-    "git": { "hash": null, "message": null, "timestamp": null },
-    "completed_at": null,
-    "review": { "score": null, "verdict": null, "reviewer": null }
-  }],
-  "stats": { "total": 1, "pending": 0, "in_progress": 1, "in_review": 0, "completed": 0 },
-  "last_updated": "2026-01-01T00:00:00Z",
-  "last_updated_by": "cc"
+  "sprint_id": "S77-supabase-advisor-hardening",
+  "current_feature": "S77-001",
+  "features": [{ "id": "S77-001", "assigned_to": "CX" }],
+  "last_updated_by": "CX"
 }' > "$PROJECT/sprint/sprint.json"
 
 before="$(find "$PROJECT" -type f -print0 | sort -z | xargs -0 shasum | shasum | awk '{print $1}')"
-"$ROOT_DIR/migrate-v7-to-v8.sh" "$PROJECT" --dry-run >/dev/null
+"$ROOT_DIR/migrate-to-v9.sh" "$PROJECT" --dry-run >/dev/null
 after="$(find "$PROJECT" -type f -print0 | sort -z | xargs -0 shasum | shasum | awk '{print $1}')"
 [[ "$before" == "$after" ]] || { echo 'FAIL: dry-run changed project files' >&2; exit 1; }
 
 FAKE_BIN="$TMP_ROOT/fake-bin"
 mkdir -p "$FAKE_BIN"
-printf '#!/bin/sh\nprintf "20260711-120000\\n"\n' > "$FAKE_BIN/date"
+printf '#!/bin/sh\nprintf "20260727-120000\\n"\n' > "$FAKE_BIN/date"
 chmod +x "$FAKE_BIN/date"
 
-PATH="$FAKE_BIN:$PATH" "$ROOT_DIR/migrate-v7-to-v8.sh" "$PROJECT" >/dev/null
+PATH="$FAKE_BIN:$PATH" "$ROOT_DIR/migrate-to-v9.sh" "$PROJECT" >/dev/null
 
+# The project's own additions survive.
 for preserved in \
   .claude/skills/custom/SKILL.md \
   .claude/skills/custom/references/info.md \
   .claude/agents/custom.md \
   .claude/commands/custom.md \
-  hooks/custom-hook.js; do
+  hooks/custom-hook.js \
+  PROJECT.md; do
   [[ -f "$PROJECT/$preserved" ]] || { echo "FAIL: migration removed $preserved" >&2; exit 1; }
 done
-grep -Fq 'custom AGENTS rule' "$PROJECT/AGENTS.md"
+grep -Fq 'project facts' "$PROJECT/PROJECT.md"
 grep -Fxq 'custom-cache/' "$PROJECT/.gitignore"
-grep -Fxq '.dg-framework-backup-*/' "$PROJECT/.gitignore"
 grep -Fq 'custom_setting' "$PROJECT/.claude/settings.local.json"
 grep -Fq 'custom-hook.js' "$PROJECT/.claude/settings.local.json"
-[[ -f "$PROJECT/hooks/lib/hook-input.js" ]]
-[[ -f "$PROJECT/.codex/hooks.json" ]]
-[[ ! -d "$PROJECT/.tasks" ]]
-node "$PROJECT/scripts/validate-sprint.js" "$PROJECT/sprint/sprint.json" >/dev/null
 
-backup="$PROJECT/sprint/sprint.json.v7.bak"
-[[ -f "$backup" ]]
-backup_hash="$(shasum "$backup" | awk '{print $1}')"
-PATH="$FAKE_BIN:$PATH" "$ROOT_DIR/migrate-v7-to-v8.sh" "$PROJECT" >/dev/null
-[[ "$backup_hash" == "$(shasum "$backup" | awk '{print $1}')" ]] || {
-  echo 'FAIL: second migration overwrote original v7 backup' >&2
-  exit 1
+# The framework machinery is gone.
+for removed in \
+  .claude/skills/testing/SKILL.md \
+  .claude/rules/execution-integrity.md \
+  .claude/agents/plan-checker.md \
+  .claude/commands/sprint-init.md \
+  .claude/commands/framework-update.md \
+  hooks/decomposition-guard.js \
+  hooks/type-check.js \
+  hooks/lib/hook-input.js \
+  EXECUTION_PROTOCOL.md \
+  HOOKS.md \
+  .tasks; do
+  if [[ -e "$PROJECT/$removed" ]]; then
+    echo "FAIL: migration kept $removed" >&2
+    exit 1
+  fi
+done
+
+# The retired wirings are stripped, not merely orphaned.
+for retired in decomposition-guard type-check; do
+  if grep -Fq "$retired" "$PROJECT/.claude/settings.local.json"; then
+    echo "FAIL: retired hook $retired still wired" >&2
+    exit 1
+  fi
+done
+
+# The v9 contract is installed and shared.
+head -n 1 "$PROJECT/CLAUDE.md" | grep -Fxq '@AGENTS.md' || {
+  echo 'FAIL: CLAUDE.md does not import the shared contract' >&2; exit 1
 }
-backup_count="$(find "$PROJECT" -maxdepth 1 -type d -name '.dg-framework-backup-*' | wc -l | tr -d ' ')"
-[[ "$backup_count" == 2 ]] || {
-  echo 'FAIL: repeated migration reused a backup directory' >&2
-  exit 1
+grep -Fq '## Done' "$PROJECT/AGENTS.md"
+grep -Fq '"version": "9.0.0"' "$PROJECT/framework.json"
+[[ -f "$PROJECT/.codex/hooks.json" ]]
+[[ -f "$PROJECT/.claude/commands/done.md" ]]
+
+# The old entry points are recoverable.
+backup_dir="$(find "$PROJECT" -maxdepth 1 -type d -name '.dg-framework-backup-*' | head -n 1)"
+grep -Fq 'v7 entry point' "$backup_dir/CLAUDE.md"
+grep -Fq 'v4 entry point' "$backup_dir/AGENTS.md"
+
+# The non-conforming sprint is archived, not silently converted or kept.
+[[ ! -f "$PROJECT/sprint/sprint.json" ]] || { echo 'FAIL: invalid sprint kept in place' >&2; exit 1; }
+find "$PROJECT/sprint/archive" -name 'pre-v9-*.json' | grep -q . || {
+  echo 'FAIL: pre-v9 sprint was not archived' >&2; exit 1
 }
+
+# A worktree must be refused.
+WORKTREE="$TMP_ROOT/worktree"
+mkdir -p "$WORKTREE"
+printf 'gitdir: /elsewhere\n' > "$WORKTREE/.git"
+if "$ROOT_DIR/migrate-to-v9.sh" "$WORKTREE" >/dev/null 2>&1; then
+  echo 'FAIL: migration ran inside a worktree' >&2
+  exit 1
+fi
 
 echo "migration: ok"

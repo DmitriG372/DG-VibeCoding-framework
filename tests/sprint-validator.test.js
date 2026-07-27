@@ -5,121 +5,81 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 
-const { calculateStats, validateSprint } = require('../scripts/validate-sprint');
+const { validateSprint } = require('../scripts/validate-sprint');
 
-function feature(overrides = {}) {
+function task(overrides = {}) {
   return {
-    id: 'F001',
-    name: 'Harden sprint contract',
-    description: 'Make sprint state deterministic and validated.',
-    acceptance_criteria: ['The sprint validator rejects malformed state.'],
-    steps: [
-      { id: 'S1', desc: 'Write tests', done: false },
-      { id: 'S2', desc: 'Implement validator', done: false },
-      { id: 'S3', desc: 'Update schema', done: false },
-      { id: 'S4', desc: 'Update commands', done: false },
-      { id: 'S5', desc: 'Run verification', done: false },
-    ],
-    corridor: { allowed: ['scripts/**', 'tests/**'], forbidden: ['.env*'] },
-    trivial: false,
-    complexity: 'medium',
+    id: 'T1',
+    title: 'Add attachment registry',
+    assigned_to: 'cx',
     status: 'in_progress',
-    assigned_to: 'cc',
-    branch: 'cc/F001-harden-sprint',
-    tested: false,
-    notes: '',
-    git: { hash: null, message: null, timestamp: null },
-    completed_at: null,
-    review: { score: null, verdict: null, reviewer: null },
+    branch: 'cx/t1-attachment-registry',
     ...overrides,
   };
 }
 
-function sprint(features = [feature()], overrides = {}) {
+function sprint(tasks = [task()], overrides = {}) {
   return {
-    $schema: '../templates/sprint.schema.json',
-    schema_version: 'sprint-v3',
-    sprint_id: 'S01',
-    created: '2026-07-11T10:00:00Z',
-    branch_strategy: 'worktree',
-    base_branch: 'main',
-    current_feature: features.find(item => item.status === 'in_progress')?.id || null,
-    features,
-    stats: calculateStats(features),
-    last_updated: '2026-07-11T10:00:00Z',
-    last_updated_by: 'cc',
+    schema_version: 4,
+    base_branch: 'dev',
+    updated: '2026-07-27T10:00:00Z',
+    tasks,
     ...overrides,
   };
 }
 
-test('accepts a valid non-trivial sprint', () => {
+test('accepts a minimal coordination file', () => {
   const result = validateSprint(sprint());
   assert.equal(result.valid, true, result.errors.join('\n'));
 });
 
-test('accepts a trivial feature without decomposition steps', () => {
-  const item = feature({ trivial: true, complexity: 'trivial', steps: [] });
-  const result = validateSprint(sprint([item]));
+test('accepts an empty task list', () => {
+  const result = validateSprint(sprint([]));
   assert.equal(result.valid, true, result.errors.join('\n'));
 });
 
-test('rejects duplicate feature IDs', () => {
-  const result = validateSprint(sprint([feature(), feature({ name: 'Duplicate' })]));
-  assert.ok(result.errors.some(error => error.includes('duplicate feature id F001')));
+test('ignores unknown keys instead of failing the file', () => {
+  const result = validateSprint(sprint([task({ notes: 'free text' })], { north_star: 'ship it' }));
+  assert.equal(result.valid, true, result.errors.join('\n'));
 });
 
-test('rejects non-trivial features with fewer than five steps', () => {
-  const item = feature({ steps: [{ id: 'S1', desc: 'Only step', done: false }] });
-  const result = validateSprint(sprint([item]));
-  assert.ok(result.errors.some(error => error.includes('5-10 steps')));
+test('rejects the v3 schema version', () => {
+  const result = validateSprint(sprint([], { schema_version: 'sprint-v3' }));
+  assert.ok(result.errors.some(error => error.includes('schema_version must be 4')));
 });
 
-test('rejects empty acceptance criteria', () => {
-  const result = validateSprint(sprint([feature({ acceptance_criteria: [] })]));
-  assert.ok(result.errors.some(error => error.includes('acceptance_criteria')));
+test('rejects uppercase assigned_to', () => {
+  const result = validateSprint(sprint([task({ assigned_to: 'CX' })]));
+  assert.ok(result.errors.some(error => error.includes('assigned_to')));
 });
 
-test('rejects current_feature that does not identify the active feature', () => {
-  const result = validateSprint(sprint([feature()], { current_feature: 'F999' }));
-  assert.ok(result.errors.some(error => error.includes('current_feature')));
+test('rejects a status outside the four allowed values', () => {
+  const result = validateSprint(sprint([task({ status: 'completed' })]));
+  assert.ok(result.errors.some(error => error.includes('status')));
 });
 
-test('rejects multiple in-progress features', () => {
-  const second = feature({ id: 'F002', name: 'Second active feature' });
-  const result = validateSprint(sprint([feature(), second]));
-  assert.ok(result.errors.some(error => error.includes('multiple in_progress')));
+test('rejects duplicate task ids', () => {
+  const result = validateSprint(sprint([task(), task({ title: 'Duplicate' })]));
+  assert.ok(result.errors.some(error => error.includes('duplicate task id T1')));
 });
 
-test('reports stale stats and returns normalized values', () => {
-  const data = sprint([feature({ status: 'completed' })], {
-    current_feature: null,
-    stats: { total: 0, pending: 0, in_progress: 0, in_review: 0, completed: 0, blocked: 0 },
-  });
-  const result = validateSprint(data);
-  assert.ok(result.errors.some(error => error.includes('stats do not match')));
-  assert.deepEqual(result.normalizedStats, {
-    total: 1,
-    pending: 0,
-    in_progress: 0,
-    in_review: 0,
-    completed: 1,
-    blocked: 0,
-  });
+test('allows two agents to be in progress at the same time', () => {
+  const parallel = [task(), task({ id: 'T2', assigned_to: 'cc', branch: 'cc/t2-search' })];
+  const result = validateSprint(sprint(parallel));
+  assert.equal(result.valid, true, result.errors.join('\n'));
 });
 
-test('CLI --write-stats repairs stale stats before deciding validity', () => {
+test('CLI exits 0 on a valid file and 1 on an invalid one', () => {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'dg-sprint-cli-'));
-  const filePath = path.join(directory, 'sprint.json');
-  const data = sprint([feature({ status: 'completed' })], {
-    current_feature: null,
-    stats: { total: 0, pending: 0, in_progress: 0, in_review: 0, completed: 0, blocked: 0 },
-  });
-  fs.writeFileSync(filePath, JSON.stringify(data));
-  const result = spawnSync(process.execPath, [
-    path.resolve(__dirname, '../scripts/validate-sprint.js'),
-    filePath,
-    '--write-stats',
-  ], { encoding: 'utf8' });
+  const validator = path.resolve(__dirname, '../scripts/validate-sprint.js');
+  const run = data => {
+    const filePath = path.join(directory, 'sprint.json');
+    fs.writeFileSync(filePath, JSON.stringify(data));
+    return spawnSync(process.execPath, [validator, filePath], { encoding: 'utf8' });
+  };
+
+  assert.equal(run(sprint()).status, 0);
+  assert.equal(run(sprint([task({ assigned_to: 'CX' })])).status, 1);
+
   fs.rmSync(directory, { recursive: true, force: true });
-  assert.equal(result.status, 0, result.stderr);
 });

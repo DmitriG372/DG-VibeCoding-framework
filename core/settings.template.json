@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "description": "Claude Code settings template for DG-VibeCoding-Framework",
+  "description": "Claude Code settings template for DG-VibeCoding-Framework v9",
 
   "permissions": {
     "allow": [
@@ -16,22 +16,19 @@
     "deny": [
       "Bash(rm -rf /)",
       "Bash(rm -rf ~)",
-      "Bash(* --force push)",
-      "Bash(git push --force)"
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(git reset --hard*)",
+      "Bash(git clean -f*)",
+      "Bash(git branch -D*)"
     ]
   },
 
-  "outputStyle": "Explanatory",
-  "plansDirectory": "./sprint",
   "respectGitignore": true,
 
   "attribution": {
     "commit": "Co-Authored-By: Claude <noreply@anthropic.com>",
     "pr": "Generated with Claude Code"
-  },
-
-  "env": {
-    "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "80"
   },
 
   "hooks": {
@@ -51,81 +48,6 @@
           {
             "type": "command",
             "command": "node ./hooks/completion-guard.js"
-          }
-        ]
-      },
-      {
-        "matcher": "Edit|Write|MultiEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ./hooks/decomposition-guard.js",
-            "statusMessage": "Decomposition check..."
-          },
-          {
-            "type": "command",
-            "command": "node ./hooks/test-dir-protection.js"
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write|MultiEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ./hooks/scope-guard.js"
-          },
-          {
-            "type": "command",
-            "command": "node ./hooks/type-check.js"
-          },
-          {
-            "type": "command",
-            "command": "node ./hooks/auto-format.js"
-          },
-          {
-            "type": "command",
-            "command": "node ./hooks/sprint-sync.js",
-            "statusMessage": "Syncing sprint.md..."
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ./hooks/test-output-filter.js"
-          }
-        ]
-      },
-      {
-        "matcher": "Skill|SlashCommand|Task",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ./hooks/usage-tracker.js"
-          }
-        ]
-      },
-      {
-        "matcher": ".*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ./hooks/context-monitor.js"
-          }
-        ]
-      },
-      {
-        "matcher": "ExitPlanMode",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ./hooks/plan-to-sprint.js",
-            "statusMessage": "Converting plan to sprint..."
           }
         ]
       }

@@ -10,17 +10,7 @@ fail() {
 }
 
 assert_contains() {
-  local pattern="$1"
-  local path="$2"
-  grep -Fq -- "$pattern" "$path" || fail "Expected '$pattern' in $path"
-}
-
-assert_not_contains() {
-  local pattern="$1"
-  local path="$2"
-  if grep -Fq -- "$pattern" "$path"; then
-    fail "Did not expect '$pattern' in $path"
-  fi
+  grep -Fq -- "$1" "$2" || fail "Expected '$1' in $2"
 }
 
 version="$(tr -d '\n' < VERSION)"
@@ -30,46 +20,44 @@ guide_title="$(head -n 1 GUIDE.md)"
 [ "$readme_title" = "# DG-VibeCoding-Framework v$version" ] || fail "README version mismatch"
 [ "$guide_title" = "# DG-VibeCoding-Framework v$version — Kasutusjuhend" ] || fail "GUIDE version mismatch"
 
-skill_count="$(find .claude/skills -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')"
 agent_count="$(find .claude/agents -maxdepth 1 -type f -name '*.md' ! -name 'README.md' | wc -l | tr -d ' ')"
 command_count="$(find .claude/commands -maxdepth 1 -type f -name '*.md' | wc -l | tr -d ' ')"
 hook_count="$(find hooks -maxdepth 1 -type f -name '*.js' | wc -l | tr -d ' ')"
 
-[ "$skill_count" = "8" ] || fail "Expected 8 skills, found $skill_count"
-[ "$agent_count" = "6" ] || fail "Expected 6 agents, found $agent_count"
-[ "$command_count" = "12" ] || fail "Expected 12 commands, found $command_count"
-[ "$hook_count" = "15" ] || fail "Expected 15 hooks, found $hook_count"
+[ "$agent_count" = "2" ]   || fail "Expected 2 agents, found $agent_count"
+[ "$command_count" = "4" ] || fail "Expected 4 commands, found $command_count"
+[ "$hook_count" = "5" ]    || fail "Expected 5 hooks, found $hook_count"
 
-assert_contains '- **8 core skills**' README.md
-assert_contains '- **6 starter agents**' README.md
-assert_contains '- **15 hooks**' README.md
-assert_contains '| Skills    | 8' GUIDE.md
-assert_contains '| Agents    | 6' GUIDE.md
-assert_contains '| Hooks     | 15' GUIDE.md
+# v9 ships no skills and no rules: Codex can read neither, so neither may carry
+# anything an agent needs.
+[ ! -d .claude/skills ] || [ -z "$(ls -A .claude/skills)" ] || fail "v9 must ship no skills"
+[ ! -d .claude/rules ]  || [ -z "$(ls -A .claude/rules)" ]  || fail "v9 must ship no rules"
 
-assert_not_contains 'Read: agents/' .claude/commands/orchestrate.md
-assert_not_contains 'Read: agents/' .claude/commands/review.md
-assert_not_contains 'Touch .env files' templates/project-init/AGENTS.md
-assert_contains '"schema_version": "sprint-v3"' templates/sprint.template.json
-assert_contains '"branch_strategy": "sequential"' templates/sprint.template.json
-assert_contains 'codex --sandbox workspace-write' .claude/commands/handoff.md
-assert_contains 'hooks/lib/hook-input.js' framework.json
+assert_contains '- **4 commands**' README.md
+assert_contains '- **2 subagents**' README.md
+assert_contains '- **5 hooks**' README.md
+assert_contains '| Commands | 4' GUIDE.md
+assert_contains '| Agents   | 2' GUIDE.md
+assert_contains '| Hooks    | 5' GUIDE.md
+
+assert_contains '"schema_version": 4' templates/sprint.template.json
 assert_contains 'core/codex-hooks.template.json' framework.json
-assert_contains "Ei stage'i, commit'i ega push'i midagi." .claude/rules/context-management.md
-assert_contains 'tiimi juhised ja sprint jäävad tracked.' .claude/skills/housekeeping/SKILL.md
-assert_not_contains 'git add -u' .claude/rules/context-management.md
-assert_not_contains "EI commit'i raamistiku faile" .claude/rules/context-management.md
+assert_contains 'core/AGENTS.md' framework.json
 
-if grep -R -n -E 'sprint-v2|codex --full-auto|git add \.( |$)|--no-verify' \
-  .claude/commands .claude/skills templates/project-init GUIDE.md README.md \
-  core/AGENTS.md core/CLAUDE.md core/HOOKS.md core/PROJECT.md 2>/dev/null; then
+if grep -R -n -E 'sprint-v[23]|codex --full-auto|git add \.( |$)' \
+  .claude/commands templates/project-init GUIDE.md README.md \
+  core/AGENTS.md core/CLAUDE.md core/PROJECT.md 2>/dev/null; then
   fail "Active documentation contains legacy or unsafe workflow guidance"
 fi
 
+# The contract must carry the safety rules itself — nothing else reaches Codex.
+for clause in '--no-verify' 'Approval gates' 'Never' 'Evidence' 'production'; do
+  assert_contains "$clause" core/AGENTS.md
+done
+
 for source in $(ROOT_DIR="$ROOT_DIR" node - <<'NODE'
 const fs = require('node:fs');
-const root = process.env.ROOT_DIR;
-const framework = JSON.parse(fs.readFileSync(`${root}/framework.json`, 'utf8'));
+const framework = JSON.parse(fs.readFileSync(`${process.env.ROOT_DIR}/framework.json`, 'utf8'));
 for (const entry of framework.install.entries) process.stdout.write(`${entry.from}\n`);
 NODE
 ); do
@@ -77,52 +65,32 @@ NODE
 done
 
 ROOT_DIR="$ROOT_DIR" VERSION="$version" python3 - <<'PY'
-import json
-import os
-import pathlib
-import sys
+import json, os, pathlib, sys
 
 root = pathlib.Path(os.environ["ROOT_DIR"])
-version = os.environ["VERSION"]
 framework = json.loads((root / "framework.json").read_text())
 
-if framework["version"] != version:
-    print("framework.json version mismatch", file=sys.stderr)
-    sys.exit(1)
+if framework["version"] != os.environ["VERSION"]:
+    sys.exit("framework.json version mismatch")
 
-skills = sorted(path.name for path in (root / ".claude/skills").iterdir() if path.is_dir())
-agents = sorted(path.stem for path in (root / ".claude/agents").glob("*.md") if path.name != "README.md")
-commands = sorted(path.stem for path in (root / ".claude/commands").glob("*.md"))
-
-if sorted(framework["core"]["skills"]) != skills:
-    print("framework.json skills mismatch", framework["core"]["skills"], skills, file=sys.stderr)
-    sys.exit(1)
+agents = sorted(p.stem for p in (root / ".claude/agents").glob("*.md") if p.name != "README.md")
+commands = sorted(p.stem for p in (root / ".claude/commands").glob("*.md"))
 
 if sorted(framework["core"]["agents"]) != agents:
-    print("framework.json agents mismatch", framework["core"]["agents"], agents, file=sys.stderr)
-    sys.exit(1)
-
+    sys.exit(f"framework.json agents mismatch: {framework['core']['agents']} vs {agents}")
 if sorted(framework["core"]["commands"]) != commands:
-    print("framework.json commands mismatch", framework["core"]["commands"], commands, file=sys.stderr)
-    sys.exit(1)
+    sys.exit(f"framework.json commands mismatch: {framework['core']['commands']} vs {commands}")
+if framework["core"]["skills"]:
+    sys.exit("framework.json must declare no skills")
 PY
 
-# Version-leak guard: VERSION file is the single source of truth.
-# Outside the whitelist (VERSION, README.md, GUIDE.md, framework.json), no file
-# in active framework directories may contain the current vX.Y.Z string.
-#
-# Whitelist rationale:
-#   - VERSION                    : the source of truth itself
-#   - README.md / GUIDE.md       : header line is auto-validated against VERSION above
-#   - framework.json             : "version" field is auto-validated against VERSION above
-#   - tests/framework-consistency.sh: this guard's own implementation
-leak_paths=$(grep -rEl "v${version//./\\.}" \
-  core .claude hooks scripts templates 2>/dev/null || true)
-
+# Version-leak guard: VERSION is the single source of truth. Outside the
+# whitelist (VERSION, README.md, GUIDE.md, framework.json, this script), no
+# active framework file may hardcode the current vX.Y.Z string.
+leak_paths=$(grep -rEl "v${version//./\\.}" core .claude hooks scripts templates 2>/dev/null || true)
 if [ -n "$leak_paths" ]; then
   echo "FAIL: hardcoded current version v$version found outside the whitelist:" >&2
   printf '%s\n' "$leak_paths" >&2
-  echo "Fix: remove or replace with a VERSION-file-derived reference." >&2
   exit 1
 fi
 

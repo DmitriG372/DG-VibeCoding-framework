@@ -2,33 +2,15 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Edit|Write",
+        "matcher": "Read|Grep",
         "hooks": [
-          { "type": "command", "command": "node ./hooks/decomposition-guard.js" },
-          { "type": "command", "command": "node ./hooks/test-dir-protection.js" }
+          { "type": "command", "command": "node ./hooks/block-env.js" }
         ]
       },
       {
         "matcher": "Bash",
         "hooks": [
           { "type": "command", "command": "node ./hooks/completion-guard.js" }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          { "type": "command", "command": "node ./hooks/scope-guard.js" },
-          { "type": "command", "command": "node ./hooks/type-check.js" },
-          { "type": "command", "command": "node ./hooks/auto-format.js" },
-          { "type": "command", "command": "node ./hooks/sprint-sync.js" }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          { "type": "command", "command": "node ./hooks/test-output-filter.js" }
         ]
       }
     ],
