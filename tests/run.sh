@@ -10,6 +10,7 @@ bash "$ROOT_DIR/tests/install-artifact.sh"
 bash "$ROOT_DIR/tests/migration.sh"
 bash "$ROOT_DIR/tests/worktree-coordination.sh"
 bash "$ROOT_DIR/tests/headless-review.sh"
+bash "$ROOT_DIR/tests/security-scan.sh"
 bash "$ROOT_DIR/tests/framework-consistency.sh"
 bash "$ROOT_DIR/tests/framework-smoke.sh"
 

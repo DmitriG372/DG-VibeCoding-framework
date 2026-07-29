@@ -66,6 +66,7 @@
       { "from": "scripts/validate-sprint.js", "to": "scripts/validate-sprint.js", "executable": true },
       { "from": "scripts/verify-install.js", "to": "scripts/verify-install.js", "executable": true },
       { "from": "scripts/stub-check.sh", "to": "scripts/stub-check.sh", "executable": true },
+      { "from": "scripts/security-scan.sh", "to": "scripts/security-scan.sh", "executable": true },
       { "from": "scripts/framework-state-mode.sh", "to": "scripts/framework-state-mode.sh", "executable": true },
       { "from": "scripts/switch-repo-access.sh", "to": "scripts/switch-repo-access.sh", "executable": true },
       { "from": "scripts/worktree-setup.sh", "to": "scripts/worktree-setup.sh", "executable": true },

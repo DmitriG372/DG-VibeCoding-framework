@@ -42,6 +42,13 @@ Report only findings that affect correctness or the stated requirements. A revie
 gaps will always find some; chasing every one produces defensive code and tests for cases that
 cannot happen. Treat style opinions as optional.
 
+## Security scan
+
+Before merge, run `scripts/security-scan.sh` when a change touches authentication, permissions,
+public APIs, uploads, payments, secrets, database access, or another meaningful attack surface.
+It is an explicit review step, never a pre-commit hook. Review findings and patches as evidence;
+do not apply them automatically. Results stay outside the repository and must not be committed.
+
 ## Done
 
 1. Confirm the change does what was asked. Run the check; show the real output.

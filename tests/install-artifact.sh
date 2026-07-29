@@ -22,6 +22,7 @@ required=(
   scripts/validate-sprint.js
   scripts/verify-install.js
   scripts/stub-check.sh
+  scripts/security-scan.sh
   scripts/framework-state-mode.sh
   scripts/switch-repo-access.sh
   scripts/handoff-worktree.sh
@@ -59,6 +60,7 @@ head -n 1 "$PROJECT/CLAUDE.md" | grep -Fxq '@AGENTS.md' || {
 }
 
 node "$PROJECT/scripts/verify-install.js" "$PROJECT" >/dev/null
+"$PROJECT/scripts/security-scan.sh" --help | grep -Fq 'Run Codex Security without installing it into the project.'
 
 printf 'sentinel\n' > "$PROJECT/PROJECT.md"
 if "$ROOT_DIR/setup-project.sh" "$PROJECT" >/dev/null 2>&1; then

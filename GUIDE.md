@@ -95,7 +95,33 @@ Raporteeri ainult leiud, mis mõjutavad korrektsust või püstitatud nõuet.
 Reviewer, kellel kästakse leida puudusi, leiab neid alati; iga leiu jahtimine
 toodab kaitsvat koodi ja teste olukordadele, mida ei saa juhtuda.
 
-## 7. Migratsioon 4.x–8.x → v9
+## 7. Turvaskann
+
+Codex Security on valikuline, teadlikult käivitatav pre-merge kontroll. Kasuta
+seda siis, kui muudatus puudutab autentimist, õiguseid, avalikke API-sid,
+üleslaadimisi, makseid, saladusi või andmebaasi ligipääsu. See ei ole pre-commit
+hook ega testsuite'i või tavareview asendus.
+
+Paigalda CLI ainult organisatsiooni heakskiidetud kanali kaudu. Frameworki
+skript ei lisa projekti npm-sõltuvust, ei loe võtmeid projektifailidest ning
+salvestab tulemused repovälisesse privaatse õigustega kausta:
+
+```bash
+CODEX_SECURITY_BIN=/approved/path/codex-security \
+  scripts/security-scan.sh --working-tree --dry-run
+
+CODEX_SECURITY_BIN=/approved/path/codex-security \
+  scripts/security-scan.sh --diff origin/main --mode standard
+```
+
+Alusta CI-s advisory-režiimis. Pärast sobiva baastaseme saavutamist lisa PR-i
+skannile `--fail-on-severity high`. Hoia CI võti ainult skannisammu
+keskkonnamuutujas, paigalda CLI ajutisse repovälisesse kausta ning säilita
+JSON/SARIF tulemusi lühikese retention'iga. Vajaduste ja autentimise kohta vaata
+[CLI kiirstarti](https://learn.chatgpt.com/docs/security/cli) ning
+[CI juhendit](https://learn.chatgpt.com/docs/security/cli/ci).
+
+## 8. Migratsioon 4.x–8.x → v9
 
 ```bash
 ./migrate-to-v9.sh /path/to/project --dry-run
@@ -117,7 +143,7 @@ Migratsioon:
 Pärast migratsiooni: vaata `<backup>/CLAUDE.md` üle ja tõsta seal olnud
 projektifaktid `PROJECT.md`-i.
 
-## 8. Repo access
+## 9. Repo access
 
 `repo_access` on lokaalne poliitika, mitte põhjus peita tiimilt arenduslepingut.
 `PROJECT.md`, `AGENTS.md`, `CLAUDE.md`, frameworki runtime ja `sprint/sprint.json`
@@ -130,7 +156,7 @@ scripts/switch-repo-access.sh private-shared
 scripts/switch-repo-access.sh public
 ```
 
-## 9. Hookide käitumine
+## 10. Hookide käitumine
 
 | Hook | Sündmus | Mida teeb |
 |---|---|---|
@@ -147,7 +173,7 @@ kohta. `tests/parity.test.js` kukub läbi, kui hook seotakse `Edit`/`Write`/
 
 Hookid on guardrail'id, mitte täielik turvasandbox.
 
-## 10. Verifitseerimine
+## 11. Verifitseerimine
 
 ```bash
 bash tests/run.sh

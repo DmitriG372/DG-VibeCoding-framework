@@ -17,13 +17,13 @@ Tests use `node:test` and plain shell. Nothing is installed to run them.
 | `hooks/` | The five lifecycle hooks, shared by both runtimes |
 | `scripts/` | Install, validation, review, and worktree tools |
 | `templates/` | Project and schema templates |
-| `tests/` | Nine suites; `tests/run.sh` runs all of them |
+| `tests/` | Ten suites; `tests/run.sh` runs all of them |
 | `archive/` | Retired components, kept for reference and recovery |
 
 ## Commands
 
 ```bash
-bash tests/run.sh                          # all nine suites
+bash tests/run.sh                          # all ten suites
 ./setup-project.sh <dir>                   # new project
 ./migrate-to-v9.sh <dir> [--dry-run]       # existing 4.x–8.x project
 shellcheck setup-project.sh migrate-*.sh scripts/*.sh tests/*.sh

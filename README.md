@@ -128,6 +128,33 @@ scripts/headless-review.sh --tool claude --mode quick --staged
 scripts/headless-review.sh --tool codex --mode full src/ --output review.json
 ```
 
+## Security scanning
+
+Codex Security is an optional, explicit pre-merge check for changes that affect an
+attack surface: authentication, permissions, public APIs, uploads, payments,
+secrets, or database access. It does not run as a hook and it is not a replacement
+for tests or code review.
+
+Install the CLI through the access path approved for your organisation, then point
+the wrapper at its executable. The wrapper never adds an npm dependency to the
+project, never reads credentials from project files, and writes results outside
+the repository with private permissions. See the [Codex Security CLI
+quickstart](https://learn.chatgpt.com/docs/security/cli) for access and local
+authentication requirements:
+
+```bash
+CODEX_SECURITY_BIN=/approved/path/codex-security \
+  scripts/security-scan.sh --working-tree --dry-run
+
+CODEX_SECURITY_BIN=/approved/path/codex-security \
+  scripts/security-scan.sh --diff origin/main --mode standard
+```
+
+Start CI in advisory mode and preserve JSON/SARIF results for review. After the
+repository has a useful baseline, add `--fail-on-severity high` to the PR scan.
+Keep the CI credential scoped to the scan step and install the approved CLI outside
+the checkout, as required by the [Codex Security CI guidance](https://learn.chatgpt.com/docs/security/cli/ci).
+
 ## Verification
 
 ```bash
@@ -136,7 +163,8 @@ bash tests/run.sh
 
 The suite covers CC/CX parity, sprint validation, hook behaviour, generated
 artifacts, migration preservation, worktree coordination, headless review
-parsing, documentation drift, and end-to-end smoke behaviour.
+parsing, security-scan behaviour, documentation drift, and end-to-end smoke
+behaviour.
 
 ```bash
 shellcheck setup-project.sh migrate-project.sh migrate-to-v9.sh scripts/*.sh tests/*.sh
@@ -149,7 +177,7 @@ git diff --check
 core/       Runtime templates: the shared contract and both hook configurations
 .claude/    Claude commands, subagents, and source settings
 hooks/      Shared deterministic lifecycle hooks
-scripts/    Validation, install, review, and worktree tools
+scripts/    Validation, install, review, security-scan, and worktree tools
 templates/  Project and schema templates
 tests/      Dependency-light unit and integration suites
 archive/    Retired components, kept for reference and recovery

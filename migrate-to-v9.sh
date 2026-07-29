@@ -148,7 +148,7 @@ cp "$FRAMEWORK_DIR/templates/review-output.schema.json" "$PROJECT_DIR/templates/
 [[ -f "$PROJECT_DIR/manifest.md" ]] || cp "$FRAMEWORK_DIR/templates/manifest.md.template" "$PROJECT_DIR/manifest.md"
 
 runtime_scripts=(
-  validate-sprint.js verify-install.js stub-check.sh framework-state-mode.sh
+  validate-sprint.js verify-install.js stub-check.sh security-scan.sh framework-state-mode.sh
   switch-repo-access.sh worktree-setup.sh worktree-cleanup.sh handoff-worktree.sh
   headless-review.sh parse-codex-jsonl.js normalize-review.js
 )
