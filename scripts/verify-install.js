@@ -13,13 +13,21 @@ function walk(dir) {
 
 function verifyInstall(projectRoot) {
   const errors = [];
+  const warnings = [];
   const frameworkPath = path.join(projectRoot, 'framework.json');
-  if (!fs.existsSync(frameworkPath)) return ['framework.json is missing'];
+  if (!fs.existsSync(frameworkPath)) return { errors: ['framework.json is missing'], warnings };
   const framework = JSON.parse(fs.readFileSync(frameworkPath, 'utf8'));
 
+  // `local: true` entries are seeded once by the installer and then gitignored
+  // (.claude/settings.local.json, manifest.md). A fresh clone or a new worktree
+  // legitimately has neither, so their absence is a warning to act on, not a
+  // failed install — otherwise every clone reports the same two false errors and
+  // the check stops being read.
   for (const entry of framework.install?.entries || []) {
     const target = path.join(projectRoot, entry.to);
-    if (!fs.existsSync(target)) errors.push(`missing installed artifact: ${entry.to}`);
+    if (fs.existsSync(target)) continue;
+    if (entry.local) warnings.push(`local artifact not seeded here: ${entry.to}`);
+    else errors.push(`missing installed artifact: ${entry.to}`);
   }
 
   for (const file of walk(path.join(projectRoot, '.claude', 'skills'))) {
@@ -50,12 +58,13 @@ function verifyInstall(projectRoot) {
       }
     }
   }
-  return errors;
+  return { errors, warnings };
 }
 
 if (require.main === module) {
   const projectRoot = path.resolve(process.argv[2] || '.');
-  const errors = verifyInstall(projectRoot);
+  const { errors, warnings } = verifyInstall(projectRoot);
+  for (const warning of warnings) process.stderr.write(`! ${warning}\n`);
   if (errors.length) {
     for (const error of errors) process.stderr.write(`- ${error}\n`);
     process.exit(1);

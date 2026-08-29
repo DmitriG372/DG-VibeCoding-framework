@@ -57,4 +57,12 @@ else
   git worktree add "$WORKTREE" -b "$BRANCH"
 fi
 
+# .claude/settings.local.json is gitignored, so the partner agent would start in a
+# worktree with no Claude Code hook wiring while Codex keeps its tracked
+# .codex/hooks.json. Seed it. Permissions and hook wiring only, never secrets.
+if [[ -f "$ROOT/.claude/settings.local.json" && ! -f "$WORKTREE/.claude/settings.local.json" ]]; then
+  mkdir -p "$WORKTREE/.claude"
+  cp "$ROOT/.claude/settings.local.json" "$WORKTREE/.claude/settings.local.json"
+fi
+
 printf 'handoff-worktree: %s\n' "$WORKTREE"

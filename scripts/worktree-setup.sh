@@ -35,6 +35,18 @@ fi
 
 cd "$WT_DIR"
 
+# .claude/settings.local.json is gitignored, so a new worktree has no Claude Code
+# hook wiring at all while .codex/hooks.json (tracked) keeps working — the exact
+# inverse of what CLAUDE.md promises. Seed it from the main worktree. It holds
+# permissions and hook wiring, never secrets.
+if [ -f "$ROOT/.claude/settings.local.json" ] && [ ! -f "$WT_DIR/.claude/settings.local.json" ]; then
+    mkdir -p "$WT_DIR/.claude"
+    cp "$ROOT/.claude/settings.local.json" "$WT_DIR/.claude/settings.local.json"
+    echo -e "${GREEN}✓${NC} Copied .claude/settings.local.json (hook wiring)"
+elif [ ! -f "$ROOT/.claude/settings.local.json" ]; then
+    echo -e "${YELLOW}ℹ${NC} No .claude/settings.local.json in the main worktree; Claude Code hooks will be unwired here."
+fi
+
 echo -e "${YELLOW}Dependencies were not installed automatically.${NC}"
 echo -e "${YELLOW}Run the project's documented bootstrap command inside the worktree if needed.${NC}"
 
