@@ -19,7 +19,19 @@ if ! git check-ref-format --branch "$BRANCH" >/dev/null 2>&1; then
 fi
 ROOT="$(git rev-parse --show-toplevel)"
 PROJECT_NAME="$(basename "$ROOT")"
-WT_DIR="$(dirname "$ROOT")/${PROJECT_NAME}-wt-${BRANCH//\//-}"
+
+# Ask git where the branch is actually checked out instead of assuming the layout
+# worktree-setup.sh happens to use. A worktree created by hand, or one placed under
+# .worktrees/, is otherwise invisible to this script: it reports "already removed"
+# and leaves the real worktree in place. Fall back to the conventional path so a
+# stale directory whose registration git has already pruned still gets cleaned up.
+WT_DIR="$(git worktree list --porcelain | awk -v want="refs/heads/$BRANCH" '
+    /^worktree /  { path = substr($0, 10) }
+    /^branch /    { if (substr($0, 8) == want) { print path; exit } }
+')"
+if [ -z "$WT_DIR" ]; then
+    WT_DIR="$(dirname "$ROOT")/${PROJECT_NAME}-wt-${BRANCH//\//-}"
+fi
 cd "$ROOT"
 
 echo -e "${BLUE}Cleaning up worktree for branch: ${BRANCH}${NC}"
@@ -54,6 +66,8 @@ if git branch --merged --format='%(refname:short)' | grep -Fxq "$BRANCH"; then
         echo -e "${GREEN}✓${NC} Branch deleted: ${BRANCH}" || true
 else
     echo -e "${YELLOW}Branch ${BRANCH} not yet merged — keeping it${NC}"
+    echo -e "${YELLOW}ℹ${NC} A squash-merged branch never looks merged to git. To check content:"
+    echo -e "    git diff --stat <base> ${BRANCH}    # empty output means it is fully in <base>"
 fi
 
 # Prune stale worktree references
