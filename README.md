@@ -1,4 +1,4 @@
-# DG-VibeCoding-Framework v9.0.0
+# DG-VibeCoding-Framework v9.1.0
 
 > One contract both Claude Code and Codex actually load. Guardrails only where
 > an action is irreversible.
@@ -19,12 +19,30 @@ conveniences below it. That is what makes CC/CX parity structural rather than a
 synchronisation chore — and it is enforced by
 `tests/parity.test.js`, not by discipline.
 
-The framework therefore ships **no** `.claude/rules/` and **no** `.claude/skills/`:
-Codex cannot read either, so neither may carry anything an agent needs.
+The framework therefore ships **no** `.claude/rules/`: Codex cannot read them,
+so they may not carry anything an agent needs. It also ships no skills — not
+because Codex cannot read them (it can, see below) but because none has yet
+earned the context every session would pay for it.
+
+### Skills
+
+Both runtimes implement the open [Agent Skills](https://agentskills.io)
+standard: a directory with a `SKILL.md` carrying `name` and `description`.
+Codex discovers project skills under `.agents/skills/`, Claude Code under
+`.claude/skills/`. A project that adds one keeps a single copy:
+
+```bash
+mkdir -p .agents/skills/<name>          # SKILL.md lives here
+ln -s ../.agents/skills .claude/skills  # Claude Code reads the same set
+```
+
+`scripts/verify-install.js` checks `references/` links in both locations.
 
 ## Current components
 
 - **1 shared contract** — `AGENTS.md`, under 150 lines
+- **1 review policy** — `REVIEW.md`: passes, severities, what is never reported.
+  The `reviewer` subagent and `scripts/headless-review.sh` both read it
 - **4 commands** — `/done`, `/review`, `/handoff`, `/sprint`, each a pointer into
   a section of the contract
 - **2 subagents** — `reviewer` (fresh-context review), `debugger`
@@ -65,6 +83,7 @@ entry points with the v9 contract, and refuses to run inside a git worktree.
 | `PROJECT.md` | Stack, architecture, commands, project facts |
 | `AGENTS.md` | The shared agent contract — behaviour, gates, constraints |
 | `CLAUDE.md` | `@AGENTS.md` plus Claude-only conveniences |
+| `REVIEW.md` | The review policy both review paths apply |
 | `sprint/sprint.json` | Optional. Who is working on what, on which branch. |
 | `framework.json` | Inventory and installation manifest |
 
@@ -163,8 +182,25 @@ bash tests/run.sh
 
 The suite covers CC/CX parity, sprint validation, hook behaviour, generated
 artifacts, migration preservation, worktree coordination, headless review
-parsing, security-scan behaviour, documentation drift, and end-to-end smoke
-behaviour.
+parsing, security-scan behaviour, documentation drift, the eval harness, and
+end-to-end smoke behaviour.
+
+## Behavioural evals
+
+`tests/run.sh` proves the machinery works. It does not prove that an agent
+loading `AGENTS.md` behaves as the contract says. `tests/evals/` holds small
+real tasks with deterministic checks for that — run them before changing the
+contract, a hook, or the review policy, and again after:
+
+```bash
+scripts/run-evals.sh --list
+scripts/run-evals.sh --tool claude
+scripts/run-evals.sh --tool codex --case fix-keeps-tests
+```
+
+Each case builds a throwaway project with the framework installed, runs the
+agent headless on `task.md`, and runs `check.sh` against the result. Add a case
+whenever an agent gets something wrong twice; see `tests/evals/README.md`.
 
 ```bash
 shellcheck setup-project.sh migrate-project.sh migrate-to-v9.sh scripts/*.sh tests/*.sh

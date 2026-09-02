@@ -12,6 +12,7 @@ required=(
   PROJECT.md
   CLAUDE.md
   AGENTS.md
+  REVIEW.md
   framework.json
   .gitignore
   .claude/settings.local.json
@@ -38,10 +39,11 @@ for relative in "${required[@]}"; do
   fi
 done
 
-# v9 installs nothing Codex cannot read, and nothing that presumes a sprint.
+# Nothing Codex cannot read, no skills (project-owned), nothing that presumes a sprint.
 forbidden=(
   .claude/rules
   .claude/skills
+  .agents/skills
   EXECUTION_PROTOCOL.md
   HOOKS.md
   sprint/sprint.json

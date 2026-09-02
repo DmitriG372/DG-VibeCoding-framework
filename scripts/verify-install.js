@@ -30,8 +30,15 @@ function verifyInstall(projectRoot) {
     else errors.push(`missing installed artifact: ${entry.to}`);
   }
 
-  for (const file of walk(path.join(projectRoot, '.claude', 'skills'))) {
-    if (path.basename(file) !== 'SKILL.md') continue;
+  // Codex reads .agents/skills, Claude Code reads .claude/skills; a project
+  // normally links one to the other, so dedupe by real path.
+  const skillFiles = new Set();
+  for (const root of [['.agents', 'skills'], ['.claude', 'skills']]) {
+    for (const file of walk(path.join(projectRoot, ...root))) {
+      if (path.basename(file) === 'SKILL.md') skillFiles.add(fs.realpathSync(file));
+    }
+  }
+  for (const file of skillFiles) {
     const content = fs.readFileSync(file, 'utf8');
     for (const match of content.matchAll(/`(references\/[^`]+)`/g)) {
       const reference = path.resolve(path.dirname(file), match[1]);

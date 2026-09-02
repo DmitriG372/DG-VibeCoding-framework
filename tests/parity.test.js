@@ -96,17 +96,39 @@ test('installed commands delegate to a section that exists in the contract', () 
   }
 });
 
-test('the install manifest ships nothing Codex cannot read', () => {
+test('the install manifest ships no rules and no skills', () => {
   const framework = readJson('framework.json');
   const targets = framework.install.entries.map(entry => entry.to);
 
-  for (const forbidden of ['.claude/rules', '.claude/skills']) {
+  // .claude/rules is invisible to Codex. Skills are readable by both runtimes
+  // through the Agent Skills standard (Codex: .agents/skills, Claude:
+  // .claude/skills), but the framework ships none: a skill is context every
+  // session pays for, and none has earned it. A project adds its own.
+  assert.ok(!targets.some(target => target.startsWith('.claude/rules')),
+    '.claude/rules is invisible to Codex, so the framework must not ship it');
+  for (const forbidden of ['.claude/skills', '.agents/skills']) {
     assert.ok(!targets.some(target => target.startsWith(forbidden)),
-      `${forbidden} is invisible to Codex, so the framework must not ship it`);
+      `${forbidden} is project-owned; the framework ships no skills`);
   }
 
   assert.deepEqual(framework.core.skills, [],
-    'a framework-level skill is capability Codex would not have');
+    'the framework ships no skills; a project adds its own under .agents/skills/');
+});
+
+test('the review policy is one shared file that both review paths read', () => {
+  // Two copies of review criteria drift: before REVIEW.md the subagent asked
+  // for correctness only while the headless script asked for nine categories.
+  assert.ok(fs.existsSync(path.join(ROOT, 'core/REVIEW.md')), 'core/REVIEW.md is missing');
+  for (const section of ['## Passes', '## Severity', '## Do not report']) {
+    assert.ok(read('core/REVIEW.md').includes(section), `REVIEW.md lacks ${section}`);
+  }
+  assert.match(read('.claude/agents/reviewer.md'), /REVIEW\.md/, 'reviewer.md must apply REVIEW.md');
+  assert.match(read('scripts/headless-review.sh'), /REVIEW\.md/, 'headless-review.sh must read REVIEW.md');
+  assert.match(read(CONTRACT), /REVIEW\.md/, 'the contract must name the review policy');
+  assert.doesNotMatch(read('.claude/agents/reviewer.md'), /## Do not report|## What to report/,
+    'reviewer.md carries its own criteria — that is the second copy REVIEW.md exists to remove');
+  const targets = readJson('framework.json').install.entries.map(entry => entry.to);
+  assert.ok(targets.includes('REVIEW.md'), 'REVIEW.md must be installed into projects');
 });
 
 test('shipped subagents reference only components that exist', () => {

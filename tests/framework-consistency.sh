@@ -28,10 +28,11 @@ hook_count="$(find hooks -maxdepth 1 -type f -name '*.js' | wc -l | tr -d ' ')"
 [ "$command_count" = "4" ] || fail "Expected 4 commands, found $command_count"
 [ "$hook_count" = "5" ]    || fail "Expected 5 hooks, found $hook_count"
 
-# v9 ships no skills and no rules: Codex can read neither, so neither may carry
-# anything an agent needs.
-[ ! -d .claude/skills ] || [ -z "$(ls -A .claude/skills)" ] || fail "v9 must ship no skills"
-[ ! -d .claude/rules ]  || [ -z "$(ls -A .claude/rules)" ]  || fail "v9 must ship no rules"
+# No rules (Codex cannot read them) and no skills (none has earned its load
+# cost; projects add their own under .agents/skills/ with a .claude/skills link).
+[ ! -d .claude/skills ] || [ -z "$(ls -A .claude/skills)" ] || fail "the framework must ship no skills"
+[ ! -d .agents/skills ] || [ -z "$(ls -A .agents/skills)" ] || fail "the framework must ship no skills"
+[ ! -d .claude/rules ]  || [ -z "$(ls -A .claude/rules)" ]  || fail "the framework must ship no rules"
 
 assert_contains '- **4 commands**' README.md
 assert_contains '- **2 subagents**' README.md
@@ -43,6 +44,9 @@ assert_contains '| Hooks    | 5' GUIDE.md
 assert_contains '"schema_version": 4' templates/sprint.template.json
 assert_contains 'core/codex-hooks.template.json' framework.json
 assert_contains 'core/AGENTS.md' framework.json
+assert_contains 'core/REVIEW.md' framework.json
+assert_contains '- **1 review policy**' README.md
+assert_contains '| Review-poliitika | 1' GUIDE.md
 
 # Legacy-guidance guard. The scan set is listed explicitly and every path is
 # asserted to exist first: `2>/dev/null` on the grep would let this whole check

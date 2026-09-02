@@ -1,10 +1,11 @@
-# DG-VibeCoding-Framework v9.0.0 — Kasutusjuhend
+# DG-VibeCoding-Framework v9.1.0 — Kasutusjuhend
 
 ## 1. Komponendid
 
 | Komponent | Arv | Roll |
 |---|---:|---|
 | Leping   | 1 | `AGENTS.md` — jagatud käitumisleping, alla 150 rea |
+| Review-poliitika | 1 | `REVIEW.md` — passid, raskusastmed, mida ei raporteerita |
 | Commands | 4 | `/done`, `/review`, `/handoff`, `/sprint` |
 | Agents   | 2 | `reviewer`, `debugger` |
 | Hooks    | 5 | Ainult pöördumatute tegevuste guardrail'id |
@@ -15,8 +16,26 @@ Claude'i-spetsiifilised mugavused. Seetõttu on CC ja CX
 pariteet struktuurne, mitte sünkroniseerimise küsimus — ja seda kontrollib
 `tests/parity.test.js`, mitte distsipliin.
 
-Framework ei paigalda `.claude/rules/` ega `.claude/skills/` sisu: Codex ei loe
-kumbagi, seega ei tohi kummaski olla midagi vajalikku.
+Framework ei paigalda `.claude/rules/` sisu: Codex ei loe seda, seega ei tohi
+seal olla midagi vajalikku. Skille framework samuti ei tarni — mitte sellepärast,
+et Codex neid ei loeks (loeb, vt allpool), vaid sellepärast, et ükski skill pole
+veel oma sessioonipõhist laadimiskulu ära teeninud.
+
+Review-poliitika on üks fail, `REVIEW.md`: passid (bugs / security / compliance),
+raskusastmed, mida ei raporteerita. Seda loevad nii `reviewer`-agent kui
+`scripts/headless-review.sh`; teist koopiat ei ole.
+
+### Skillid projektis
+
+Mõlemad runtime'id järgivad avatud [Agent Skills](https://agentskills.io)
+standardit: kaust `SKILL.md`-ga, milles `name` ja `description`. Codex leiab
+projekti skillid kaustast `.agents/skills/`, Claude Code kaustast
+`.claude/skills/`. Projekt hoiab ühte koopiat:
+
+```bash
+mkdir -p .agents/skills/<nimi>          # SKILL.md elab siin
+ln -s ../.agents/skills .claude/skills  # Claude Code loeb sama komplekti
+```
 
 ## 2. Uue projekti loomine
 
@@ -91,9 +110,11 @@ scripts/headless-review.sh --tool claude --mode quick --staged
 scripts/headless-review.sh --tool codex --mode full src/ --output review.json
 ```
 
-Raporteeri ainult leiud, mis mõjutavad korrektsust või püstitatud nõuet.
-Reviewer, kellel kästakse leida puudusi, leiab neid alati; iga leiu jahtimine
-toodab kaitsvat koodi ja teste olukordadele, mida ei saa juhtuda.
+Mõlemad teed rakendavad `REVIEW.md`-d: kolm passi (bugs / security /
+compliance), raskusastmed Critical / Major / Minor, kuni kolm nit'i, ja loend
+sellest, mida ei raporteerita. Raporteeri ainult leiud, mis mõjutavad
+korrektsust või püstitatud nõuet — reviewer, kellel kästakse leida puudusi,
+leiab neid alati.
 
 ## 7. Turvaskann
 
@@ -185,9 +206,28 @@ Täiskomplekt kontrollib:
 - sprindi valideerimist ja skeemi v4;
 - hookide käitumist, sh secret-matcheri valepositiivseid;
 - setup artefakti täielikkust ja seda, et rules/skills ei paigaldata;
+- evalide harnessi (`tests/evals.sh`): iga case'i kontroll kukub puutumata
+  fixture'il ja läbib õige lahenduse korral, seega ükski check pole tühi;
 - migratsiooni säilitavust ja worktree-keeldu;
 - worktree handoff'i;
 - Codex JSONL review'd;
 - versiooni, inventuuri ja dokumentatsiooni drifti.
+
+### Käitumis-evalid
+
+Testikomplekt tõestab, et masinavärk töötab. See ei tõesta, et `AGENTS.md`-d
+laadiv agent käitub lepingu järgi. Selleks on `tests/evals/` — väikesed päris
+ülesanded deterministlike kontrollidega. Jooksuta enne lepingu, hooki või
+review-poliitika muutmist ja pärast seda:
+
+```bash
+scripts/run-evals.sh --list
+scripts/run-evals.sh --tool claude
+scripts/run-evals.sh --tool codex --case fix-keeps-tests
+```
+
+Iga case ehitab ajutise projekti koos paigaldatud frameworkiga, jooksutab
+agendi headless-režiimis `task.md` peal ja käivitab tulemuse vastu `check.sh`.
+Lisa uus case, kui agent teeb sama vea teist korda (`tests/evals/README.md`).
 
 Enne avalikku release'i peab omanik lisama teadlikult valitud `LICENSE` faili.
