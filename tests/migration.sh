@@ -78,6 +78,11 @@ for preserved in \
   [[ -f "$PROJECT/$preserved" ]] || { echo "FAIL: migration removed $preserved" >&2; exit 1; }
 done
 grep -Fq 'project facts' "$PROJECT/PROJECT.md"
+
+# The review policy lands on every migration, including 9.0 -> 9.1: the headless
+# review script refuses to run without it.
+[[ -f "$PROJECT/REVIEW.md" ]] || { echo 'FAIL: migration did not install REVIEW.md' >&2; exit 1; }
+grep -Fq '## Passes' "$PROJECT/REVIEW.md"
 grep -Fxq 'custom-cache/' "$PROJECT/.gitignore"
 grep -Fq 'custom_setting' "$PROJECT/.claude/settings.local.json"
 grep -Fq 'custom-hook.js' "$PROJECT/.claude/settings.local.json"

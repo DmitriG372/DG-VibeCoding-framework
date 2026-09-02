@@ -142,7 +142,7 @@ JSON/SARIF tulemusi lühikese retention'iga. Vajaduste ja autentimise kohta vaat
 [CLI kiirstarti](https://learn.chatgpt.com/docs/security/cli) ning
 [CI juhendit](https://learn.chatgpt.com/docs/security/cli/ci).
 
-## 8. Migratsioon 4.x–8.x → v9
+## 8. Migratsioon 4.x–9.0 → v9.1
 
 ```bash
 ./migrate-to-v9.sh /path/to/project --dry-run
@@ -159,7 +159,8 @@ Migratsioon:
 - eemaldab pensionil hookide wiring'u mõlemast settings-failist;
 - asendab triivinud `AGENTS.md` / `CLAUDE.md` v9 lepinguga (originaalid backup'is);
 - arhiveerib mittevastava sprint-faili, ei püüa seda konverteerida;
-- keeldub töötamast git worktree sees.
+- keeldub töötamast git worktree sees;
+- 9.0 projektil ainult värskendab frameworki failid ja lisab `REVIEW.md`.
 
 Pärast migratsiooni: vaata `<backup>/CLAUDE.md` üle ja tõsta seal olnud
 projektifaktid `PROJECT.md`-i.

@@ -65,7 +65,7 @@ Replace framework-managed files in an initialized project, after a backup:
 ./setup-project.sh --force /path/to/project
 ```
 
-Existing framework project (4.x–8.x):
+Existing framework project (4.x–9.0):
 
 ```bash
 ./migrate-to-v9.sh /path/to/project --dry-run
@@ -73,7 +73,8 @@ Existing framework project (4.x–8.x):
 ```
 
 Migration removes the retired machinery by name, so custom skills, agents,
-commands, and hooks survive. It backs everything up first, replaces the drifted
+commands, and hooks survive. On a 9.0 project it only refreshes the
+framework-owned files and adds `REVIEW.md`. It backs everything up first, replaces the drifted
 entry points with the v9 contract, and refuses to run inside a git worktree.
 
 ## Contracts

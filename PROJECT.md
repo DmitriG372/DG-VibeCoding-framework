@@ -26,7 +26,7 @@ Tests use `node:test` and plain shell. Nothing is installed to run them.
 bash tests/run.sh                          # all eleven suites
 scripts/run-evals.sh --tool claude         # behavioural evals (needs a real agent)
 ./setup-project.sh <dir>                   # new project
-./migrate-to-v9.sh <dir> [--dry-run]       # existing 4.x–8.x project
+./migrate-to-v9.sh <dir> [--dry-run]       # existing 4.x–9.0 project
 shellcheck setup-project.sh migrate-*.sh scripts/*.sh tests/*.sh
 ```
 
