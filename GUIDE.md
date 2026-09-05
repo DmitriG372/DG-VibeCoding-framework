@@ -11,9 +11,9 @@
 
 Invariant: **kõik, mida agent peab teadma, on `AGENTS.md`-is.** Codex loeb seda
 natiivselt; `CLAUDE.md` algab `@AGENTS.md` impordiga ja lisab alla ainult
-Claude'i-spetsiifilised mugavused. Seetõttu on CC ja CX
-pariteet struktuurne, mitte sünkroniseerimise küsimus — ja seda kontrollib
-`tests/parity.test.js`, mitte distsipliin.
+Claude'i-spetsiifilised mugavused. Jagatud lähtefail väldib juhiste lahknemist. `tests/parity.test.js` kontrollib
+importe ja seadistuste vastavust; see ei tõesta hookide käivitumist mõlema
+paigaldatud runtime’i versioonis.
 
 Framework ei paigalda `.claude/rules/` ega `.claude/skills/` sisu: Codex ei loe
 kumbagi, seega ei tohi kummaski olla midagi vajalikku.
@@ -43,10 +43,13 @@ info kuulub `PROJECT.md`-i, mitte juhisefaili.
 mõista → muuda minimaalselt → jooksuta kitsaim päris kontroll → näita tõendit
 ```
 
-Ei sprinti, ei plaani, ei feature'i seadistust, ei sammudevahelist küsimist.
+Väike töö ei vaja sprinti ega eraldi plaani. Alusta Giti seisust ja säilita olemasolevad
+muudatused. Kasuta projekti päris kontrollkäske ning korda kontrolli siis, kui selle
+sisend muutus. Veaparandusega lisa enne parandust ebaõnnestuv regressioonikontroll.
+Sprindi olemasolul võib ülesande lõppseisu lisada parandusega samasse commit’i.
 Peatu ainult `AGENTS.md` sektsioonis `## Approval gates` loetletud juhtudel:
 production deploy, hävitavad Git- või DB-operatsioonid, uus sõltuvus, väline
-kirjutamine.
+kirjutamine. Juba antud luba kehtib selle ulatuses; ära küsi seda iga sammu eel uuesti.
 
 ## 4. Sprint on valikuline
 
@@ -75,6 +78,8 @@ CC: /handoff T1
     → cx/t1-... worktree luuakse sellest commit'ist
 CX: cd <worktree> && codex --sandbox workspace-write
 ```
+
+Handoff nõuab uut harunime ja vaba sihtkausta; konflikt tuvastatakse enne commit’i.
 
 Ära käivita kahte agenti samas checkout'is. Git hoiab ühes tööpuus korraga
 ainult üht harul. Merge on alati kasutaja otsus.
@@ -163,12 +168,11 @@ scripts/switch-repo-access.sh public
 | `block-env` | PreToolUse `Read\|Grep` | Blokeerib (exit 2) secret-failid. Matchib failinime ja tervete teekomponentide järgi, seega `password-reset.ts` on loetav. |
 | `completion-guard` | PreToolUse `Bash` | Kontrollib staged koodis stub'e ainult `git commit` puhul. |
 | `git-context` | SessionStart | Näitab Giti hetkeseisu. |
-| `pre-compact` | PreCompact | Salvestab konteksti hetktõmmise. |
-| `context-reload` | SessionStart `compact` | Taastab konteksti pärast compaction'it. |
+| `pre-compact` | PreCompact | Salvestab PROJECT.md jaotiste sisu; ei muuda käsitsi kirjutatud mälu ajatemplit. |
+| `context-reload` | SessionStart `compact` | Kasutab ainult sama sessiooni hetktõmmist; Giti seis loetakse uuesti. |
 
 **Ükski hook ei käivitu muutmisel.** Typecheck ja formatter kuuluvad
-`make pre-commit`-i või CI-sse — korra commit'i kohta, mitte korra muudatuse
-kohta. `tests/parity.test.js` kukub läbi, kui hook seotakse `Edit`/`Write`/
+projekti dokumenteeritud kontrollidesse või CI-sse; ära eelda `make pre-commit` olemasolu. `tests/parity.test.js` kukub läbi, kui hook seotakse `Edit`/`Write`/
 `apply_patch` matcheriga.
 
 Hookid on guardrail'id, mitte täielik turvasandbox.

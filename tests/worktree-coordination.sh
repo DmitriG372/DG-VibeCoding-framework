@@ -79,9 +79,33 @@ if scripts/handoff-worktree.sh T1 cx >/dev/null 2>&1; then
 fi
 git restore PROJECT.md
 
+# Existing branches can omit the coordination commit. Reject before staging or committing.
+git branch cx/existing
+set_branch 'cx/existing'
+head_before_rejection="$(git rev-parse HEAD)"
+if scripts/handoff-worktree.sh T1 cx >/dev/null 2>&1; then
+  echo 'FAIL: handoff accepted an existing branch with stale assignment' >&2
+  exit 1
+fi
+[[ "$(git rev-parse HEAD)" == "$head_before_rejection" ]]
+git diff --cached --quiet
+
+set_branch 'cx/occupied'
+mkdir "$TMP_ROOT/project-wt-cx-occupied"
+if scripts/handoff-worktree.sh T1 cx >/dev/null 2>&1; then
+  echo 'FAIL: handoff accepted an occupied path' >&2
+  exit 1
+fi
+[[ "$(git rev-parse HEAD)" == "$head_before_rejection" ]]
+git diff --cached --quiet
+set_branch 'cx/t1-parallel-task'
+
 output="$(scripts/handoff-worktree.sh T1 cx)"
 worktree="${output##*handoff-worktree: }"
 [[ -d "$worktree" ]]
+[[ "$(git -C "$worktree" rev-parse HEAD)" == "$(git rev-parse HEAD)" ]]
+[[ -f "$worktree/.claude/settings.local.json" ]]
+cmp .claude/settings.local.json "$worktree/.claude/settings.local.json"
 [[ "$(git -C "$worktree" branch --show-current)" == 'cx/t1-parallel-task' ]]
 node - "$worktree" <<'NODE'
 const fs = require('node:fs');

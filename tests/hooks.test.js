@@ -162,3 +162,56 @@ test('merges framework and custom permissions without dropping either side', () 
     deny: ['Bash(rm -rf /)'],
   });
 });
+
+test('compaction preserves section bodies and never refreshes narrative timestamps', t => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'dg-context-content-'));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  fs.mkdirSync(path.join(directory, '.claude'));
+  fs.writeFileSync(path.join(directory, 'PROJECT.md'),
+    '# Project\n\n## Stack\n\nNode.js\n\n### Runtime\nNo dependencies.\n\n## Commands\n\nRun bash tests/run.sh\n');
+  const narrative = '**Last update:** yesterday\nPending: verify the fix.\n';
+  fs.writeFileSync(path.join(directory, '.claude/SNAPSHOT.md'), narrative);
+  const result = spawnSync(process.execPath, [path.resolve(__dirname, '../hooks/pre-compact.js')], {
+    cwd: directory, input: JSON.stringify({ session_id: 'one' }), encoding: 'utf8',
+  });
+  assert.equal(result.status, 0);
+  const snapshot = JSON.parse(fs.readFileSync(path.join(directory, '.claude/context-snapshot.json')));
+  assert.match(snapshot.project.sections.Stack, /Node.js\n\n### Runtime\nNo dependencies/);
+  assert.doesNotMatch(snapshot.project.sections.Stack, /## Commands/);
+  assert.match(snapshot.project.sections.Commands, /Run bash tests\/run.sh/);
+  assert.equal(fs.readFileSync(path.join(directory, '.claude/SNAPSHOT.md'), 'utf8'), narrative);
+});
+
+test('context recovery rejects another session and survives a corrupt snapshot', t => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'dg-context-session-'));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  fs.mkdirSync(path.join(directory, '.claude'));
+  for (const snapshot of [JSON.stringify({ session_id: 'other', project: { sections: { Rules: 'STALE RULE' } } }), '{broken']) {
+    fs.writeFileSync(path.join(directory, '.claude/context-snapshot.json'), snapshot);
+    const result = spawnSync(process.execPath, [path.resolve(__dirname, '../hooks/context-reload.js')], {
+      cwd: directory, input: JSON.stringify({ session_id: 'current' }), encoding: 'utf8',
+    });
+    assert.equal(result.status, 0);
+    const context = JSON.parse(result.stdout).hookSpecificOutput.additionalContext;
+    assert.doesNotMatch(context, /STALE RULE/);
+    assert.match(context, /GIT STATE/);
+  }
+});
+
+test('context recovery labels saved facts and reports live git state', t => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'dg-context-live-'));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  assert.equal(spawnSync('git', ['init', '-q', '-b', 'cx/live'], { cwd: directory }).status, 0);
+  fs.mkdirSync(path.join(directory, '.claude'));
+  fs.writeFileSync(path.join(directory, '.claude/context-snapshot.json'), JSON.stringify({
+    session_id: 'one', git: { branch: 'cx/stale' }, project: { sections: { Rules: 'Saved rule' } },
+  }));
+  const result = spawnSync(process.execPath, [path.resolve(__dirname, '../hooks/context-reload.js')], {
+    cwd: directory, input: JSON.stringify({ session_id: 'one' }), encoding: 'utf8',
+  });
+  const context = JSON.parse(result.stdout).hookSpecificOutput.additionalContext;
+  assert.match(context, /Branch: cx\/live/);
+  assert.doesNotMatch(context, /Branch: cx\/stale/);
+  assert.match(context, /Saved rule/);
+  assert.match(context, /may be stale/);
+});

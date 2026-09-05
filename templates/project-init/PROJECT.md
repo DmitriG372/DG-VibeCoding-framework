@@ -18,17 +18,6 @@ src/
 └── ...
 ```
 
-## Current Sprint
-
-### Active Tasks
-
-- [ ] Task 1
-- [ ] Task 2
-
-### Completed
-
-- [x] Initial setup
-
 ## Patterns
 
 ### Naming
@@ -50,9 +39,10 @@ src/
 
 | Command | Purpose |
 |---------|---------|
-| `npm run dev` | Start development |
-| `npm run build` | Build for production |
-| `npm run test` | Run tests |
+| Fill in the actual command | Bootstrap dependencies |
+| Fill in the actual command | Start development |
+| Fill in the actual command | Build |
+| Fill in the actual command | Test / lint / typecheck |
 
 ## Git
 

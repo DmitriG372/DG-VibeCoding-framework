@@ -31,6 +31,18 @@ if ! git check-ref-format --branch "$BRANCH" >/dev/null 2>&1; then
   exit 64
 fi
 
+# Preflight before the coordination commit: reusing an old branch loses the new assignment.
+PROJECT_NAME="$(basename "$ROOT")"
+WORKTREE="$(dirname "$ROOT")/${PROJECT_NAME}-wt-${BRANCH//\//-}"
+if [[ -e "$WORKTREE" || -L "$WORKTREE" ]]; then
+  echo "handoff-worktree: target path already exists: $WORKTREE" >&2
+  exit 1
+fi
+if git show-ref --verify --quiet "refs/heads/$BRANCH"; then
+  echo "handoff-worktree: branch already exists; choose a new task branch: $BRANCH" >&2
+  exit 1
+fi
+
 unrelated="$(git status --porcelain --untracked-files=no | awk '$2 != "sprint/sprint.json" { print }')"
 if [[ -n "$unrelated" ]]; then
   echo "handoff-worktree: tracked changes outside sprint/sprint.json must be clean" >&2
@@ -45,17 +57,7 @@ if git diff --cached --quiet; then
 fi
 git commit -m "chore(sprint): hand off $TASK_ID to $TARGET_AGENT"
 
-PROJECT_NAME="$(basename "$ROOT")"
-WORKTREE="$(dirname "$ROOT")/${PROJECT_NAME}-wt-${BRANCH//\//-}"
-if [[ -e "$WORKTREE" ]]; then
-  echo "handoff-worktree: target path already exists: $WORKTREE" >&2
-  exit 1
-fi
-if git show-ref --verify --quiet "refs/heads/$BRANCH"; then
-  git worktree add "$WORKTREE" "$BRANCH"
-else
-  git worktree add "$WORKTREE" -b "$BRANCH"
-fi
+git worktree add "$WORKTREE" -b "$BRANCH"
 
 # .claude/settings.local.json is gitignored, so the partner agent would start in a
 # worktree with no Claude Code hook wiring while Codex keeps its tracked

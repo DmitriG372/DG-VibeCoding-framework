@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+- Preserve full PROJECT.md sections through compaction, reject unrelated session
+  snapshots, and recover live Git state even when snapshots are corrupt.
+- Stop refreshing narrative memory timestamps without refreshing their content.
+- Preflight handoff branches and paths before committing; always create the partner
+  branch from the coordination commit. Cover rejection and installed hook wiring.
+- Clarify authorization reuse, regression evidence, and checks after changed inputs;
+  remove the separate sprint completion commit and premature failure-stop guidance.
+- Remove duplicate task lists and assumed npm commands from the project template.
+- Distinguish configuration parity from unverified runtime hook invocation.
+
 ## 9.0.0 — 2026-07-27
 
 A subtraction release. v8 required nine non-code artifacts to finish a 60-line
