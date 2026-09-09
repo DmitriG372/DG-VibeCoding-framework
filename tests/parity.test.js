@@ -57,7 +57,9 @@ test('every wired hook file exists', () => {
   for (const settings of ['core/settings.template.json', 'core/codex-hooks.template.json']) {
     for (const commands of Object.values(hookCommandsByEvent(readJson(settings)))) {
       for (const command of commands) {
-        const file = command.replace(/^node \.\//, '');
+        const match = /hooks\/([\w.-]+\.js)/.exec(command);
+        assert.ok(match, `${settings} wires a command without a hooks/ script: ${command}`);
+        const file = `hooks/${match[1]}`;
         assert.ok(fs.existsSync(path.join(ROOT, file)), `${settings} wires missing ${file}`);
       }
     }

@@ -57,7 +57,7 @@ function verifyInstall(projectRoot) {
     for (const groups of Object.values(config.hooks || {})) {
       for (const group of groups) {
         for (const hook of group.hooks || []) {
-          const match = /^node \.\/hooks\/(\S+)$/.exec(hook.command || '');
+          const match = /hooks\/([\w.-]+\.js)/.exec(hook.command || '');
           if (match && !fs.existsSync(path.join(projectRoot, 'hooks', match[1]))) {
             errors.push(`${configRelative} references missing hook: hooks/${match[1]}`);
           }

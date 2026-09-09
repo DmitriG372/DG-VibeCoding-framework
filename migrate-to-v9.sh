@@ -60,6 +60,10 @@ RETIRED_AGENTS=(orchestrator implementer tester plan-checker)
 RETIRED_HOOKS=(decomposition-guard type-check auto-format scope-guard sprint-sync
   plan-to-sprint context-monitor usage-tracker test-dir-protection test-output-filter)
 RETIRED_ROOT=(EXECUTION_PROTOCOL.md HOOKS.md)
+# The five v9 hooks were wired as `node ./hooks/x.js`, which fails whenever the session cwd is a
+# subdirectory. That form is stripped here and re-added root-resolved by the merge below; a
+# project's own hooks keep whatever form they use.
+FRAMEWORK_HOOKS=(block-env completion-guard pre-compact git-context context-reload)
 
 if [[ $DRY_RUN -eq 1 ]]; then
   echo "migration dry-run: $PROJECT_DIR"
@@ -67,7 +71,7 @@ if [[ $DRY_RUN -eq 1 ]]; then
   echo "  DELETE by name: ${#RETIRED_RULES[@]} rules, ${#RETIRED_SKILLS[@]} skills, ${#RETIRED_COMMANDS[@]} commands, ${#RETIRED_AGENTS[@]} agents, ${#RETIRED_HOOKS[@]} hooks"
   echo "  DELETE: ${RETIRED_ROOT[*]}, .tasks/, hooks/lib/hook-input.js, sprint/sprint.md"
   echo "  OVERWRITE: AGENTS.md, CLAUDE.md, REVIEW.md, framework.json, the 4 commands, the 2 agents, the 5 hooks"
-  echo "  REWRITE: .claude/settings.local.json and .codex/hooks.json (retired wirings stripped, v9 merged in)"
+  echo "  REWRITE: .claude/settings.local.json and .codex/hooks.json (retired and cwd-relative wirings stripped, v9 merged in)"
   echo "  APPEND:  .gitignore patterns that are missing"
   echo "  ARCHIVE: sprint/sprint.json to sprint/archive/ if it does not satisfy schema v4"
   echo "  KEEP:    PROJECT.md, and every custom skill, agent, command, hook, rule and setting"
@@ -96,11 +100,14 @@ rmdir "$PROJECT_DIR/hooks/lib" "$PROJECT_DIR/.claude/rules" "$PROJECT_DIR/.claud
 # --- strip the retired wirings out of both settings files ---------------------
 for config in "$PROJECT_DIR/.claude/settings.local.json" "$PROJECT_DIR/.codex/hooks.json"; do
   [[ -f "$config" ]] || continue
-  node - "$config" "${RETIRED_HOOKS[@]}" <<'NODE'
+  FRAMEWORK_HOOKS_LIST="${FRAMEWORK_HOOKS[*]}" node - "$config" "${RETIRED_HOOKS[@]}" <<'NODE'
 const fs = require('node:fs');
 const [configPath, ...retired] = process.argv.slice(2);
 const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-const isRetired = command => retired.some(name => (command || '').includes(`${name}.js`));
+const frameworkHooks = (process.env.FRAMEWORK_HOOKS_LIST || '').split(' ').filter(Boolean);
+const isRetired = command =>
+  retired.some(name => (command || '').includes(`${name}.js`)) ||
+  frameworkHooks.some(name => (command || '') === `node ./hooks/${name}.js`);
 
 for (const [event, groups] of Object.entries(config.hooks || {})) {
   const kept = groups

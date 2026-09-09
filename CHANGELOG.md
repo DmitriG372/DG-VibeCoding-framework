@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+**Fixed**
+
+- Hook wiring was `node ./hooks/x.js`, and both runtimes run hooks in the
+  session cwd, so every hook failed with `Cannot find module` whenever Claude
+  Code or Codex was started from a subdirectory. Both templates now resolve
+  the script from `git rev-parse --show-toplevel` (the form the Codex hooks
+  documentation recommends; Codex has no `${CLAUDE_PROJECT_DIR}`), the
+  smoke test runs every wired hook from a subdirectory, and `migrate-to-v9.sh`
+  replaces the old wiring instead of merging a second copy next to it.
+- `pre-compact.js` and `context-reload.js` read and wrote cwd-relative paths,
+  which the fix above would have turned into snapshots under `apps/x/.claude/`.
+  Both now change to the repository root first.
 ## 9.1.0 — 2026-09-02
 
 Three gaps found by reading v9 against Anthropic's AI-native SDLC playbook

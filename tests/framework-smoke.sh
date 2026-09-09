@@ -79,12 +79,36 @@ claude, codex = wired(".claude/settings.local.json"), wired(".codex/hooks.json")
 if claude != codex:
     sys.exit(f"installed hook sets differ:\n  claude={claude}\n  codex={codex}")
 
+import re
 for command in claude:
-    if command.startswith("node ./hooks/"):
-        suffix = command.split("node ./hooks/", 1)[1].split()[0]
-        if not (project / "hooks" / suffix).exists():
-            sys.exit(f"settings reference missing hook: {suffix}")
+    match = re.search(r'hooks/([\w.-]+\.js)', command)
+    if match and not (project / "hooks" / match.group(1)).exists():
+        sys.exit(f"settings reference missing hook: {match.group(1)}")
+
+# Hand the wired commands to the shell loop below.
+(project / ".smoke-hook-commands").write_text("\n".join(claude) + "\n")
 PY
+
+  # Both runtimes run hooks in the session cwd, which is often a subdirectory
+  # (`apps/web`, a package, a worktree). Every wired command must still find its
+  # script from there; `node ./hooks/x.js` did not.
+  if [ ! -d "$project_dir/.git" ]; then
+    git -C "$project_dir" init -q
+  fi
+  mkdir -p "$project_dir/sub/dir"
+  local stderr_file="$TMP_ROOT/hook-stderr"
+  while IFS= read -r command; do
+    [ -n "$command" ] || continue
+    if ! (cd "$project_dir/sub/dir" \
+        && printf '{"tool_name":"Read","tool_input":{"file_path":"src/index.ts"},"session_id":"smoke","trigger":"compact"}' \
+        | sh -c "$command" >/dev/null 2>"$stderr_file"); then
+      fail "hook failed from a subdirectory: $command — $(cat "$stderr_file")"
+    fi
+    if grep -q 'Cannot find module' "$stderr_file"; then
+      fail "hook did not resolve from the project root: $command"
+    fi
+  done <"$project_dir/.smoke-hook-commands"
+  rm -f "$project_dir/.smoke-hook-commands"
 
   # A generated project must not presume a sprint, must not carry rules (Codex
   # cannot read them), and must not carry skills (project-owned, never shipped).

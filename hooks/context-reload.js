@@ -8,6 +8,18 @@
 const fs = require('fs');
 const { execSync } = require('child_process');
 
+// Hooks run in the session cwd, which may be a subdirectory of the project. Work from the
+// repository root so PROJECT.md, sprint/ and .claude/ resolve the same way every time.
+function chdirToProjectRoot() {
+  try {
+    const root = execSync('git rev-parse --show-toplevel', {
+      encoding: 'utf8', timeout: 5000, stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+    if (root) process.chdir(root);
+  } catch { /* not a git repo — stay in cwd */ }
+}
+chdirToProjectRoot();
+
 const SNAPSHOT_PATH = '.claude/context-snapshot.json';
 const NARRATIVE_SNAPSHOT_PATH = '.claude/SNAPSHOT.md';
 
