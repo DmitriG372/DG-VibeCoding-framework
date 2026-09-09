@@ -135,17 +135,23 @@ elif [[ -n "$TARGET" ]]; then TARGET_LABEL="$TARGET"
 elif [[ "$STAGED" == true ]]; then TARGET_LABEL="staged"
 else TARGET_LABEL="uncommitted"
 fi
+# The review policy is one shared file, read here and by the reviewer subagent.
+# A project installed by the framework has it at the root; this repository keeps
+# the template under core/. Missing entirely means an incomplete install.
+if [[ -f "$ROOT/REVIEW.md" ]]; then POLICY="$ROOT/REVIEW.md"
+elif [[ -f "$ROOT/core/REVIEW.md" ]]; then POLICY="$ROOT/core/REVIEW.md"
+else echo 'Review policy not found: REVIEW.md (re-run setup-project.sh --force or migrate-to-v9.sh)' >&2; exit 1; fi
+
 cat > "$PROMPT" <<EOF
 You are a strict code reviewer. Review the supplied content.
 Mode: $MODE. Maximum score: $MAX_SCORE.
-Return only JSON matching the supplied output schema.
-Check correctness, security, readability, maintainability, tests, documentation,
-dependencies, performance, and operational safety in proportion to the mode.
+Return only JSON matching the supplied output schema. Set each issue's "category"
+to its pass: bugs, security or compliance. Nits are not issues.
 Target label: $TARGET_LABEL
 
---- REVIEW CONTENT ---
+--- REVIEW POLICY ---
 EOF
-cat "$LIMITED" >> "$PROMPT"
+{ cat "$POLICY"; printf '\n--- REVIEW CONTENT ---\n'; cat "$LIMITED"; } >> "$PROMPT"
 
 if [[ "$TOOL" == codex ]]; then
   "$CODEX_BIN" exec --json --sandbox read-only \

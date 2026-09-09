@@ -66,7 +66,7 @@ if [[ $DRY_RUN -eq 1 ]]; then
   echo "  back up everything listed below to .dg-framework-backup-* first"
   echo "  DELETE by name: ${#RETIRED_RULES[@]} rules, ${#RETIRED_SKILLS[@]} skills, ${#RETIRED_COMMANDS[@]} commands, ${#RETIRED_AGENTS[@]} agents, ${#RETIRED_HOOKS[@]} hooks"
   echo "  DELETE: ${RETIRED_ROOT[*]}, .tasks/, hooks/lib/hook-input.js, sprint/sprint.md"
-  echo "  OVERWRITE: AGENTS.md, CLAUDE.md, framework.json, the 4 commands, the 2 agents, the 5 hooks"
+  echo "  OVERWRITE: AGENTS.md, CLAUDE.md, REVIEW.md, framework.json, the 4 commands, the 2 agents, the 5 hooks"
   echo "  REWRITE: .claude/settings.local.json and .codex/hooks.json (retired wirings stripped, v9 merged in)"
   echo "  APPEND:  .gitignore patterns that are missing"
   echo "  ARCHIVE: sprint/sprint.json to sprint/archive/ if it does not satisfy schema v4"
@@ -75,7 +75,7 @@ if [[ $DRY_RUN -eq 1 ]]; then
 fi
 
 BACKUP_DIR="$(mktemp -d "$PROJECT_DIR/.dg-framework-backup-$(date +%Y%m%d-%H%M%S)-XXXXXX")"
-for item in .claude .codex hooks scripts templates sprint .tasks AGENTS.md CLAUDE.md \
+for item in .claude .codex hooks scripts templates sprint .tasks AGENTS.md CLAUDE.md REVIEW.md \
   EXECUTION_PROTOCOL.md HOOKS.md framework.json manifest.md .gitignore; do
   [[ -e "$PROJECT_DIR/$item" ]] && cp -R "$PROJECT_DIR/$item" "$BACKUP_DIR/"
 done
@@ -130,6 +130,7 @@ node "$FRAMEWORK_DIR/scripts/merge-hook-config.js" \
 # backup; project facts belong in PROJECT.md, not in an agent instruction file.
 cp "$FRAMEWORK_DIR/core/AGENTS.md" "$PROJECT_DIR/AGENTS.md"
 cp "$FRAMEWORK_DIR/core/CLAUDE.md" "$PROJECT_DIR/CLAUDE.md"
+cp "$FRAMEWORK_DIR/core/REVIEW.md" "$PROJECT_DIR/REVIEW.md"
 cp "$FRAMEWORK_DIR/framework.json" "$PROJECT_DIR/framework.json"
 [[ -f "$PROJECT_DIR/PROJECT.md" ]] || cp "$FRAMEWORK_DIR/templates/project-init/PROJECT.md" "$PROJECT_DIR/PROJECT.md"
 

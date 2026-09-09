@@ -1,5 +1,41 @@
 # Changelog
 
+## 9.1.0 — 2026-09-02
+
+Three gaps found by reading v9 against Anthropic's AI-native SDLC playbook
+(<https://claude.com/blog/the-ai-native-sdlc-playbook>). Everything else the
+playbook asks for was either already in v9 under another name or removed by v9
+on evidence, and stays removed.
+
+**Added**
+
+- `core/REVIEW.md`, installed as `REVIEW.md`: one review policy — three passes
+  (bugs / security / compliance), severity meanings, a cap on nits, and what is
+  never reported. Before it, `reviewer.md` asked for correctness only while the
+  prompt inside `headless-review.sh` asked for nine categories with a score.
+  Both now read the file; `tests/parity.test.js` fails if either grows its own
+  criteria again, and the headless script refuses to run without the policy.
+- `tests/evals/` and `scripts/run-evals.sh`: behavioural evals for the contract.
+  Each case is a real task in a throwaway installed project with a deterministic
+  `check.sh`; three starter cases cover "never edit a test to pass it", "never
+  paste `.env` values", and "stage exact files". `tests/evals.sh` runs every
+  case against a no-op, a leaking and a correct fake agent, so no check can be
+  vacuous. Run the evals before and after changing `AGENTS.md`, a hook or
+  `REVIEW.md`.
+- The playbook and the Codex skills reference in `update_sources`.
+
+**Fixed**
+
+- The invariant said the framework ships no skills "because Codex cannot read
+  them". That was true for `.claude/skills/` and is still true for
+  `.claude/rules/`, but Codex reads the open Agent Skills standard from
+  `.agents/skills/` — the same `SKILL.md` format Claude Code reads from
+  `.claude/skills/`. The premise is corrected in `framework.json`, `README.md`,
+  `GUIDE.md`, `PROJECT.md` and the test suites. The decision stands: the
+  framework ships no skills, because none has earned its per-session load cost.
+  A project that adds one keeps a single copy under `.agents/skills/` and links
+  `.claude/skills` to it; `verify-install.js` now checks both roots.
+
 ## 9.0.0 — 2026-07-27
 
 A subtraction release. v8 required nine non-code artifacts to finish a 60-line

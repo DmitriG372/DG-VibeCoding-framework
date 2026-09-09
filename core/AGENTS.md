@@ -38,9 +38,9 @@ Ask for a review when the change is risky or cross-cutting, not by default.
 - CC: `/review` launches the `reviewer` subagent with a fresh context.
 - CX: `scripts/headless-review.sh --tool codex`, or `codex exec --sandbox read-only` with the same brief.
 
-Report only findings that affect correctness or the stated requirements. A reviewer asked to find
-gaps will always find some; chasing every one produces defensive code and tests for cases that
-cannot happen. Treat style opinions as optional.
+`REVIEW.md` is the review policy — the passes, what counts as a finding, what is never reported.
+The subagent and the headless script both read it; there is no second copy. Report only findings
+that affect correctness or the stated requirement; treat style opinions as optional.
 
 ## Security scan
 

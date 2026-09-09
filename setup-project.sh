@@ -48,7 +48,7 @@ fi
 if [[ $has_content -eq 1 ]]; then
   BACKUP_DIR="$(mktemp -d "$PROJECT_DIR/.dg-framework-backup-$(date +%Y%m%d-%H%M%S)-XXXXXX")"
   for item in \
-    PROJECT.md CLAUDE.md AGENTS.md EXECUTION_PROTOCOL.md HOOKS.md framework.json \
+    PROJECT.md CLAUDE.md AGENTS.md REVIEW.md EXECUTION_PROTOCOL.md HOOKS.md framework.json \
     manifest.md .gitignore .claude .codex hooks scripts templates sprint; do
     if [[ -e "$PROJECT_DIR/$item" ]]; then
       cp -R "$PROJECT_DIR/$item" "$BACKUP_DIR/"

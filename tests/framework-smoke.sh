@@ -23,6 +23,7 @@ check_generated_project() {
   assert_file "$project_dir/framework.json"
   assert_file "$project_dir/AGENTS.md"
   assert_file "$project_dir/CLAUDE.md"
+  assert_file "$project_dir/REVIEW.md"
   assert_file "$project_dir/.claude/settings.local.json"
   assert_file "$project_dir/.codex/hooks.json"
   assert_file "$project_dir/scripts/headless-review.sh"
@@ -63,7 +64,7 @@ assert framework["version"], "framework.json version missing"
 assert framework["paths"]["settings_claude"] == ".claude/settings.local.json"
 assert framework["paths"]["settings_codex"] == ".codex/hooks.json"
 assert framework["paths"]["headless_review"] == "scripts/headless-review.sh"
-assert framework["core"]["skills"] == [], "v9 ships no skills"
+assert framework["core"]["skills"] == [], "the framework ships no skills"
 
 def wired(relative):
     config = json.loads((project / relative).read_text())
@@ -85,9 +86,9 @@ for command in claude:
             sys.exit(f"settings reference missing hook: {suffix}")
 PY
 
-  # A generated project must not presume a sprint, and must not carry surfaces
-  # Codex cannot read.
-  for absent in sprint/sprint.json .claude/rules .claude/skills EXECUTION_PROTOCOL.md HOOKS.md; do
+  # A generated project must not presume a sprint, must not carry rules (Codex
+  # cannot read them), and must not carry skills (project-owned, never shipped).
+  for absent in sprint/sprint.json .claude/rules .claude/skills .agents/skills EXECUTION_PROTOCOL.md HOOKS.md; do
     if [ -e "$project_dir/$absent" ]; then
       fail "generated project must not contain $absent"
     fi
