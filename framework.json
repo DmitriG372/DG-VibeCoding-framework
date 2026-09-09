@@ -65,6 +65,7 @@
       { "from": ".claude/commands", "to": ".claude/commands" },
       { "from": ".claude/agents", "to": ".claude/agents" },
       { "from": "hooks", "to": "hooks" },
+      { "from": "scripts/package.json", "to": "scripts/package.json" },
       { "from": "scripts/validate-sprint.js", "to": "scripts/validate-sprint.js", "executable": true },
       { "from": "scripts/verify-install.js", "to": "scripts/verify-install.js", "executable": true },
       { "from": "scripts/stub-check.sh", "to": "scripts/stub-check.sh", "executable": true },
