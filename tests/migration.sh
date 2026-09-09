@@ -39,6 +39,7 @@ printf '%s\n' '{
   "hooks": {
     "PreToolUse": [
       { "matcher": "Custom", "hooks": [{ "type": "command", "command": "node ./hooks/custom-hook.js" }] },
+      { "matcher": "Read|Grep", "hooks": [{ "type": "command", "command": "node ./hooks/block-env.js" }] },
       { "matcher": "Edit|Write", "hooks": [{ "type": "command", "command": "node ./hooks/decomposition-guard.js" }] }
     ],
     "PostToolUse": [
@@ -108,6 +109,17 @@ for retired in decomposition-guard type-check; do
     exit 1
   fi
 done
+
+# The cwd-relative framework wiring is replaced by exactly one root-resolved copy, so a
+# re-migrated project does not run block-env twice on every read.
+block_env_wirings="$(grep -c 'hooks/block-env.js' "$PROJECT/.claude/settings.local.json" || true)"
+[[ "$block_env_wirings" == "1" ]] || { echo "FAIL: expected 1 block-env wiring, found $block_env_wirings" >&2; exit 1; }
+grep -Fq 'git rev-parse --show-toplevel' "$PROJECT/.claude/settings.local.json" || {
+  echo 'FAIL: block-env wiring is not root-resolved' >&2; exit 1
+}
+grep -Fq 'node ./hooks/custom-hook.js' "$PROJECT/.claude/settings.local.json" || {
+  echo 'FAIL: the project-owned hook wiring was rewritten' >&2; exit 1
+}
 
 # The v9 contract is installed and shared.
 head -n 1 "$PROJECT/CLAUDE.md" | grep -Fxq '@AGENTS.md' || {

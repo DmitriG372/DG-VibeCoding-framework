@@ -138,6 +138,23 @@ test('the three context hooks run and exit cleanly', () => {
   fs.rmSync(directory, { recursive: true, force: true });
 });
 
+test('pre-compact snapshots into the project root even when run from a subdirectory', () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'dg-subdir-'));
+  spawnSync('git', ['init', '-q'], { cwd: directory });
+  const subdirectory = path.join(directory, 'apps', 'web');
+  fs.mkdirSync(subdirectory, { recursive: true });
+  const result = spawnSync(process.execPath, [path.resolve(__dirname, '../hooks/pre-compact.js')], {
+    cwd: subdirectory,
+    input: JSON.stringify({ session_id: 'test', trigger: 'compact' }),
+    encoding: 'utf8',
+  });
+  const atRoot = fs.existsSync(path.join(directory, '.claude/context-snapshot.json'));
+  const inSubdir = fs.existsSync(path.join(subdirectory, '.claude/context-snapshot.json'));
+  fs.rmSync(directory, { recursive: true, force: true });
+  assert.equal(result.status, 0, result.stderr);
+  assert.ok(atRoot && !inSubdir, 'the snapshot must be written at the repository root');
+});
+
 test('context-reload never orders the agent to read the optional sprint file', () => {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'dg-reload-'));
   const result = spawnSync(process.execPath, [path.resolve(__dirname, '../hooks/context-reload.js')], {

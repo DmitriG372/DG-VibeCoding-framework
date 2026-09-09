@@ -4,20 +4,20 @@
       {
         "matcher": "Read|Grep",
         "hooks": [
-          { "type": "command", "command": "node ./hooks/block-env.js" }
+          { "type": "command", "command": "node \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/hooks/block-env.js\"" }
         ]
       },
       {
         "matcher": "Bash",
         "hooks": [
-          { "type": "command", "command": "node ./hooks/completion-guard.js" }
+          { "type": "command", "command": "node \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/hooks/completion-guard.js\"" }
         ]
       }
     ],
     "PreCompact": [
       {
         "hooks": [
-          { "type": "command", "command": "node ./hooks/pre-compact.js" }
+          { "type": "command", "command": "node \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/hooks/pre-compact.js\"" }
         ]
       }
     ],
@@ -25,13 +25,13 @@
       {
         "matcher": "startup|resume|clear",
         "hooks": [
-          { "type": "command", "command": "node ./hooks/git-context.js" }
+          { "type": "command", "command": "node \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/hooks/git-context.js\"" }
         ]
       },
       {
         "matcher": "compact",
         "hooks": [
-          { "type": "command", "command": "node ./hooks/context-reload.js" }
+          { "type": "command", "command": "node \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/hooks/context-reload.js\"" }
         ]
       }
     ]
