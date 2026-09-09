@@ -4,6 +4,11 @@
 
 **Fixed**
 
+- The hooks and scripts are CommonJS, so in a project whose `package.json`
+  declares `"type": "module"` (lightning-sphere-calc) every one of them
+  crashed on `require` and no hook had ever run there. `hooks/package.json`
+  and `scripts/package.json` now pin `"type": "commonjs"`; the smoke test
+  generates an ESM project and runs the hooks and `verify-install.js` in it.
 - `migrate-to-v9.sh` removed the retired v8 skills only from `.claude/skills/`.
   In the field they also sit under `.agents/skills/` (Codex's root), next to
   Codex-generated `source-command-<name>` mirrors of retired commands, and

@@ -20,6 +20,8 @@ required=(
   .claude/agents/reviewer.md
   .codex/hooks.json
   hooks/block-env.js
+  hooks/package.json
+  scripts/package.json
   scripts/validate-sprint.js
   scripts/verify-install.js
   scripts/stub-check.sh

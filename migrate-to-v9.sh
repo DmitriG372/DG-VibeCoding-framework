@@ -162,6 +162,9 @@ runtime_scripts=(
   switch-repo-access.sh worktree-setup.sh worktree-cleanup.sh handoff-worktree.sh
   headless-review.sh parse-codex-jsonl.js normalize-review.js
 )
+# The hooks and scripts are CommonJS. A project whose package.json says "type": "module" would
+# load them as ESM and crash on `require`; a nested package.json pins the type per directory.
+cp "$FRAMEWORK_DIR/scripts/package.json" "$PROJECT_DIR/scripts/package.json"
 for script in "${runtime_scripts[@]}"; do
   [[ -f "$FRAMEWORK_DIR/scripts/$script" ]] || continue
   cp "$FRAMEWORK_DIR/scripts/$script" "$PROJECT_DIR/scripts/$script"

@@ -95,6 +95,10 @@ PY
   if [ ! -d "$project_dir/.git" ]; then
     git -C "$project_dir" init -q
   fi
+  # A project whose own package.json declares ESM must still run the CommonJS hooks and scripts.
+  [ -f "$project_dir/package.json" ] || printf '{ "name": "smoke", "private": true, "type": "module" }\n' >"$project_dir/package.json"
+  node "$project_dir/scripts/verify-install.js" "$project_dir" >/dev/null 2>"$TMP_ROOT/verify-stderr" \
+    || fail "verify-install.js does not run inside an ESM project: $(cat "$TMP_ROOT/verify-stderr")"
   mkdir -p "$project_dir/sub/dir"
   local stderr_file="$TMP_ROOT/hook-stderr"
   while IFS= read -r command; do
