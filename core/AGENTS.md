@@ -9,6 +9,8 @@ Anything an agent must know lives here. Agent-specific surfaces add convenience,
 session. An explicit user request outranks any state stored in this repo.
 
 Branch prefix: `cc/` for Claude Code, `cx/` for Codex. Work on a branch, not on `main`/`dev`/`master`.
+Start with `git status --short --branch`. Preserve existing edits and staged files. Use the current task
+branch when appropriate; create one from the current checkout otherwise. Never switch another agent's branch.
 
 ## Default loop
 
@@ -16,7 +18,7 @@ Understand → change the minimum that solves it → run the narrowest check tha
 
 - Act when you can act. Do not write a plan for work you could finish in the same turn.
 - Do not stop between steps to ask permission. Stop only for the approval gates below.
-- Do not re-verify what you already verified. One real check is the standard, not a loop.
+- Reuse checks while their inputs are unchanged. Re-run affected checks after a fix or merge.
 - Do not add abstractions, flags, or future-proofing the task did not ask for.
 
 Decompose into written steps only when the work is genuinely large — multiple sessions, or several
@@ -24,12 +26,15 @@ independent tracks. A written plan is a tool for that case, not a precondition f
 
 ## Work
 
-1. Read only the files the task touches.
+1. Read the relevant implementation, callers, and tests; use targeted search rather than loading the repo.
 2. Make the change.
 3. Run the narrowest real check: the one test file, the one typecheck, the actual command.
 4. Report what you ran and what it printed.
 
-Typecheck and formatting belong in `make pre-commit` or CI — once per commit, not once per edit.
+Use the project's documented checks; do not assume `make pre-commit` exists. Batch independent reads.
+For a bug, first capture the failing case, then add a regression check that fails before the fix.
+Test observable behaviour, including the installed artifact for framework/tooling changes.
+A green CI run or matching configuration proves only what its checks exercise.
 
 ## Review
 
@@ -52,12 +57,13 @@ do not apply them automatically. Results stay outside the repository and must no
 ## Done
 
 1. Confirm the change does what was asked. Run the check; show the real output.
-2. Stage the exact files. Never `git add .` or `git add -A`.
-3. Commit with a conventional message describing the change.
-4. Only if `sprint/sprint.json` exists and lists this task: set its `status` and `updated`, commit separately.
+2. If an existing sprint lists this task, update its `status` and `updated` for the same commit.
+3. Stage the exact files and inspect the staged diff. Never `git add .` or `git add -A`.
+4. Commit with a conventional message describing the change.
+5. Report the commit, checks, and remaining work. Push or merge only when requested.
 
-Tests are required when behaviour changed. If a test fails and a few attempts do not fix it, commit
-the work, state which test fails and why, and stop. Do not loop.
+Tests are required when behaviour changed. Diagnose failures and try a targeted fix. If blocked, report
+the failing command, cause, and next step. Do not mark failing work done or commit it as completed.
 
 ## Sprint
 
@@ -79,7 +85,7 @@ Validate with `node scripts/validate-sprint.js sprint/sprint.json`.
 
 Hand a task to the partner agent when it is genuinely independent and needs no live user interaction.
 
-1. Create or pick the task in `sprint/sprint.json`; set `assigned_to` and `branch`.
+1. Create or pick the task in `sprint/sprint.json`; set `assigned_to` and a new, unused `branch`.
 2. `scripts/handoff-worktree.sh <task-id> <cc|cx>` — validates, makes the coordination commit, creates
    the worktree, prints its path.
 3. Give the user the launch line: `cd <worktree> && codex --sandbox workspace-write` (or `claude`).
@@ -88,7 +94,8 @@ The partner works in that worktree and sets `status: in_review` when finished. M
 
 ## Approval gates
 
-Stop and ask only for these. Everything else: decide and proceed.
+Ask only when an action below is not already authorized by the user. Carry existing authorization
+forward within its stated scope. Everything else: decide and proceed.
 
 - Production deploy, production database changes, DNS/domain/SSL, production environment variables
 - `git push --force`, `git reset --hard`, `git clean -f`, `git branch -D`, deleting a branch or worktree
@@ -100,7 +107,7 @@ Stop and ask only for these. Everything else: decide and proceed.
 
 - Edit `.env*`, `secrets/*`, credentials, or `.git/` internals
 - Commit with `--no-verify`, or commit secret material
-- Edit a test in order to make a failing test pass
+- Weaken a test to hide a defect; update expectations only when the required behaviour changed
 - Rename files, refactor untouched code, or widen scope without being asked
 - Paste `.env` values, API keys, or database URIs into chat or commit messages
 - Claim something works without having run it
@@ -110,8 +117,8 @@ rules, stop and say so — that is the guardrail working, not a failure.
 
 ## Evidence
 
-State what you ran and what it returned. If a step failed, report the real error and stop; do not
-continue as though it succeeded and do not invent a result.
+State what you ran and what it returned. Distinguish tested behaviour from assumptions and untested
+runtime integrations. A failed step is evidence to diagnose, never a success to report.
 
 "Should work", "tests should pass", "I've updated the file", and "everything is in place" are not
 evidence. A command and its output are.
