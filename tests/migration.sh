@@ -14,6 +14,10 @@ mkdir -p "$PROJECT/.claude/skills/custom/references" "$PROJECT/.claude/skills/te
 printf '%s\n' '# custom skill'      > "$PROJECT/.claude/skills/custom/SKILL.md"
 printf '%s\n' 'custom reference'    > "$PROJECT/.claude/skills/custom/references/info.md"
 printf '%s\n' '# framework skill'   > "$PROJECT/.claude/skills/testing/SKILL.md"
+mkdir -p "$PROJECT/.agents/skills/partnership" "$PROJECT/.agents/skills/source-command-orchestrate" "$PROJECT/.agents/skills/own"
+printf '%s\n' '# retired skill in codex root' > "$PROJECT/.agents/skills/partnership/SKILL.md"
+printf '%s\n' '# mirror of a retired command' > "$PROJECT/.agents/skills/source-command-orchestrate/SKILL.md"
+printf '%s\n' '# project skill in codex root' > "$PROJECT/.agents/skills/own/SKILL.md"
 printf '%s\n' '# framework rule'    > "$PROJECT/.claude/rules/execution-integrity.md"
 printf '%s\n' '# custom agent'      > "$PROJECT/.claude/agents/custom.md"
 printf '%s\n' '# framework agent'   > "$PROJECT/.claude/agents/plan-checker.md"
@@ -72,6 +76,7 @@ PATH="$FAKE_BIN:$PATH" "$ROOT_DIR/migrate-to-v9.sh" "$PROJECT" >/dev/null
 for preserved in \
   .claude/skills/custom/SKILL.md \
   .claude/skills/custom/references/info.md \
+  .agents/skills/own/SKILL.md \
   .claude/agents/custom.md \
   .claude/commands/custom.md \
   hooks/custom-hook.js \
@@ -91,6 +96,8 @@ grep -Fq 'custom-hook.js' "$PROJECT/.claude/settings.local.json"
 # The framework machinery is gone.
 for removed in \
   .claude/skills/testing/SKILL.md \
+  .agents/skills/partnership \
+  .agents/skills/source-command-orchestrate \
   .claude/rules/execution-integrity.md \
   .claude/agents/plan-checker.md \
   .claude/commands/sprint-init.md \

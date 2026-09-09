@@ -87,7 +87,9 @@ echo "migration: backup created at $BACKUP_DIR"
 
 # --- remove the retired v8 machinery ------------------------------------------
 for name in "${RETIRED_RULES[@]}";    do rm -f  "$PROJECT_DIR/.claude/rules/$name.md"; done
-for name in "${RETIRED_SKILLS[@]}";   do rm -rf "$PROJECT_DIR/.claude/skills/$name"; done
+for name in "${RETIRED_SKILLS[@]}";   do rm -rf "$PROJECT_DIR/.claude/skills/$name" "$PROJECT_DIR/.agents/skills/$name"; done
+# Codex mirrors commands as .agents/skills/source-command-<name>; drop the mirrors of retired commands.
+for name in "${RETIRED_COMMANDS[@]}"; do rm -rf "$PROJECT_DIR/.agents/skills/source-command-$name"; done
 for name in "${RETIRED_COMMANDS[@]}"; do rm -f  "$PROJECT_DIR/.claude/commands/$name.md"; done
 for name in "${RETIRED_AGENTS[@]}";   do rm -f  "$PROJECT_DIR/.claude/agents/$name.md"; done
 for name in "${RETIRED_HOOKS[@]}";    do rm -f  "$PROJECT_DIR/hooks/$name.js"; done
@@ -95,7 +97,7 @@ for name in "${RETIRED_ROOT[@]}";     do rm -f  "$PROJECT_DIR/$name"; done
 rm -rf "$PROJECT_DIR/.tasks"
 rm -f "$PROJECT_DIR/sprint/sprint.md"          # v8 generated overview; nothing regenerates it
 rm -f "$PROJECT_DIR/hooks/lib/hook-input.js"   # by name — a project's own hooks/lib survives
-rmdir "$PROJECT_DIR/hooks/lib" "$PROJECT_DIR/.claude/rules" "$PROJECT_DIR/.claude/skills" 2>/dev/null || true
+rmdir "$PROJECT_DIR/hooks/lib" "$PROJECT_DIR/.claude/rules" "$PROJECT_DIR/.claude/skills" "$PROJECT_DIR/.agents/skills" 2>/dev/null || true
 
 # --- strip the retired wirings out of both settings files ---------------------
 for config in "$PROJECT_DIR/.claude/settings.local.json" "$PROJECT_DIR/.codex/hooks.json"; do
