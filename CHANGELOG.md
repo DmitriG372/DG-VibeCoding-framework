@@ -4,6 +4,13 @@
 
 **Fixed**
 
+- `migrate-to-v9.sh` removed the retired v8 skills only from `.claude/skills/`.
+  In the field they also sit under `.agents/skills/` (Codex's root), next to
+  Codex-generated `source-command-<name>` mirrors of retired commands, and
+  `verify-install.js` failed on their dangling references. Both are now
+  removed by name; a project's own skills in either root survive.
+- `core/CLAUDE.md` takes the one Claude-only line the installed projects had
+  rewritten by hand (delegate sizeable work, fresh reviewer for risky changes).
 - Hook wiring was `node ./hooks/x.js`, and both runtimes run hooks in the
   session cwd, so every hook failed with `Cannot find module` whenever Claude
   Code or Codex was started from a subdirectory. Both templates now resolve
