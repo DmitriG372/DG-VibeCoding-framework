@@ -11,7 +11,7 @@ const { add } = require('../src/add');
 test('add sums two numbers', () => { assert.equal(add(2, 3), 5); });
 JS
 cat > package.json <<'JSON'
-{ "name": "eval-fixture", "private": true, "scripts": { "test": "node --test test/" } }
+{ "name": "eval-fixture", "private": true, "scripts": { "test": "node --test" } }
 JSON
 git add src test package.json
 git commit -qm 'fixture: failing add test'
